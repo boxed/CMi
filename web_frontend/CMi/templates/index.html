@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <table class="menu">
+        <tr>
+            <td url="/tvshows/">
+                <h1>TV Shows</h1>
+                {{ new_episodes }} new episodes
+            </td>
+            <td url="/movies/">
+                <h1>Movies</h1>
+                {{ new_movies }} new / {{ total_movies }} total
+            </td>
+            <td url="/weather/">
+                <h1>Weather</h1>
+                {% if weather %}
+                    {{ weather.current_conditions.temp_c }}&deg;
+                    {% if weather.current_conditions.icon %}
+                        <img style="width: 30px" src="/site-media/weather/{{ weather.current_conditions.icon }}" />
+                    {% endif %}
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <!-- 
+            <td url="/telldus/2/off">
+                TV Off
+            </td>
+             -->
+        </tr>
+    </table>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <h1 class="header">TV Shows</h1>
+    
+    <table class="menu list">
+        {% for show in shows %}
+            {% if show.unwatched_episodes.count %}
+                <tr>
+                    <td url="/tvshows/{{ show.id }}/">
+                        {{ show }}
+                        <span style="font-size: 70%">{{ show.unwatched_episodes.count }}/{{ show.episodes.count }}</span>
+                    </td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+{% endblock %}

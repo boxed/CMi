@@ -1,0 +1,229 @@
+{% if not ajax %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{% block title %}CMi{% endblock %}</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+        <style type="text/css" title="currentStyle"> 
+            @import "/site-media/style2.css";
+        </style> 
+        <script src="/site-media/jquery.ensurevisible.js"></script>
+        <script src="/site-media/jquery.intoViewport.min.js"></script>
+    </head>
+    
+    <body>
+        {% include "back_button.html" %}
+        
+        <div id="clock"></div>
+        
+{% endif %}
+        {% block contents %}{% endblock %}        
+{% if not ajax %}
+        <script>
+            var menu_history = new Array();
+            var menu_history_position = new Array();
+            //var keys = null;
+            /*var flip_options = {
+                duration: 300,
+              
+                step: function(now, fx) {
+                    if (now < 0) {
+                        now = -(-now-50)+50;
+                    }
+                    var deg = now*0.9;
+                    var offset = now;
+                    var perspective = 200;
+                    fx.elem.style.webkitTransform = 'translate3d(-'+offset*3+'px, 0, 0) perspective('+perspective+'px) rotateY(-'+deg+'deg)';
+                }
+            }*/
+            function pad(number, length) {
+                var str = '' + number;
+                while (str.length < length) {
+                    str = '0' + str;
+                }
+                return str;
+            }
+            function flip_in(selector) {
+                //$(selector).stop(true, true).animate({foo: -100}, flip_options);
+                $(selector).addClass('display');
+                xy = menu_history_position[menu_history_position.length-1]
+                set_focus(xy[0], xy[1]);
+                setup_menu();
+                show_hide_back_button();
+            }
+            function flip_out(selector) {
+                //$(selector).stop(true, true).animate({foo: 100}, flip_options);
+                //$(selector).removeClass('display');
+                $(selector).remove();
+            }
+            function get_cell(x, y) {
+                return $($('.display tr:eq('+y+')>td:eq('+x+')')[0]);
+            }
+            function get_x_y_of(cell) {
+                if (cell)
+                    return [
+                        $('td', cell.parentNode).index(cell),
+                        $('tr', cell.parentNode.parentNode).index(cell.parentNode)
+                    ];
+                else {
+                    return [0, 0];
+                }
+            }
+            function current_cell() {
+                return $('.focus')[0];
+            }
+            function go(item) {
+                if ($(item).attr('url')) {
+                    var url = $(item).attr('url');
+                    if (url == ':back')
+                        back();
+                    else {
+                        flip_out('.display');
+                        $('.header').remove();
+                        $.ajax({
+                            url: url,
+                            data: {ajax: 'True'},   
+                            success: function(data) {
+                                console.log(data);
+                                var d = $(data);
+                                $('body').append(d);
+                                menu_history.push(url);
+                                menu_history_position.push([0, 0]);
+                                flip_in(d);
+                            }
+                        });
+                    }
+                }
+            }
+            function del(item) {
+                if ($(item).attr('url')) {
+                    var url = $(item).attr('url');
+                    $.ajax({
+                        url: url+'ended',
+                        data: {ajax: 'True'},   
+                        success: function(data) {
+                        }
+                    });
+                    old_xy = get_x_y_of(current_cell());
+                    $(item).parent().remove();
+                    set_focus(old_xy[0], old_xy[1]);
+                    if (!current_cell()) {
+                        old_xy[1] -= 1;
+                        set_focus(old_xy[0], old_xy[1]);
+                    }
+                }
+            }
+            function setup_menu() {
+                $('.menu td').click(function() {
+                    if ($(this).attr('url')) {
+                        go(this);
+                    }
+                });
+                $('.menu td').hover(function() {
+                    $('.focus').removeClass('focus');
+                    $(this).addClass('focus');
+                });
+            }
+            function set_focus(x, y) {
+                //console.log('set_focus '+x+' '+y)
+                if (get_cell(x, y).length) {
+                    $('.focus').removeClass('focus');
+                    var cell = get_cell(x, y);
+                    cell.addClass('focus');
+                    cell.intoViewport();
+                    menu_history_position[menu_history_position.length-1] = [x, y]
+                }
+            }
+            function back(){
+                if (menu_history.length > 1) {
+                    menu_history.pop();
+                    menu_history_position.pop();
+                    if (menu_history.length > 0) {
+                        var url = menu_history[menu_history.length-1];
+                        $.ajax({
+                            url: url,
+                            data: {ajax: 'True'},
+                            success: function(data) {
+                                //console.log(data);
+                                $('.header').remove();
+                                $('table').remove();
+                                var d = $(data);
+                                $('body').append(d);
+                                flip_in('.menu');
+                            }
+                        });
+                    }
+                    show_hide_back_button();
+                }
+            }
+            
+            function show_hide_back_button() {
+                if (menu_history.length <= 1) {
+                    jQuery('#back_link').animate({opacity: '0'}, {duration: 300});
+                }
+                else {
+                    jQuery('#back_link').animate({opacity: '1'}, {duration: 300});
+                }
+            }
+
+            $(document).ready(function (){
+                menu_history.push('/');
+                menu_history_position.push([0, 0])
+                flip_in('table');
+                setup_menu();
+
+                {% block keyhandlers %}{% endblock %}
+                              
+                $(document).keyup(function(e) {e.preventDefault(); return false;});
+                $(document).keydown(function(e) {
+                    switch (e.keyCode) {
+                        case 27: // esc
+                        case 8: // backspace
+                            back();
+                            break;
+                        case 39: // right arrow
+                            xy = get_x_y_of(current_cell());
+                            xy[0] += 1;
+                            set_focus(xy[0], xy[1])
+                            break;
+                        case 40: // down arrow
+                            xy = get_x_y_of(current_cell());
+                            xy[1] += 1;
+                            set_focus(xy[0], xy[1])
+                            break;
+                        case 37: // left arrow
+                            xy = get_x_y_of(current_cell());
+                            xy[0] -= 1;
+                            set_focus(xy[0], xy[1])
+                            break;
+                        case 38: // up arrow
+                            xy = get_x_y_of(current_cell());
+                            xy[1] -= 1;
+                            set_focus(xy[0], xy[1])
+                            break;
+                        case 13: // return
+                            go($('.focus'));
+                            break;
+                        case 'D'.charCodeAt(0):
+                            del($('.focus'));
+                            break;
+                        default:
+                            break;
+                    }
+                    e.preventDefault();
+                    return false;
+                });
+            });
+            
+            function update_clock() {
+                var d = new Date();
+                $('#clock').html(d.getHours()+':'+pad(d.getMinutes(), 2));
+                setTimeout(update_clock, 500);
+            }
+            setTimeout(update_clock, 500);
+
+            //jQuery('tr:eq('+y+')>td:eq('+x+')', _nBody )[0];
+        </script>
+    </body>
+</html>
+{% endif %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <h1 class="header">Movies</h1>
+    
+    <table class="menu list">
+        {% for movie in movies %}
+            <tr>
+                <td url="/movies/{{ movie.id }}/">
+                    {{ movie }}
+                    <span style="font-size: 70%;">{{ movie.aired }}</span>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

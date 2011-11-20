@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <h1 class="header">Weather</h1>
+
+    <table class="dash">
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <td colspan="4">
+                            {{ weather.current_conditions.temp_c }}&deg;
+                            {{ weather.current_conditions.humidity }}
+                        </td>
+                    </tr>
+                    {% for forecast in weather.forecasts %}
+                        <tr>
+                            <td>
+                                {{ forecast.day_of_week }}:
+                            </td>
+                            <td>
+                                {{ forecast.high }}&deg;
+                            </td>
+                            <td>
+                                {{ forecast.low }}&deg;
+                            </td>
+                            <td>
+                                {% if forecast.icon %}
+                                    <img style="width: 30px" src="/site-media/weather/{{ forecast.icon }}" />
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+            </td>
+        </tr>
+    </table>
+{% endblock %}

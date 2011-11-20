@@ -1,0 +1,5 @@
+django
+formencode
+imdbpy
+BeautifulSoup
+tvdb

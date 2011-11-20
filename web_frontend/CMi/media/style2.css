@@ -1,0 +1,129 @@
+html {
+    height: 100%;
+}
+
+h1 {
+    font-weight: lighter;
+}
+
+body {
+    font-family: century gothic;
+    /*
+     candara
+    */
+    border: 0;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    background: #471e5a;
+    background: -webkit-gradient(linear, left top, right top, from(#3b1048), to(#470e48));
+}
+
+.header {
+    color: white;
+    position: absolute;
+    left: 180px;
+    top: 45px;
+    font-size: 45px;
+}
+
+td h1 {
+    font-size: 45px;
+}
+
+td {
+    font-size: 30px;
+    color: white;
+    vertical-align: top;
+}
+
+.menu .focus {
+    background: -webkit-gradient(linear, left top, right top, from(#23B4A9), to(#188E86));
+    /*-webkit-transform: scale(1);
+    -webkit-transition-duration: 0s, 0.3s;*/
+}
+
+/*.gone {
+    -webkit-transform: translate3d(-100px, 0, 0) perspective(200px) rotateY(-90deg);
+    -webkit-transition-duration: 0s, 0.3s;
+}
+
+.back {
+    -webkit-transform: translate3d(0, 0, 0) perspective(0) rotateY(0deg);
+    -webkit-transition-duration: 0s, 0.3s;
+}*/
+
+.dash {
+    position: absolute;
+    top: 150px;
+    left: 150px;
+    background: -webkit-gradient(linear, left top, right top, from(#0159a3), to(#004278));
+    padding: 30px;
+}
+
+.dash td h1 {
+    font-size: 90px;
+    margin-top: 0;
+}
+
+.dash td {
+    font-size: 150%;
+}
+
+table.list {
+    position: absolute;
+    top: 135px;
+    left: 150px;
+    border-spacing: 15px;
+}
+
+table.list td {
+    padding: 15px 30px 15px 30px;
+    cursor: pointer;
+}
+
+.menu {
+    border-spacing: 75px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.menu td {
+    /*-webkit-transform: scale(0.9);
+    -webkit-transition-duration: 0s, 0.3s;*/
+    background: #872c6f;
+    padding: 45px 75px 45px 75px;
+    background: -webkit-gradient(linear, left top, right top, from(#6b1d57), to(#7d2764));
+    cursor: pointer;
+}
+
+#back_link {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: 60px;
+    height: 60px;
+    opacity: 0;
+}
+
+#clock {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    color: white;
+    font-size: 30px;
+}
+
+
+/*
+ Colors:
+ bg: #360a3f -> #431963
+ #6b1d57 -> #7d2764
+ #25aea4
+ #466ecd
+ #89a007
+ #dd9100
+ #e84f0b
+ #0159a3
+*/

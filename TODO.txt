@@ -1,0 +1,9 @@
+- DONE? When movie or TV show is done it should be be stopped and marked as viewed automatically
+- DONE: Backspace is the same as ESC in the menus
+- DONE: Clock
+- DONE: Video player: when cursor moves show the on screen controls, hide on timeout when playing
+
+- Autodetect new TV shows and suggest them. Should remember shows the used declined to add
+- Gestures
+- SEMIDONE: Clickable back-button
+    Show only when cursor is moving, hide after a timeout
