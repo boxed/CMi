@@ -57,6 +57,7 @@ typedef enum {
     AppleRemote* remote;
     NSTimer* GUITimer;
     Mode mode;
+    BOOL stickyOnScreenControls;
 }
 
 @property(assign) IBOutlet BorderLessWindow *window;

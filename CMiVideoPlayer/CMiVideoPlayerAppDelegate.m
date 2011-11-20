@@ -38,6 +38,7 @@ void key(int code)
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(webServerWroteToStdOut:) name:NSFileHandleReadCompletionNotification object:nil];
+    stickyOnScreenControls = NO;
     
     // Set up webserver backend
     NSArray* arguments = [NSArray arrayWithObjects:@"-u", @"CMi/manage.py", @"runserver", @"--noreload", nil];
@@ -269,18 +270,22 @@ void setAlpha(NSView* v)
 - (void)toggleOnScreenControls
 {
     if (self->showingOnScreenControls) {
+        stickyOnScreenControls = NO;
         [self hideOnScreenControls];
     }
     else {
         [self showOnScreenControls];
+        stickyOnScreenControls = YES;
     }
     [self refreshOnScreenControls];
 }
 
 - (void)hideOnScreenControls
 {
-    [[self->HUDWindow animator] setAlphaValue:0.0];
-    self->showingOnScreenControls = NO;
+    if (!stickyOnScreenControls) {
+        [[self->HUDWindow animator] setAlphaValue:0.0];
+        self->showingOnScreenControls = NO;
+    }
 }
 
 - (void)showOnScreenControls
@@ -348,7 +353,6 @@ void setAlpha(NSView* v)
 {
     [[NSUserDefaults standardUserDefaults] setFloat:volume forKey:@"volume"];
     [self->movie setVolume:volume];
-    [self showVolume];
 }
 
 
