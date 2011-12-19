@@ -39,6 +39,7 @@
 		AEBF087313AB6D5A0010B7A4 /* stop.png in Resources */ = {isa = PBXBuildFile; fileRef = AEBF086C13AB6D5A0010B7A4 /* stop.png */; };
 		AEC6F65E145DA37500EC90FA /* OverlayWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = AEC6F65D145DA37500EC90FA /* OverlayWindow.m */; };
 		AEDA957A13AE814800174B14 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AEDA957913AE814800174B14 /* Security.framework */; };
+		AEDAB777149FE59000F0125F /* django in Resources */ = {isa = PBXBuildFile; fileRef = AEDAB776149FE59000F0125F /* django */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -103,6 +104,7 @@
 		AEC6F65C145DA37500EC90FA /* OverlayWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayWindow.h; sourceTree = "<group>"; };
 		AEC6F65D145DA37500EC90FA /* OverlayWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayWindow.m; sourceTree = "<group>"; };
 		AEDA957913AE814800174B14 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		AEDAB776149FE59000F0125F /* django */ = {isa = PBXFileReference; lastKnownFileType = folder; name = django; path = django/django; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -195,6 +197,7 @@
 		AE4BD03313A3AB360009E6E0 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				AEDAB776149FE59000F0125F /* django */,
 				AE2F4A501465C62700DBF84E /* web_frontend */,
 				AE4BD03413A3AB360009E6E0 /* CMiVideoPlayer-Info.plist */,
 				AE4BD03513A3AB360009E6E0 /* InfoPlist.strings */,
@@ -297,6 +300,7 @@
 				AE1BC41D13B2875100D3EB50 /* icon.icns in Resources */,
 				AE2F4A511465C62700DBF84E /* web_frontend in Resources */,
 				AE6F3E6E1472D97400307417 /* TODO.txt in Resources */,
+				AEDAB777149FE59000F0125F /* django in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
