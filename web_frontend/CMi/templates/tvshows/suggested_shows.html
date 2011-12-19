@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <h1 class="header">Suggested TV Shows</h1>
+    
+    <table class="menu list">
+        {% for suggested_show in suggested_shows %}
+            <tr>
+                <th>{{ suggested_show.name|title }}</th>
+                <td url="/tvshows/suggested/{{ suggested_show.id }}/add/">Add</td>
+                <td url="/tvshows/suggested/{{ suggested_show.id }}/ignore/">Ignore</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
