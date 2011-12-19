@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block contents %}
-    <h1 class="header">{{ show }}</h1>
+    <h1 class="header">{{ show.name|title }}</h1>
     
-    <table class="menu list">
+    <table id="tiles" class="list">
         {% for episode in show.unwatched_episodes %}
             <tr>
-                <td url="/tvshows/{{ show.id }}/{{ episode.id }}/">
+                <td class="tile" url="/tvshows/{{ show.id }}/{{ episode.id }}/">
                     {{ episode.description }}
                 </td>
             </tr>

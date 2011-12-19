@@ -1,10 +1,11 @@
 import os
 import os.path
 import subprocess
+from CMi.engine import SUPPORTED_FILE_FORMATS, playable_path
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from CMi.tvshows.models import *
-from CMi.tvshows.sort_eps import SUPPORTED_FILE_FORMATS
+import tvdb
 
 def index(request):
     return render(request, 'tvshows/index.html', {'shows': Show.objects.all()})
@@ -15,16 +16,7 @@ def show(request, show_id):
 
 def play_episode(request, show_id, episode_id):
     episode = get_object_or_404(Episode, pk=episode_id)
-    path = episode.filepath
-    if os.path.isdir(path):
-        for root, dirs, files in os.walk(path):
-            if 'Sample' in root:
-                continue
-            for f in files:
-                extension = os.path.splitext(f)[1]
-                if extension in SUPPORTED_FILE_FORMATS:
-                    path = os.path.join(root, f)
-                    break
+    path = playable_path(episode.filepath)
     print 'playing ', episode, 'at', path
     subprocess.call(['open', 'CMiVideoPlayer://%s?seconds=%s&callback=tvshows/%s/%s' % (path, episode.position, episode.show.pk, episode.pk)])
     return render(request, 'playing.html', {})
@@ -40,3 +32,25 @@ def episode_position(request, show_id, episode_id, position):
     episode.position = position
     episode.save()
     return HttpResponse('ok')
+
+def suggested_shows(request):
+    return render(request, 'tvshows/suggested_shows.html', {'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
+
+def add_suggested_show(request, suggested_show_id):
+    s = SuggestedShow.objects.get(pk=suggested_show_id)
+    description = tvdb.get_series(s.name)[0]['overview'] or ''
+    Show.objects.create(name=s.name, description=description)
+    s.delete()
+    if SuggestedShow.objects.all().count():
+        return HttpResponse(':refresh')
+    else:
+        return HttpResponse(':back')
+
+def ignore_suggested_show(request, suggested_show_id):
+    s = SuggestedShow.objects.get(pk=suggested_show_id)
+    s.ignore = True
+    if SuggestedShow.objects.all().count():
+        return HttpResponse(':refresh')
+    else:
+        return HttpResponse(':back')
+    

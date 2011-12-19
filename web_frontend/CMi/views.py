@@ -1,24 +1,56 @@
+from CMi.movies.sort_movies import handle_movie, run_movies_cleanup
+from CMi.tvshows.sort_eps import handle_tv_show_episode, run_tv_shows_cleanup, run_tv_shows_extra
 from django.http import HttpResponse
 from django.shortcuts import render
 import pywapi
 from CMi.tvshows.models import *
-from CMi.tvshows import sort_eps
-from CMi.movies import sort_movies
 from CMi.movies.models import *
-import threading
-import os
+from CMi.engine import match_file, find_videos
 
 #def telldus_command(id, command):
 #    os.system('arch -i386 /usr/bin/python2.6 CMi/tellstick.py %s %s' % (command, id))
 
+weather_icon_translation = {
+    '/ig/images/weather/sunny.gif': '/site-media/weather/sun.svg',
+    '/ig/images/weather/mostly_sunny.gif': '/site-media/weather/sun.svg',
+    '/ig/images/weather/rain.gif': '/site-media/weather/rain.svg',
+    '/ig/images/weather/chance_of_rain.gif': '/site-media/weather/rain.svg',
+
+    '/ig/images/weather/partly_cloudy.gif': '/site-media/weather/partly_cloudy.svg',
+    '/ig/images/weather/mostly_cloudy.gif': '/site-media/weather/partly_cloudy.svg',
+    '/ig/images/weather/cloudy.gif': '/site-media/weather/cloud.svg',
+
+    '/ig/images/weather/mist.gif': '/site-media/weather/fog.svg',
+    '/ig/images/weather/fog.gif': '/site-media/weather/fog.svg',
+
+    '/ig/images/weather/storm.gif': '/site-media/weather/wind.svg',
+    '/ig/images/weather/chance_of_storm.gif': '/site-media/weather/wind.svg',
+    '/ig/images/weather/thunderstorm.gif': '/site-media/weather/wind.svg',
+    '/ig/images/weather/chance_of_tstorm.gif': '/site-media/weather/wind.svg',
+
+    '/ig/images/weather/sleet.gif': '/site-media/weather/snow.svg', # really hail
+    '/ig/images/weather/snow.gif': '/site-media/weather/snow.svg',
+    '/ig/images/weather/chance_of_snow.gif': '/site-media/weather/snow.svg',
+
+#    '/ig/images/weather/icy.gif': '',
+#    '/ig/images/weather/dust.gif': '',
+#    '/ig/images/weather/smoke.gif': '',
+#    '/ig/images/weather/haze.gif': '',
+#    '/ig/images/weather/flurries.gif': '',
+}
+
 def fix_icon_path(s):
-    return s.replace('/ig/images/weather/', '').replace('.gif', '.png')
+    if s in weather_icon_translation:
+        return weather_icon_translation[s]
+    else:
+        print 'no weather icon for', s
+        return ''
 
 def get_weather(place='Stockholm,Sweden'):
     try:
         weather = pywapi.get_weather_from_google(place)
         weather['current_conditions']['icon'] = fix_icon_path(weather['current_conditions']['icon'])
-        # convert temperatures to celcius
+        # convert temperatures to celsius
         for value in weather['forecasts']:
             value['high'] = int(round((float(value['high'])-32)*5.0/9.0))
             value['low'] = int(round((float(value['low'])-32)*5.0/9.0))
@@ -27,13 +59,27 @@ def get_weather(place='Stockholm,Sweden'):
     except:
         return None
 
+def search_for_new_files(request):
+    should_refresh = False
+    for video in find_videos():
+        m = match_file(video)
+        if m:
+            if m[0] == 'movie':
+                if handle_movie(m):
+                    should_refresh = True
+            elif m[0] == 'tv show':
+                if handle_tv_show_episode(m):
+                    should_refresh = True
+    run_tv_shows_cleanup()
+    run_tv_shows_extra()
+    run_movies_cleanup()
+    return HttpResponse(':refresh' if should_refresh else ':nothing')
+
 def index(request):
-    threading.Thread(target=sort_eps.do_all).start()
-    threading.Thread(target=sort_movies.do_all).start()
-    #threading.Thread(target=telldus_command, args=(2, 'on')).start()
     c = {
         'weather': get_weather(),
         'new_episodes': Episode.objects.filter(watched=False).count(),
+        'new_shows': SuggestedShow.objects.filter(ignored=False).count(),
         'new_movies': Movie.objects.filter(watched=False).count(),
         'total_movies': Movie.objects.filter().count(),
     }

@@ -1,7 +1,7 @@
 from django.db import models
 
 class Show(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True)
 
     def __unicode__(self):
@@ -12,6 +12,13 @@ class Show(models.Model):
         
     def unwatched_episodes(self):
         return self.episodes.filter(watched=False)
+
+class SuggestedShow(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    ignored = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['name']
 
 class Episode(models.Model):
     show = models.ForeignKey(Show, related_name='episodes')

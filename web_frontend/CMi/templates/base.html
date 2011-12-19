@@ -17,25 +17,13 @@
         <div id="clock"></div>
         
 {% endif %}
-        {% block contents %}{% endblock %}        
+        {% block contents %}<div class="contents"></div>{% endblock %}
 {% if not ajax %}
         <script>
+            var transitionDuration = 1700;
             var menu_history = new Array();
             var menu_history_position = new Array();
-            //var keys = null;
-            /*var flip_options = {
-                duration: 300,
-              
-                step: function(now, fx) {
-                    if (now < 0) {
-                        now = -(-now-50)+50;
-                    }
-                    var deg = now*0.9;
-                    var offset = now;
-                    var perspective = 200;
-                    fx.elem.style.webkitTransform = 'translate3d(-'+offset*3+'px, 0, 0) perspective('+perspective+'px) rotateY(-'+deg+'deg)';
-                }
-            }*/
+
             function pad(number, length) {
                 var str = '' + number;
                 while (str.length < length) {
@@ -44,17 +32,45 @@
                 return str;
             }
             function flip_in(selector) {
-                //$(selector).stop(true, true).animate({foo: -100}, flip_options);
                 $(selector).addClass('display');
-                xy = menu_history_position[menu_history_position.length-1]
+                var xy = menu_history_position[menu_history_position.length-1];
                 set_focus(xy[0], xy[1]);
                 setup_menu();
                 show_hide_back_button();
+
+                $(selector).css({'z-index':'0'});
+                var tiles = $('.display .tile');
+                prepare_tiles(tiles);
+                var _i = 0;
+                tiles.each(function() {
+                    $(this).css({
+                        webkitTransform:"translate3d(0,0,0) rotateY(0deg)",
+                        webkitTransitionDelay:_i * 80 + "ms",
+                        webkitTransitionDuration:transitionDuration+'ms'});
+                    _i++;
+                });
+                $('.header.display').css('opacity', 1)
             }
-            function flip_out(selector) {
-                //$(selector).stop(true, true).animate({foo: 100}, flip_options);
-                //$(selector).removeClass('display');
-                $(selector).remove();
+            function flip_out() {
+                var tile_container = $('#tiles.display');
+                tile_container.css({'z-index':'100'});
+                var header = $('.header.display');
+                header.css('opacity', 0);
+                header.removeClass('display');
+                var tiles = $('.display .tile');
+                tiles.css('z-index', '5000');
+                var _i = 0;
+                tiles.each(function() {
+                    $(this).css({webkitTransform:"translate3d(0,0,0) rotateY(-90deg)",webkitTransitionDelay:_i * 80 + "ms",webkitTransitionDuration:transitionDuration+'ms'});
+                    _i++;
+                });
+                tiles.removeClass('tile');
+                setTimeout(function() {
+                    tiles.remove();
+                    header.remove();
+                    tile_container.remove();
+                }, transitionDuration);
+                $('.display').removeClass('display');
             }
             function get_cell(x, y) {
                 return $($('.display tr:eq('+y+')>td:eq('+x+')')[0]);
@@ -69,27 +85,52 @@
                     return [0, 0];
                 }
             }
+            function refresh() {
+                var url = menu_history[menu_history.length-1];
+                $.ajax({
+                       url: url,
+                       data: {ajax: 'True'},
+                       success: function(data) {
+                           //console.log(data);
+                           $('.header').remove();
+                           $('table').remove();
+                           var d = $(data);
+                           $('body').append(d);
+                           flip_in(d);
+                       }
+                });
+            }
             function current_cell() {
                 return $('.focus')[0];
             }
             function go(item) {
+                $(item).css('-webkit-transform', 'scale(0.7)')
                 if ($(item).attr('url')) {
                     var url = $(item).attr('url');
                     if (url == ':back')
                         back();
                     else {
-                        flip_out('.display');
-                        $('.header').remove();
+                        flip_out();
                         $.ajax({
                             url: url,
                             data: {ajax: 'True'},   
                             success: function(data) {
-                                console.log(data);
-                                var d = $(data);
-                                $('body').append(d);
-                                menu_history.push(url);
-                                menu_history_position.push([0, 0]);
-                                flip_in(d);
+                                //console.log(data);
+                                if (data == ':nothing') {
+                                }
+                                else if (data == ':refresh') {
+                                    refresh();
+                                }
+                                else if (data == ':back') {
+                                    back();
+                                }
+                                else {
+                                    var d = $(data);
+                                    $('body').append(d);
+                                    menu_history.push(url);
+                                    menu_history_position.push([0, 0]);
+                                    flip_in(d);
+                                }
                             }
                         });
                     }
@@ -104,7 +145,7 @@
                         success: function(data) {
                         }
                     });
-                    old_xy = get_x_y_of(current_cell());
+                    var old_xy = get_x_y_of(current_cell());
                     $(item).parent().remove();
                     set_focus(old_xy[0], old_xy[1]);
                     if (!current_cell()) {
@@ -113,16 +154,19 @@
                     }
                 }
             }
+
+            function do_hover() {
+              $('.focus').removeClass('focus');
+              $(this).addClass('focus');
+            }
+
             function setup_menu() {
-                $('.menu td').click(function() {
+                $('.tile').click(function() {
                     if ($(this).attr('url')) {
                         go(this);
                     }
                 });
-                $('.menu td').hover(function() {
-                    $('.focus').removeClass('focus');
-                    $(this).addClass('focus');
-                });
+                $('.tile').hover(do_hover);
             }
             function set_focus(x, y) {
                 //console.log('set_focus '+x+' '+y)
@@ -134,8 +178,9 @@
                     menu_history_position[menu_history_position.length-1] = [x, y]
                 }
             }
-            function back(){
+            function back() {
                 if (menu_history.length > 1) {
+                    flip_out();
                     menu_history.pop();
                     menu_history_position.pop();
                     if (menu_history.length > 0) {
@@ -145,11 +190,9 @@
                             data: {ajax: 'True'},
                             success: function(data) {
                                 //console.log(data);
-                                $('.header').remove();
-                                $('table').remove();
                                 var d = $(data);
                                 $('body').append(d);
-                                flip_in('.menu');
+                                flip_in(d);
                             }
                         });
                     }
@@ -168,50 +211,61 @@
 
             $(document).ready(function (){
                 menu_history.push('/');
-                menu_history_position.push([0, 0])
+                menu_history_position.push([0, 0]);
                 flip_in('table');
-                setup_menu();
 
                 {% block keyhandlers %}{% endblock %}
                               
                 $(document).keyup(function(e) {e.preventDefault(); return false;});
                 $(document).keydown(function(e) {
+                    var xy;
                     switch (e.keyCode) {
                         case 27: // esc
                         case 8: // backspace
                             back();
-                            break;
+                            e.preventDefault();
+                            return false;
                         case 39: // right arrow
                             xy = get_x_y_of(current_cell());
                             xy[0] += 1;
-                            set_focus(xy[0], xy[1])
-                            break;
+                            set_focus(xy[0], xy[1]);
+                            e.preventDefault();
+                            return false;
                         case 40: // down arrow
                             xy = get_x_y_of(current_cell());
                             xy[1] += 1;
-                            set_focus(xy[0], xy[1])
-                            break;
+                            set_focus(xy[0], xy[1]);
+                            e.preventDefault();
+                            return false;
                         case 37: // left arrow
                             xy = get_x_y_of(current_cell());
                             xy[0] -= 1;
-                            set_focus(xy[0], xy[1])
-                            break;
+                            set_focus(xy[0], xy[1]);
+                            e.preventDefault();
+                            return false;
                         case 38: // up arrow
                             xy = get_x_y_of(current_cell());
                             xy[1] -= 1;
-                            set_focus(xy[0], xy[1])
-                            break;
+                            set_focus(xy[0], xy[1]);
+                            e.preventDefault();
+                            return false;
                         case 13: // return
                             go($('.focus'));
-                            break;
+                            e.preventDefault();
+                            return false;
                         case 'D'.charCodeAt(0):
                             del($('.focus'));
-                            break;
+                            e.preventDefault();
+                            return false;
+                        case 9: // tab
+                        case 'R'.charCodeAt(0):
+                            refresh();
+                            e.preventDefault();
+                            return false;
                         default:
                             break;
                     }
-                    e.preventDefault();
-                    return false;
+                    return true;
                 });
             });
             
@@ -223,6 +277,28 @@
             setTimeout(update_clock, 500);
 
             //jQuery('tr:eq('+y+')>td:eq('+x+')', _nBody )[0];
+
+            function prepare_tiles(tiles) {
+                tiles = $(tiles);
+                var tilePosX = 0, tilePosY = 0;
+                tiles.each(
+                    function() {
+                        var _me = $(this);
+                        var tileWidth = _me.width();
+                        var tileOriginOffset = $($('#tiles td')[0]).offset().left;
+                        var origin = -$(_me[0]).offset().left;
+                        _me.css({webkitTransformOriginX:origin + "px"});
+                        _me.css('opacity', '1');
+                        if (tilePosX % 2 || _me.hasClass("wide")) {
+                            tilePosX = 0;
+                            tilePosY++
+                        } else tilePosX++
+                    }).click(function() {
+                        $("#tiles .selected").removeClass("selected");
+                        $(this).addClass("selected");
+                    });
+            }
+
         </script>
     </body>
 </html>

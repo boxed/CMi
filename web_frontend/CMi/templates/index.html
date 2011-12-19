@@ -1,27 +1,43 @@
 {% extends "base.html" %}
 
 {% block contents %}
-    <table class="menu">
+    <table id="tiles">
         <tr>
-            <td url="/tvshows/">
-                <h1>TV Shows</h1>
-                {{ new_episodes }} new episodes
+            <td class="tile big_tile" url="/tvshows/">
+                <div class="content">
+                    <img src="/site-media/tv.svg" style="padding-bottom: 15px; padding-left: 40px"/>
+                    <h1>TV Shows</h1>
+                    {{ new_episodes }} new episodes
+                </div>
             </td>
-            <td url="/movies/">
-                <h1>Movies</h1>
-                {{ new_movies }} new / {{ total_movies }} total
+            <td class="tile big_tile" url="/movies/">
+                <div class="content">
+                    <img src="/site-media/movie.svg" style="padding-bottom: 15px; padding-left: 40px; width: 160px;"/>
+                    <h1>Movies</h1>
+                    {{ new_movies }} new / {{ total_movies }} total
+                </div>
             </td>
-            <td url="/weather/">
-                <h1>Weather</h1>
-                {% if weather %}
-                    {{ weather.current_conditions.temp_c }}&deg;
-                    {% if weather.current_conditions.icon %}
-                        <img style="width: 30px" src="/site-media/weather/{{ weather.current_conditions.icon }}" />
-                    {% endif %}
+            <td class="tile big_tile" url="/weather/">
+                {% if weather.current_conditions.icon %}
+                    <img style="width: 45%; left: 100px; position: absolute; top: 50px;" src="{{ weather.current_conditions.icon }}" />
                 {% endif %}
+                <div class="content">
+                    <h1>Weather</h1>
+                    {% if weather %}
+                        {{ weather.current_conditions.temp_c }}&deg;
+                    {% endif %}
+                </div>
             </td>
         </tr>
         <tr>
+            {% if new_shows %}
+                <td class="tile big_tile" url="/tvshows/suggested/">
+                    <div class="content">
+                        <h1>New TV Shows</h1>
+                        {{ new_shows }} new shows
+                    </div>
+                </td>
+            {% endif %}
             <!-- 
             <td url="/telldus/2/off">
                 TV Off
@@ -29,4 +45,6 @@
              -->
         </tr>
     </table>
+
+
 {% endblock %}

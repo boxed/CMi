@@ -56,6 +56,7 @@ typedef enum {
     // misc
     AppleRemote* remote;
     NSTimer* GUITimer;
+    NSTimer* searchForNewFilesTimer;
     Mode mode;
     BOOL stickyOnScreenControls;
 }
@@ -71,10 +72,12 @@ typedef enum {
 - (BOOL)readFromURL:(NSString*)s;
 - (void)progressTimer:(NSTimer*)timer;
 - (void)GUITimer:(NSTimer*)timer;
+- (void)searchForNewFilesTimer:(NSTimer*)timer;
 - (void)showWeb;
 - (void)showMovie;
 - (void)hideOnScreenControls;
 - (void)showOnScreenControls;
+- (void)searchForNewFiles;
 
 - (IBAction)beginning:(id)sender;
 - (IBAction)rewind:(id)sender;

@@ -74,6 +74,7 @@ void key(int code)
     [remote setDelegate:self];
     self->progressTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(progressTimer:) userInfo:nil repeats:YES];
     self->GUITimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(GUITimer:) userInfo:nil repeats:YES];
+    self->searchForNewFilesTimer = [NSTimer scheduledTimerWithTimeInterval:60 target:self selector:@selector(searchForNewFilesTimer:) userInfo:nil repeats:YES];
     CGDisplayHideCursor(kCGDirectMainDisplay);
     [self->window initTimer];
     
@@ -91,6 +92,16 @@ void key(int code)
     //self->movie = [[[QuickTimePlayer alloc] initWithParentWindow:self->window] retain];
     self->movie = [[[VLCVideoPlayer alloc] initWithParentWindow:self->window] retain];
     [window setFrame:[[NSScreen mainScreen] frame] display:NO];
+}
+
+- (void)searchForNewFilesTimer:(NSTimer*)timer
+{
+    [self searchForNewFiles];
+}
+
+- (void)searchForNewFiles
+{
+    [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/search_for_new_files/"]] delegate:self];
 }
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification
@@ -122,7 +133,8 @@ void key(int code)
         {
             NSLog(@"Server started");
             NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/"]];
-            [[self.webView mainFrame] loadRequest:request];    
+            [[self.webView mainFrame] loadRequest:request]; 
+            [self searchForNewFiles];
         }
         else {
             NSLog(@"%@", newStr);
@@ -138,6 +150,13 @@ void key(int code)
     NSLog(@"Handling url: %@", s);
     if ([@"file://sleep" isEqualToString:s]) {
         //[self sleepSystem];
+    }
+    else if ([@"file://refresh" isEqualToString:s]) {
+        //key(46); // R key
+        key(48); // R key
+    }
+    else if ([@"file://back" isEqualToString:s]) {
+        key(53); // ESC key
     }
     else {
         [self readFromURL:s];
@@ -247,7 +266,6 @@ void setAlpha(NSView* v)
     else {
         [[v animator] setAlphaValue:ON_SCREEN_CONTROL_ALPHA / 2];
     }
-
 }
 
 - (void)refreshOnScreenControls
@@ -280,11 +298,16 @@ void setAlpha(NSView* v)
     [self refreshOnScreenControls];
 }
 
+- (void)forceHideOnScreenControls
+{
+    [[self->HUDWindow animator] setAlphaValue:0.0];
+    self->showingOnScreenControls = NO;
+}
+
 - (void)hideOnScreenControls
 {
     if (!stickyOnScreenControls) {
-        [[self->HUDWindow animator] setAlphaValue:0.0];
-        self->showingOnScreenControls = NO;
+        [self forceHideOnScreenControls];
     }
 }
 
@@ -339,7 +362,7 @@ void setAlpha(NSView* v)
     [self.webView setHidden:NO];
     [self.window makeFirstResponder:self.webView];
     self->mode = webMode;
-    [self hideOnScreenControls];
+    [self forceHideOnScreenControls];
 }
 
 - (void)showMovie
