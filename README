@@ -1,0 +1,1 @@
+After cloning the repository, don't forget to run "git submodule update --init" to clone the django repository.
