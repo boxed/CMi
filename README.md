@@ -2,6 +2,9 @@
 
 CMi is pronounced "See me!", because it wants you to. It's a Mac-based media center like for example XBMC, Boxee, etc. 
 
+![CMi version 1.0](https://github.com/boxed/CMi/raw/master/screenshots/2011-12-21.png)
+
+
 ## Why I wasn't satisfied with existing systems
 
 Short version: death by a thousand paper cuts.
