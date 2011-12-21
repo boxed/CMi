@@ -31,7 +31,9 @@
                 }
                 return str;
             }
-            function flip_in(selector) {
+            function flip_in(selector, new_page) { // animate defaults to true
+                new_page = typeof(new_page) != 'undefined' ? new_page: true;
+
                 $(selector).addClass('display');
                 var xy = menu_history_position[menu_history_position.length-1];
                 set_focus(xy[0], xy[1]);
@@ -42,13 +44,20 @@
                 var tiles = $('.display .tile');
                 prepare_tiles(tiles);
                 var _i = 0;
-                tiles.each(function() {
-                    $(this).css({
-                        webkitTransform:"translate3d(0,0,0) rotateY(0deg)",
-                        webkitTransitionDelay:_i * 80 + "ms",
-                        webkitTransitionDuration:transitionDuration+'ms'});
-                    _i++;
-                });
+                if (new_page) {
+                    tiles.each(function() {
+                        $(this).css({
+                            webkitTransform:"translate3d(0,0,0) rotateY(0deg)",
+                            webkitTransitionDelay:_i * 80 + "ms",
+                            webkitTransitionDuration:transitionDuration+'ms'});
+                        _i++;
+                    });
+                }
+                else {
+                    tiles.each(function() {
+                        $(this).css({webkitTransform:"translate3d(0,0,0) rotateY(0deg)"});
+                    });
+                }
                 $('.header.display').css('opacity', 1)
             }
             function flip_out() {
@@ -96,13 +105,33 @@
                            $('table').remove();
                            var d = $(data);
                            $('body').append(d);
-                           flip_in(d);
+                           flip_in(d, false);
                        }
                 });
             }
             function current_cell() {
                 return $('.focus')[0];
             }
+
+            function handle_response(data, url) {
+                //console.log(data);
+                if (data == ':nothing') {
+                }
+                else if (data == ':refresh') {
+                    refresh();
+                }
+                else if (data == ':back') {
+                    back();
+                }
+                else {
+                    var d = $(data);
+                    $('body').append(d);
+                    menu_history.push(url);
+                    menu_history_position.push([0, 0]);
+                    flip_in(d);
+                }
+            }
+
             function go(item) {
                 $(item).css('-webkit-transform', 'scale(0.7)')
                 if ($(item).attr('url')) {
@@ -115,22 +144,7 @@
                             url: url,
                             data: {ajax: 'True'},   
                             success: function(data) {
-                                //console.log(data);
-                                if (data == ':nothing') {
-                                }
-                                else if (data == ':refresh') {
-                                    refresh();
-                                }
-                                else if (data == ':back') {
-                                    back();
-                                }
-                                else {
-                                    var d = $(data);
-                                    $('body').append(d);
-                                    menu_history.push(url);
-                                    menu_history_position.push([0, 0]);
-                                    flip_in(d);
-                                }
+                                handle_response(data, url);
                             }
                         });
                     }
@@ -143,6 +157,7 @@
                         url: url+'ended',
                         data: {ajax: 'True'},   
                         success: function(data) {
+                            handle_response(data, url);
                         }
                     });
                     var old_xy = get_x_y_of(current_cell());
@@ -189,10 +204,10 @@
                             url: url,
                             data: {ajax: 'True'},
                             success: function(data) {
-                                //console.log(data);
-                                var d = $(data);
-                                $('body').append(d);
-                                flip_in(d);
+                                // pop history a second time because handle_response will fill it in again
+                                menu_history.pop();
+                                menu_history_position.pop();
+                                handle_response(data, url);
                             }
                         });
                     }
@@ -207,6 +222,17 @@
                 else {
                     jQuery('#back_link').animate({opacity: '1'}, {duration: 300});
                 }
+            }
+
+            function search_for_new_files() {
+                $.ajax({
+                       url: '/search_for_new_files/',
+                       data: {ajax: 'True'},
+                       success: function(data) {
+                            handle_response(data);
+                        }
+                });
+                setTimeout(search_for_new_files, 10000);
             }
 
             $(document).ready(function (){
@@ -267,6 +293,11 @@
                     }
                     return true;
                 });
+
+                setTimeout(function() {
+                    update_clock();
+                    search_for_new_files();
+                }, 100);
             });
             
             function update_clock() {
@@ -274,9 +305,6 @@
                 $('#clock').html(d.getHours()+':'+pad(d.getMinutes(), 2));
                 setTimeout(update_clock, 500);
             }
-            setTimeout(update_clock, 500);
-
-            //jQuery('tr:eq('+y+')>td:eq('+x+')', _nBody )[0];
 
             function prepare_tiles(tiles) {
                 tiles = $(tiles);

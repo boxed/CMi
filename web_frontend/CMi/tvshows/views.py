@@ -1,7 +1,7 @@
 import os
 import os.path
 import subprocess
-from CMi.engine import SUPPORTED_FILE_FORMATS, playable_path
+from CMi.engine import SUPPORTED_FILE_FORMATS, playable_path, canonical_format
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from CMi.tvshows.models import *
@@ -25,13 +25,13 @@ def episode_ended(request, show_id, episode_id):
     episode = get_object_or_404(Episode, pk=episode_id)
     episode.watched = True
     episode.save()
-    return HttpResponse('ok')
+    return HttpResponse(':nothing')
 
 def episode_position(request, show_id, episode_id, position):
     episode = get_object_or_404(Episode, pk=episode_id)
     episode.position = position
     episode.save()
-    return HttpResponse('ok')
+    return HttpResponse(':nothing')
 
 def suggested_shows(request):
     return render(request, 'tvshows/suggested_shows.html', {'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
@@ -39,7 +39,7 @@ def suggested_shows(request):
 def add_suggested_show(request, suggested_show_id):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
     description = tvdb.get_series(s.name)[0]['overview'] or ''
-    Show.objects.create(name=s.name, description=description)
+    Show.objects.create(name=s.name, description=description, canonical_name=canonical_format(s.name))
     s.delete()
     if SuggestedShow.objects.all().count():
         return HttpResponse(':refresh')

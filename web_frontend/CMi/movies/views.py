@@ -17,10 +17,10 @@ def movie_ended(request, movie_id):
     movie = get_object_or_404(Movie, pk=movie_id)
     movie.watched = True
     movie.save()
-    return HttpResponse('ok')
+    return HttpResponse(':nothing')
 
 def movie_position(request, movie_id, position):
     movie = get_object_or_404(Movie, pk=movie_id)
     movie.position = position
     movie.save()
-    return HttpResponse('ok')
+    return HttpResponse(':nothing')

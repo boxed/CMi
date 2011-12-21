@@ -64,6 +64,11 @@ td {
     border-spacing: 15px;
 }
 
+#tiles .tile.list:hover
+{
+    background: transparent;
+}
+
 .tile.list td {
     cursor: pointer;
 }

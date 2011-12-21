@@ -244,6 +244,7 @@
 			buildPhases = (
 				AE4BD02413A3AB360009E6E0 /* Sources */,
 				AE4BD02513A3AB360009E6E0 /* Frameworks */,
+				AEDAB77914A121C800F0125F /* ShellScript */,
 				AE4BD02613A3AB360009E6E0 /* Resources */,
 				AE94390F1437C39700117748 /* CopyFiles */,
 			);
@@ -305,6 +306,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AEDAB77914A121C800F0125F /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /usr/bin/python;
+			shellScript = "import os\n\nfor root, dirs, files in os.walk('.'):\n    for f in files:\n        if f.endswith('.pyc'):\n            os.remove(os.path.join(root, f))";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		AE4BD02413A3AB360009E6E0 /* Sources */ = {

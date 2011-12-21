@@ -3,6 +3,7 @@ from django.db import models
 class Show(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True)
+    canonical_name = models.CharField(max_length=200)
 
     def __unicode__(self):
         return '%s' % (self.name)

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from shutil import move
 from datetime import datetime, date
+from CMi.engine import canonical_format
 from CMi.tvshows.models import *
 from CMi.directories import *
 import tvdb
@@ -203,7 +204,7 @@ def add_episode(data):
     destination_dir = tv_shows_dir
     aired = None
     episode = 0
-    show = Show.objects.get(name__iexact=show_name)
+    show = Show.objects.get(canonical_name__exact=canonical_format(show_name))
     if isinstance(data[3], datetime):
         aired = data[3]
         season = aired.year
@@ -226,7 +227,7 @@ def add_episode(data):
 def handle_tv_show_episode(data):
     type, filename, show_name = data[0], data[1], data[2]
     assert type == 'tv show'
-    if Show.objects.filter(name__iexact=show_name).count():
+    if Show.objects.filter(canonical_name__exact=canonical_format(show_name)).count():
         add_episode(data)
         print 'added episode', data
         return True
@@ -234,9 +235,7 @@ def handle_tv_show_episode(data):
         matches = tvdb.get_series(show_name)
         match = None
         for m in matches:
-            if m['name'] == 'The Daily Show with Jon Stewart':
-                m['name'] = 'The Daily Show'
-            if m['name'].lower() == show_name:
+            if canonical_format(m['name']) == canonical_format(show_name):
                 match = m
                 break
         if match:

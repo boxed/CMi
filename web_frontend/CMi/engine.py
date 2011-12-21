@@ -86,6 +86,11 @@ def canonical_format(s):
     s2 = s2.replace('&', 'and').replace("'", '').replace(' 720p ', ' ').replace(' 1080p ', ' ').replace(' x264 ', ' ')
     s2 = s2.replace('(', ' ').replace(')', ' ').replace('[', ' ').replace(']', ' ')
     s2 = re.sub(r' +', ' ', s2).strip()
+    replace_list = {
+        'the daily show with jon stewart': 'the daily show'
+    }
+    if s2 in replace_list:
+        s2 = replace_list[s2]
     return s2
 
 def match_file(filename):
