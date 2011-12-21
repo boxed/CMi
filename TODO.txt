@@ -1,4 +1,3 @@
 - Gestures
 - SEMIDONE: Clickable back-button
     Show only when cursor is moving, hide after a timeout
-- TODO: call search_for_new_files from objc code once in a while.. maybe watch the downloads folder?
