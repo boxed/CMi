@@ -1,37 +1,29 @@
 {% extends "base.html" %}
 
 {% block contents %}
-    <h1 class="header">Weather</h1>
+    <div class="fullscreen tiles">
+        <h1 class="header">Weather</h1>
 
-    <table class="dash">
-        <tr>
-            <td>
-                <table>
-                    <tr>
-                        <td colspan="4">
-                            {{ weather.current_conditions.temp_c }}&deg;
-                            {{ weather.current_conditions.humidity }}
-                        </td>
-                    </tr>
-                    {% for forecast in weather.forecasts %}
-                        <tr>
-                            <td>
-                                {{ forecast.day_of_week }}:
-                            </td>
-                            <td>
-                                {{ forecast.high }}&deg;
-                            </td>
-                            <td>
-                                {{ forecast.low }}&deg;
-                            </td>
-                            <td>
-                                {% if forecast.icon %}
-                                    <img style="width: 30px" src="{{ forecast.icon }}" />
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-            </td>
-        </tr>
-    </table>
+        <div class="">
+            {{ weather.current_conditions.temp_c }}&deg;<br />
+            {{ weather.current_conditions.humidity }}<br />
+            {{ weather.current_conditions.wind_condition }} <br />
+        </div>
+
+        <table class="tiles">
+            <tr>
+                {% for forecast in weather.forecasts %}
+                    <td class="tile">
+                        <h1>{{ forecast.day_of_week }} {{ forecast.date }}</h1>
+                        {% if forecast.icon %}
+                            <img style="width: 150px; text-align: center;" src="{{ forecast.icon }}" />
+                        {% endif %}
+                        <h1>{{ forecast.high }}&deg;</h1>
+                        {{ forecast.condition }} <br />
+                        {{ forecast.low }}&deg; Low<br />
+                    </td>
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
 {% endblock %}

@@ -3,7 +3,7 @@
 {% block contents %}
     <h1 class="header">Movies</h1>
     
-    <table id="tiles" class="list">
+    <table class="list tiles">
         {% for movie in movies %}
             <tr>
                 <td class="tile" url="/movies/{{ movie.id }}/">

@@ -35,11 +35,5 @@ class Episode(models.Model):
     def __unicode__(self):
         return '%s s%se%s %s' % (self.show, self.season, self.episode, self.name)
 
-    def description(self):
-        if self.episode:
-            return 'Season %s Episode %s %s' % (self.season, self.episode, self.name)
-        else:
-            return '%s %s' % (self.aired, self.name)
-    
     class Meta:
         ordering = ['season', 'episode', 'aired']

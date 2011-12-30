@@ -2,10 +2,6 @@ html {
     height: 100%;
 }
 
-h1 {
-    font-weight: lighter;
-}
-
 body {
     font-family: century gothic;
     /*
@@ -23,12 +19,9 @@ body {
     position: absolute;
     left: 180px;
     top: 45px;
-    font-size: 45px;
+    font-size: 70px;
 }
 
-td h1 {
-    font-size: 45px;
-}
 
 td {
     font-size: 30px;
@@ -36,35 +29,17 @@ td {
     vertical-align: top;
 }
 
-#tiles .focus, #tiles .tile:hover {
+.tiles .focus {
     background: -webkit-gradient(linear, left top, right top, from(#23B4A9), to(#188E86));
-}
-
-.dash {
-    position: absolute;
-    top: 150px;
-    left: 150px;
-    background: -webkit-gradient(linear, left top, right top, from(#0159a3), to(#004278));
-    padding: 30px;
-}
-
-.dash td h1 {
-    font-size: 90px;
-    margin-top: 0;
-}
-
-.dash td {
-    font-size: 150%;
 }
 
 .tile.list {
     position: absolute;
     top: 135px;
     left: 150px;
-    border-spacing: 15px;
 }
 
-#tiles .tile.list:hover
+.tiles .tile.list:hover
 {
     background: transparent;
 }
@@ -73,36 +48,36 @@ td {
     cursor: pointer;
 }
 
-#tiles {
-    border-spacing: 75px;
+.tiles {
+    border-spacing: 10px;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 160px;
+    left: 160px;
 }
 
-#tiles.list {
-    border-spacing: 15px;
+.tiles.list {
     top: 160px;
     left: 160px;
     width: auto;
 }
 
-#tiles td {
+.tiles td {
     background: -webkit-gradient(linear, left top, right top, from(#6b1d57), to(#7d2764));
     cursor: pointer;
     white-space: nowrap;
 }
 
-#tiles.list td {
+.tiles.list td {
     padding: 10px 16px;
 }
 
-#tiles th {
+.tiles th, .tiles .label {
     background: transparent;
     cursor: default;
     font-size: 35px;
     color: white;
     font-weight: normal;
+    text-align: left;
 }
 
 #back_link {
@@ -140,12 +115,16 @@ Metro style imitation
 
 .header {
     opacity: 0;
-    -webkit-transition-duration: 700ms;
+    -webkit-transition-duration: 200ms;
 }
 
-#tiles {
+.tiles {
     -webkit-transform: translate3d(0, 0, 0);
     -webkit-perspective: 3800px;
+}
+
+.tiles td {
+    -webkit-transform: translate3d(0,0,0) rotateY(90deg);
 }
 
 .tile {
@@ -156,12 +135,15 @@ Metro style imitation
     color: white;
     vertical-align: top;
     background: -webkit-gradient(linear, left top, right top, from(#6b1d57), to(#7d2764));
+    padding: 15px 20px;
+    opacity: 0;
 }
 
-.big_tile {
+.big_tiles td {
     width: 400px;
     height: 400px;
     vertical-align: bottom;
+    text-align: center;
 }
 
 .content {
@@ -173,9 +155,20 @@ h1 {
     margin: 0 0 20px;
 }
 
-.tile {
-    -webkit-transform: translate3d(0,0,0) rotateY(90deg);
-    opacity: 0;
+h2 {
+    font-size: 35px;
+    margin: 0 0 20px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: lighter;
+}
+
+.fullscreen {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
 }
 
 /*

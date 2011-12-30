@@ -3,12 +3,13 @@
 <html>
     <head>
         <title>{% block title %}CMi{% endblock %}</title>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-        <style type="text/css" title="currentStyle"> 
+        <style type="text/css" title="currentStyle">
             @import "/site-media/style2.css";
-        </style> 
+        </style>
+        <script src="/site-media/jquery-1.7.1.min.js"></script>
         <script src="/site-media/jquery.ensurevisible.js"></script>
         <script src="/site-media/jquery.intoViewport.min.js"></script>
+        <script src="/site-media/grid_navigation.js"></script>
     </head>
     
     <body>
@@ -20,7 +21,7 @@
         {% block contents %}<div class="contents"></div>{% endblock %}
 {% if not ajax %}
         <script>
-            var transitionDuration = 1700;
+            var transitionDuration = 1200;
             var menu_history = new Array();
             var menu_history_position = new Array();
 
@@ -31,17 +32,25 @@
                 }
                 return str;
             }
-            function flip_in(selector, new_page) { // animate defaults to true
+
+            function get_tiles() {
+                var tiles = $('.display td');
+                if (tiles.length == 0) {
+                    tiles = $('.display .fullscreen');
+                }
+                return tiles;
+            }
+
+            function flip_in(selector, new_page) { // new_page defaults to true
                 new_page = typeof(new_page) != 'undefined' ? new_page: true;
 
                 $(selector).addClass('display');
                 var xy = menu_history_position[menu_history_position.length-1];
-                set_focus(xy[0], xy[1]);
                 setup_menu();
                 show_hide_back_button();
 
                 $(selector).css({'z-index':'0'});
-                var tiles = $('.display .tile');
+                var tiles = get_tiles();
                 prepare_tiles(tiles);
                 var _i = 0;
                 if (new_page) {
@@ -59,41 +68,33 @@
                     });
                 }
                 $('.header.display').css('opacity', 1)
+                init_navigation();
             }
+
             function flip_out() {
-                var tile_container = $('#tiles.display');
+                var tile_container = $('.tiles.display');
                 tile_container.css({'z-index':'100'});
                 var header = $('.header.display');
                 header.css('opacity', 0);
                 header.removeClass('display');
-                var tiles = $('.display .tile');
+                var tiles = get_tiles();
                 tiles.css('z-index', '5000');
                 var _i = 0;
                 tiles.each(function() {
                     $(this).css({webkitTransform:"translate3d(0,0,0) rotateY(-90deg)",webkitTransitionDelay:_i * 80 + "ms",webkitTransitionDuration:transitionDuration+'ms'});
                     _i++;
                 });
+                tiles.unbind('hover');
+                tiles.unbind('click');
                 tiles.removeClass('tile');
                 setTimeout(function() {
                     tiles.remove();
                     header.remove();
                     tile_container.remove();
-                }, transitionDuration);
+                }, transitionDuration*_i);
                 $('.display').removeClass('display');
             }
-            function get_cell(x, y) {
-                return $($('.display tr:eq('+y+')>td:eq('+x+')')[0]);
-            }
-            function get_x_y_of(cell) {
-                if (cell)
-                    return [
-                        $('td', cell.parentNode).index(cell),
-                        $('tr', cell.parentNode.parentNode).index(cell.parentNode)
-                    ];
-                else {
-                    return [0, 0];
-                }
-            }
+
             function refresh() {
                 var url = menu_history[menu_history.length-1];
                 $.ajax({
@@ -109,9 +110,6 @@
                        }
                 });
             }
-            function current_cell() {
-                return $('.focus')[0];
-            }
 
             function handle_response(data, url) {
                 //console.log(data);
@@ -126,19 +124,23 @@
                 else {
                     var d = $(data);
                     $('body').append(d);
-                    menu_history.push(url);
-                    menu_history_position.push([0, 0]);
                     flip_in(d);
                 }
             }
 
-            function go(item) {
-                $(item).css('-webkit-transform', 'scale(0.7)')
-                if ($(item).attr('url')) {
-                    var url = $(item).attr('url');
-                    if (url == ':back')
+            function go() {
+                var item = $(grid[current_pos_x][current_pos_y]);
+                if (item.attr('url')) {
+                    var url = item.attr('url');
+                    if (url == ':back') {
                         back();
+                    }
                     else {
+                        if (menu_history[menu_history.length-1] == url) {
+                            fail_history_corrupted();
+                        }
+                        menu_history.push(url);
+                        menu_history_position.push([current_pos_x, current_pos_y]);
                         flip_out();
                         $.ajax({
                             url: url,
@@ -150,64 +152,50 @@
                     }
                 }
             }
-            function del(item) {
-                if ($(item).attr('url')) {
-                    var url = $(item).attr('url');
+
+            function del() {
+                var item = $(grid[current_pos_x][current_pos_y]);
+                if (item.attr('url')) {
+                    var url = item.attr('url');
                     $.ajax({
                         url: url+'ended',
                         data: {ajax: 'True'},   
                         success: function(data) {
                             handle_response(data, url);
+                            refresh();
                         }
                     });
-                    var old_xy = get_x_y_of(current_cell());
-                    $(item).parent().remove();
-                    set_focus(old_xy[0], old_xy[1]);
-                    if (!current_cell()) {
-                        old_xy[1] -= 1;
-                        set_focus(old_xy[0], old_xy[1]);
-                    }
                 }
             }
 
             function do_hover() {
-              $('.focus').removeClass('focus');
-              $(this).addClass('focus');
+                var xy = get_x_y_of(this);
+                set_focus(xy[0], xy[1]);
             }
 
             function setup_menu() {
                 $('.tile').click(function() {
                     if ($(this).attr('url')) {
-                        go(this);
+                        go();
                     }
                 });
-                $('.tile').hover(do_hover);
+                $('td.tile').hover(do_hover);
             }
-            function set_focus(x, y) {
-                //console.log('set_focus '+x+' '+y)
-                if (get_cell(x, y).length) {
-                    $('.focus').removeClass('focus');
-                    var cell = get_cell(x, y);
-                    cell.addClass('focus');
-                    cell.intoViewport();
-                    menu_history_position[menu_history_position.length-1] = [x, y]
-                }
-            }
+
             function back() {
                 if (menu_history.length > 1) {
                     flip_out();
-                    menu_history.pop();
-                    menu_history_position.pop();
                     if (menu_history.length > 0) {
+                        menu_history.pop(); // remove current url from history
                         var url = menu_history[menu_history.length-1];
                         $.ajax({
                             url: url,
                             data: {ajax: 'True'},
                             success: function(data) {
                                 // pop history a second time because handle_response will fill it in again
-                                menu_history.pop();
-                                menu_history_position.pop();
+                                var pos = menu_history_position.pop();
                                 handle_response(data, url);
+                                set_focus(pos[0], pos[1]);
                             }
                         });
                     }
@@ -237,50 +225,24 @@
 
             $(document).ready(function (){
                 menu_history.push('/');
-                menu_history_position.push([0, 0]);
                 flip_in('table');
 
                 {% block keyhandlers %}{% endblock %}
                               
                 $(document).keyup(function(e) {e.preventDefault(); return false;});
                 $(document).keydown(function(e) {
-                    var xy;
                     switch (e.keyCode) {
                         case 27: // esc
                         case 8: // backspace
                             back();
                             e.preventDefault();
                             return false;
-                        case 39: // right arrow
-                            xy = get_x_y_of(current_cell());
-                            xy[0] += 1;
-                            set_focus(xy[0], xy[1]);
-                            e.preventDefault();
-                            return false;
-                        case 40: // down arrow
-                            xy = get_x_y_of(current_cell());
-                            xy[1] += 1;
-                            set_focus(xy[0], xy[1]);
-                            e.preventDefault();
-                            return false;
-                        case 37: // left arrow
-                            xy = get_x_y_of(current_cell());
-                            xy[0] -= 1;
-                            set_focus(xy[0], xy[1]);
-                            e.preventDefault();
-                            return false;
-                        case 38: // up arrow
-                            xy = get_x_y_of(current_cell());
-                            xy[1] -= 1;
-                            set_focus(xy[0], xy[1]);
-                            e.preventDefault();
-                            return false;
                         case 13: // return
-                            go($('.focus'));
+                            go();
                             e.preventDefault();
                             return false;
                         case 'D'.charCodeAt(0):
-                            del($('.focus'));
+                            del();
                             e.preventDefault();
                             return false;
                         case 9: // tab
@@ -313,7 +275,7 @@
                     function() {
                         var _me = $(this);
                         var tileWidth = _me.width();
-                        var tileOriginOffset = $($('#tiles td')[0]).offset().left;
+                        var tileOriginOffset = $($('.tiles td')[0]).offset().left;
                         var origin = -$(_me[0]).offset().left;
                         _me.css({webkitTransformOriginX:origin + "px"});
                         _me.css('opacity', '1');
@@ -322,7 +284,7 @@
                             tilePosY++
                         } else tilePosX++
                     }).click(function() {
-                        $("#tiles .selected").removeClass("selected");
+                        $(".tiles .selected").removeClass("selected");
                         $(this).addClass("selected");
                     });
             }

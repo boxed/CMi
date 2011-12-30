@@ -35,6 +35,18 @@ YAHOO_WEATHER_NS = 'http://xml.weather.yahoo.com/ns/rss/1.0'
 
 NOAA_WEATHER_URL = 'http://www.weather.gov/xml/current_obs/%s.xml'
 
+def expand_day_of_week(short_code):
+    m = {
+        'mon': 'Monday',
+        'tue': 'Tuesday',
+        'wed': 'Wednesday',
+        'thu': 'Thursday',
+        'fri': 'Friday',
+        'sat': 'Saturday',
+        'sun': 'Sunday',
+    }
+    return m[short_code.lower()]
+
 def get_weather_from_google(location_id, hl = ''):
     """
     Fetches weather report from Google
@@ -72,6 +84,7 @@ def get_weather_from_google(location_id, hl = ''):
         tmp_forecast = {}
         for tag in forecast_conditions:
             tmp_forecast[tag] = forecast.getElementsByTagName(tag)[0].getAttribute('data')
+        tmp_forecast['day_of_week'] = expand_day_of_week(tmp_forecast['day_of_week'])
         forecasts.append(tmp_forecast)
 
     weather_data['forecasts'] = forecasts    

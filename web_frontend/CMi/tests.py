@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+import os
+import sys
+sys.path.append(os.getcwd())
+sys.path.append(os.path.split(os.getcwd())[0]) # for embedded use
+sys.path.append(os.path.join(os.path.split(os.getcwd())[0], 'django')) # for development
+
 from CMi.engine import *
 
 s = """
@@ -50,6 +57,13 @@ X-Files 1x24 - The Erlenmeyer Flask.avi
 The.Colbert.Report.2011.06.07.Sugar.Ray.Leonard.HDTV.XviD-FQM.[VTV].avi
 (download at superseeds.org) Penn.And.Teller.Fool.Us.S01E07.WS.PDTV.XviD-SuperS
 [ www.Speed.Cd ] - Penn.And.Teller.Fool.Us.S01E08.720p.HDTV.x264-ANGELiC
+[ www.Torrenting.com ] - Triumph of the Nerds (1996)-DVDRIp Xvid-THC
+A.Separation.2011.LiMiTED.BDRip.XviD- LPD
+Arthur Christmas 2011 TS AVI -THEONE1982-
+Cowboys.And.Aliens.2011.SWESUB.DVDRip.x264.AC3-snuttebullen
+The.Women.On.The.6th.Floor.2010.SWESUB.DVDRip.XviD-CrilleKex
+X-Men The Last Stand
+How I Met Your Mother S07E06 - 2011 - 720p - 200MB-sD
 """
 
 def classify(s):

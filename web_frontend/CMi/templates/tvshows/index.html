@@ -3,7 +3,7 @@
 {% block contents %}
     <h1 class="header">TV Shows</h1>
     
-    <table id="tiles" class="list">
+    <table class="list tiles">
         {% for show in shows %}
             {% if show.unwatched_episodes.count %}
                 <tr>

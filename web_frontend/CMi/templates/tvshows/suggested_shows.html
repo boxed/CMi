@@ -3,7 +3,7 @@
 {% block contents %}
     <h1 class="header">Suggested TV Shows</h1>
     
-    <table id="tiles" class="list">
+    <table class="list tiles">
         {% for suggested_show in suggested_shows %}
             <tr>
                 <th class="tile">{{ suggested_show.name|title }}</th>

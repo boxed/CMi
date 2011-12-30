@@ -5,7 +5,6 @@ from CMi.engine import canonical_format
 from CMi.tvshows.models import *
 from CMi.directories import *
 import tvdb
-from threading import Thread
 
 tvdb.API_KEY = "1645288C00EAD78F"
 
@@ -69,67 +68,8 @@ def run_tv_shows_cleanup():
     clean_empty_dirs()
 
 def run_tv_shows_extra():
-    Thread(target=fetch_description).start()
+    fetch_description()
 
-#def sort_episodes():
-#    print 'sorting episodes...'
-#    destination_dir = tv_shows_dir
-#    shows = Show.objects.all()
-#    global season_ep_regexs
-#    global date_regexs
-#
-#    videos = []
-#    for root, dirs, files in os.walk(downloads_dir):
-#        for f in files:
-#            if supported_extension(f):
-#                for show in shows:
-#                    if canonical_format(show.name) in canonical_format(f):
-#                        videos.append((show, f))
-#        for d in dirs:
-#            if d in ('Movies', 'TV Shows', 'Incomplete'):
-#                continue
-#            for show in shows:
-#                if canonical_format(show.name) in canonical_format(d):
-#                    videos.append((show, d))
-#        break
-#
-#    for show, video in videos[:]:
-#        destination = None
-#        aired = None
-#        episode = 0
-#        m = None
-#        for season_ep_regex in season_ep_regexs:
-#            m = re.match(season_ep_regex, video.lower())
-#            if m:
-#                break
-#        if m:
-#            season, episode = m.groupdict()['season'], m.groupdict()['episode']
-#            destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), video)
-#        else:
-#            for date_regex in date_regexs:
-#                m = re.match(date_regex, video)
-#                if m:
-#                    break
-#            if m:
-#                aired = datetime(int(m.groupdict()['year']), int(m.groupdict()['month']), int(m.groupdict()['day']))
-#                season = aired.year
-#                destination = os.path.join(destination_dir, show.name, 'Season %s' % season, video)
-#        if destination:
-#            print 'move %s -> %s' % (os.path.join(downloads_dir, video), destination)
-#            if not DEBUG:
-#                try:
-#                    os.makedirs(os.path.split(destination)[0])
-#                except:
-#                    pass
-#                move(os.path.join(downloads_dir, video), destination)
-#            videos.remove((show, video))
-#            Episode.objects.create(season=season, episode=episode, aired=aired, filepath=destination, show=show)
-#
-#    if len(videos) != 0:
-#        print "didn't sort the following:"
-#        for x in videos:
-#            print '\t', x
-#
 series_data = {}
 def get_series_data(series_name):
     series_name = series_name.lower()
@@ -150,28 +90,11 @@ def get_series_data(series_name):
                 series_data[series_name]['aired'][date(dt.year, dt.month, dt.day)] = data
     return series_data[series_name]
 
-#def find_new_series():
-#    for video in find_videos():
-#        for season_ep_regex in season_ep_regexs:
-#            m = re.match(season_ep_regex, video.lower())
-#            if m:
-#                break
-#        if not m:
-#            for date_regex in date_regexs:
-#                m = re.match(date_regex, video)
-#                if m:
-#                    break
-#        if m:
-#            series_name = canonical_format(m.groupdict()['name'])
-#            if tvdb.get_series(series_name):
-#                if SuggestedShow.objects.filter(name=series_name).count() == 0 and Show.objects.filter(name=series_name).count() == 0:
-#                    SuggestedShow.objects.create(name=series_name)
-    
 def fetch_description():
     for episode in Episode.objects.filter(name=''):
         print 'fetching data for', episode
         try:
-            if episode.episode != 0:
+            if episode.episode:
                 data = get_series_data(episode.show.name)['season_episode']['%s %s' % (episode.season, episode.episode)]
             else:
                 data = get_series_data(episode.show.name)['aired'][episode.aired]
@@ -185,16 +108,8 @@ def fetch_description():
             traceback.print_exc()
             print '---'
     global series_data
-    series_data = {} # clear cache
-
-#def do_all():
-#    delete_watched_episodes()
-#    clean_empty_dirs()
-#    clean_episode_db()
-#    sort_episodes()
-#    fetch_description()
-#    find_new_series()
-#    refresh_web_gui()
+    series_data.clear()
+    print 'cleared cache'
 
 def add_episode(data):
     type, filename, show_name = data[0], data[1], data[2]
@@ -246,5 +161,3 @@ def handle_tv_show_episode(data):
         else:
             print 'did not find', show_name, 'on tvdb, ignoring...'
     return False
-#if __name__ == '__main__':
-#    do_all()

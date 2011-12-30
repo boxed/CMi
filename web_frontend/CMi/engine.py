@@ -10,6 +10,7 @@ SUPPORTED_FILE_FORMATS = set([
                               '.m4v',
                               '.mov',
                               '.mp4',
+                              '.rar',
                               ])
 
 # TV Shows
@@ -98,6 +99,7 @@ def match_file(filename):
     global date_regexs
     global year_regexs
     video = canonical_format(filename)
+    m = None
     for date_regex in date_regexs:
         m = re.match(date_regex, video)
         if m:

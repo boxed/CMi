@@ -1,3 +1,4 @@
+from threading import Thread
 from CMi.movies.sort_movies import handle_movie, run_movies_cleanup
 from CMi.tvshows.sort_eps import handle_tv_show_episode, run_tv_shows_cleanup, run_tv_shows_extra
 from django.http import HttpResponse
@@ -59,21 +60,35 @@ def get_weather(place='Stockholm,Sweden'):
     except:
         return None
 
+search_thread = None
+should_refresh = False
 def search_for_new_files(request):
+    def do_search():
+        refresh = False
+        for video in find_videos():
+            m = match_file(video)
+            if m:
+                if m[0] == 'movie':
+                    if handle_movie(m):
+                        refresh = True
+                elif m[0] == 'tv show':
+                    if handle_tv_show_episode(m):
+                        refresh = True
+        run_tv_shows_cleanup()
+        run_tv_shows_extra()
+        run_movies_cleanup()
+        global should_refresh
+        should_refresh = refresh
+        print 'end search thread'
+    global search_thread
+    if not search_thread or not search_thread.is_alive():
+        print 'starting search thread...', search_thread
+        search_thread = Thread(target=do_search)
+        search_thread.start()
+    global should_refresh
+    result = ':refresh' if should_refresh else ':nothing'
     should_refresh = False
-    for video in find_videos():
-        m = match_file(video)
-        if m:
-            if m[0] == 'movie':
-                if handle_movie(m):
-                    should_refresh = True
-            elif m[0] == 'tv show':
-                if handle_tv_show_episode(m):
-                    should_refresh = True
-    run_tv_shows_cleanup()
-    run_tv_shows_extra()
-    run_movies_cleanup()
-    return HttpResponse(':refresh' if should_refresh else ':nothing')
+    return HttpResponse(result)
 
 def index(request):
     c = {

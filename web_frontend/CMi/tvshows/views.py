@@ -1,7 +1,5 @@
-import os
-import os.path
 import subprocess
-from CMi.engine import SUPPORTED_FILE_FORMATS, playable_path, canonical_format
+from CMi.engine import playable_path, canonical_format
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from CMi.tvshows.models import *

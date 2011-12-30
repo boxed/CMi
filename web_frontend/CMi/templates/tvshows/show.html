@@ -3,11 +3,22 @@
 {% block contents %}
     <h1 class="header">{{ show.name|title }}</h1>
     
-    <table id="tiles" class="list">
+    <table class="list tiles">
         {% for episode in show.unwatched_episodes %}
+            {% ifchanged episode.season %}
+                <tr>
+                    <td class="label">
+                        Season {{ episode.season }}
+                    </td>
+                </tr>
+            {% endifchanged %}
             <tr>
                 <td class="tile" url="/tvshows/{{ show.id }}/{{ episode.id }}/">
-                    {{ episode.description }}
+                    {% if not episode.episode %}
+                        {{ episode.aired }}{% if episode.name %} - {{ episode.name }}{% endif %}
+                    {% else %}
+                        {{ episode.episode }}{% if episode.name %}. {{ episode.name }}{% endif %}
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
