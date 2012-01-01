@@ -121,6 +121,9 @@
                 else if (data == ':back') {
                     back();
                 }
+                else if (data == ':back2') {
+                    back(2);
+                }
                 else {
                     var d = $(data);
                     $('body').append(d);
@@ -182,11 +185,14 @@
                 $('td.tile').hover(do_hover);
             }
 
-            function back() {
+            function back(steps) {
                 if (menu_history.length > 1) {
                     flip_out();
-                    if (menu_history.length > 0) {
+                    steps = typeof(steps) != 'undefined' ? steps: 1;
+                    for (var i = 0; i != steps && menu_history.length > 1; i++) {
                         menu_history.pop(); // remove current url from history
+                    }
+                    if (menu_history.length > 0) {
                         var url = menu_history[menu_history.length-1];
                         $.ajax({
                             url: url,
@@ -198,8 +204,8 @@
                                 set_focus(pos[0], pos[1]);
                             }
                         });
+                        show_hide_back_button();
                     }
-                    show_hide_back_button();
                 }
             }
             

@@ -18,6 +18,12 @@ class SuggestedShow(models.Model):
     name = models.CharField(max_length=200, unique=True)
     ignored = models.BooleanField(default=False)
 
+    def __unicode__(self):
+        if self.ignored:
+            return 'ignored: %s' % self.name
+        else:
+            return self.name
+
     class Meta:
         ordering = ['name']
 

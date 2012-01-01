@@ -35,20 +35,22 @@ def suggested_shows(request):
     return render(request, 'tvshows/suggested_shows.html', {'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
 
 def add_suggested_show(request, suggested_show_id):
+    print 'suggested show count before:', SuggestedShow.objects.filter(ignored=False).count()
     s = SuggestedShow.objects.get(pk=suggested_show_id)
-    description = tvdb.get_series(s.name)[0]['overview'] or ''
+    tvdb_result = tvdb.get_series(s.name)
+    description = tvdb_result[0]['overview'] if len(tvdb_result) else ''
     Show.objects.create(name=s.name, description=description, canonical_name=canonical_format(s.name))
     s.delete()
-    if SuggestedShow.objects.all().count():
-        return HttpResponse(':refresh')
-    else:
+    if SuggestedShow.objects.filter(ignored=False).count():
         return HttpResponse(':back')
+    else:
+        return HttpResponse(':back2')
 
 def ignore_suggested_show(request, suggested_show_id):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
     s.ignore = True
     if SuggestedShow.objects.all().count():
-        return HttpResponse(':refresh')
-    else:
         return HttpResponse(':back')
+    else:
+        return HttpResponse(':back2')
     

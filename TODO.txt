@@ -7,3 +7,4 @@
 - Gestures
 - SEMIDONE: Clickable back-button
     Show only when cursor is moving, hide after a timeout
+- BUG: suggested shows is buggy

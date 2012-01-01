@@ -66,6 +66,8 @@ void key(int code)
     preferences.cacheModel = WebCacheModelDocumentViewer;
     [self.webView setPreferences:preferences];
     [preferences release];
+    [[NSURLCache sharedURLCache] setMemoryCapacity:0]; 
+    [[NSURLCache sharedURLCache] setDiskCapacity:0]; 
     [self.webView setFrameLoadDelegate:self];
     
     [self hideOnScreenControls];

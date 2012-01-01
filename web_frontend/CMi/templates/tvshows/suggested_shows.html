@@ -6,7 +6,7 @@
     <table class="list tiles">
         {% for suggested_show in suggested_shows %}
             <tr>
-                <th class="tile">{{ suggested_show.name|title }}</th>
+                <td class="label">{{ suggested_show.name|title }}</td>
                 <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/">Add</td>
                 <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/ignore/">Ignore</td>
             </tr>
