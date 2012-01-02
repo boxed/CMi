@@ -4,8 +4,6 @@ var current_pos_y = 0;
 
 function init_navigation() {
     grid = {};
-    current_pos_x = 0;
-    current_pos_y = 0;
     // we start out with grid[y][x] style notation for convenience...
     function get_next_x(y) {
         if (!(y in grid)) {
@@ -117,6 +115,8 @@ function set_focus(x, y) {
         current_pos_x = x;
         current_pos_y = y;
         $(grid[x][y]).addClass('focus');
+
+        $('html,body').stop().animate({scrollTop: $(".focus").offset().top-300}, 100);
     }
 }
 

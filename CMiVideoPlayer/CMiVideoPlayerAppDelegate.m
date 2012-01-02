@@ -93,6 +93,9 @@ void key(int code)
     //self->movie = [[[QuickTimePlayer alloc] initWithParentWindow:self->window] retain];
     self->movie = [[[VLCVideoPlayer alloc] initWithParentWindow:self->window] retain];
     [window setFrame:[[NSScreen mainScreen] frame] display:NO];
+    
+    // Register delegate as scriptable object for javascript
+    [[self.webView windowScriptObject] setValue:self forKey:@"CMiDelegate"];
 }
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification
@@ -124,7 +127,13 @@ void key(int code)
         {
             NSLog(@"Server started");
             NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/"]];
-            [[self.webView mainFrame] loadRequest:request]; 
+            [[self.webView mainFrame] loadRequest:request];
+
+            // Ask for location
+            locationManager = [[CLLocationManager alloc] init];
+            locationManager.delegate = self;
+            [locationManager startUpdatingLocation];
+
         }
         else {
             NSLog(@"%@", newStr);
@@ -543,6 +552,17 @@ void setAlpha(NSView* v)
     [window makeFirstResponder:self.webView];
     [window makeKeyAndOrderFront:self];
     [window toggleFullScreen:self];
+}
+
+#pragma mark CLLocationManager delegate
+- (void)locationManager:(CLLocationManager *)manager
+    didUpdateToLocation:(CLLocation *)newLocation
+           fromLocation:(CLLocation *)oldLocation
+{
+    NSString* url = [NSString stringWithFormat:@"http://127.0.0.1:8000/set_location/?location=%f,%f", [newLocation coordinate].latitude, [newLocation coordinate].longitude];
+    NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+    [NSURLConnection sendAsynchronousRequest:request queue:nil completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
+    [self.webView stringByEvaluatingJavaScriptFromString:@"refresh();"];
 }
 
 @end

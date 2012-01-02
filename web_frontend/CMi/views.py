@@ -47,7 +47,13 @@ def fix_icon_path(s):
         print 'no weather icon for', s
         return ''
 
-def get_weather(place='Stockholm,Sweden'):
+location = None
+def get_weather(place=None):
+    global location
+    if not place:
+        place = location
+    if not place:
+        return None
     try:
         weather = pywapi.get_weather_from_google(place)
         weather['current_conditions']['icon'] = fix_icon_path(weather['current_conditions']['icon'])
@@ -101,12 +107,13 @@ def index(request):
     return render(request, 'index.html', c)
     
 def weather(request):
-    if 'place' in request.REQUEST:
-        place = request.REQUEST['place']
-    else:
-        place = 'Stockholm,Sweden'
-    weather = get_weather(place)
+    weather = get_weather()
     return render(request, 'weather.html', {'weather': weather})
+
+def set_location(request):
+    global location
+    location = ',,,'+request.REQUEST['location'].replace('.', '')
+    return HttpResponse(':nothing')
 
 #def telldus(request, id, command):
 #   telldus_command(id, command)

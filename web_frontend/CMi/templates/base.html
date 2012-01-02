@@ -67,7 +67,11 @@
                         $(this).css({webkitTransform:"translate3d(0,0,0) rotateY(0deg)"});
                     });
                 }
-                $('.header.display').css('opacity', 1)
+                $('.header.display').css('opacity', 1);
+                if (new_page) {
+                    current_pos_x = 0;
+                    current_pos_y = 0;
+                }
                 init_navigation();
             }
 

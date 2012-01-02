@@ -14,6 +14,7 @@
 #import "VolumeView.h"
 #import "VideoPlayerProtocol.h"
 #import "VLCKit/VLCkit.h"
+#import <CoreLocation/CoreLocation.h>
 
 typedef enum {
     webMode,
@@ -58,6 +59,7 @@ typedef enum {
     NSTimer* GUITimer;
     Mode mode;
     BOOL stickyOnScreenControls;
+    CLLocationManager* locationManager;
 }
 
 @property(assign) IBOutlet BorderLessWindow *window;

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AE007B9414B0CB06009196AE /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE007B9314B0CB06009196AE /* CoreLocation.framework */; };
 		AE08B39813ABD01F009002BF /* CMiSliderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = AE08B39713ABD01F009002BF /* CMiSliderCell.m */; };
 		AE1BC41D13B2875100D3EB50 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = AE1BC41C13B2875100D3EB50 /* icon.icns */; };
 		AE2F4A511465C62700DBF84E /* web_frontend in Resources */ = {isa = PBXBuildFile; fileRef = AE2F4A501465C62700DBF84E /* web_frontend */; };
@@ -56,6 +57,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AE007B9314B0CB06009196AE /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		AE08B39613ABD01F009002BF /* CMiSliderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CMiSliderCell.h; path = CMiVideoPlayer/CMiSliderCell.h; sourceTree = SOURCE_ROOT; };
 		AE08B39713ABD01F009002BF /* CMiSliderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CMiSliderCell.m; path = CMiVideoPlayer/CMiSliderCell.m; sourceTree = SOURCE_ROOT; };
 		AE1BC41C13B2875100D3EB50 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE007B9414B0CB06009196AE /* CoreLocation.framework in Frameworks */,
 				AE94390D1437C37C00117748 /* VLCKit.framework in Frameworks */,
 				AEDA957A13AE814800174B14 /* Security.framework in Frameworks */,
 				AE4BD08A13A4F54D0009E6E0 /* IOKit.framework in Frameworks */,
@@ -127,6 +130,7 @@
 		AE4BD01D13A3AB350009E6E0 = {
 			isa = PBXGroup;
 			children = (
+				AE007B9314B0CB06009196AE /* CoreLocation.framework */,
 				AE94390C1437C37C00117748 /* VLCKit.framework */,
 				AE4BD03213A3AB360009E6E0 /* CMiVideoPlayer */,
 				AE4BD02B13A3AB360009E6E0 /* Frameworks */,

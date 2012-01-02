@@ -12,7 +12,8 @@ urlpatterns = patterns('',
     (r'^tvshows/', include('CMi.tvshows.urls')),
     (r'^movies/', include('CMi.movies.urls')),
     (r'^search_for_new_files/', 'CMi.views.search_for_new_files'),
-    
+    (r'^set_location/', 'CMi.views.set_location'),
+
     #(r'^telldus/(?P<id>\d+)/(?P<command>.+)$', 'CMi.views.telldus'),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
