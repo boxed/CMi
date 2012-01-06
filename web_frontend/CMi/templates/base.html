@@ -7,7 +7,6 @@
             @import "/site-media/style2.css";
         </style>
         <script src="/site-media/jquery-1.7.1.min.js"></script>
-        <script src="/site-media/jquery.ensurevisible.js"></script>
         <script src="/site-media/jquery.intoViewport.min.js"></script>
         <script src="/site-media/grid_navigation.js"></script>
     </head>
@@ -24,6 +23,7 @@
             var transitionDuration = 1200;
             var menu_history = new Array();
             var menu_history_position = new Array();
+            var menu_history_scroll_position = new Array();
 
             function pad(number, length) {
                 var str = '' + number;
@@ -45,7 +45,6 @@
                 new_page = typeof(new_page) != 'undefined' ? new_page: true;
 
                 $(selector).addClass('display');
-                var xy = menu_history_position[menu_history_position.length-1];
                 setup_menu();
                 show_hide_back_button();
 
@@ -148,6 +147,7 @@
                         }
                         menu_history.push(url);
                         menu_history_position.push([current_pos_x, current_pos_y]);
+                        menu_history_scroll_position.push($('body').scrollTop());
                         flip_out();
                         $.ajax({
                             url: url,
@@ -169,7 +169,6 @@
                         data: {ajax: 'True'},   
                         success: function(data) {
                             handle_response(data, url);
-                            refresh();
                         }
                     });
                 }
@@ -206,6 +205,7 @@
                                 var pos = menu_history_position.pop();
                                 handle_response(data, url);
                                 set_focus(pos[0], pos[1]);
+                                $('body').scrollTop(menu_history_scroll_position.pop())
                             }
                         });
                         show_hide_back_button();

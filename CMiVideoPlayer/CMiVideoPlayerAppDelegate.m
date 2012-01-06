@@ -40,6 +40,8 @@ void key(int code)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(webServerWroteToStdOut:) name:NSFileHandleReadCompletionNotification object:nil];
     stickyOnScreenControls = NO;
     
+    outputBuffer = [[NSMutableString stringWithCapacity:1000] retain];
+    
     // Set up webserver backend
     NSArray* arguments = [NSArray arrayWithObjects:@"-u", @"CMi/manage.py", @"runserver", @"--noreload", nil];
     webServer = [[NSTask alloc] init];
@@ -121,25 +123,33 @@ void key(int code)
         [webServerStdOutFile readInBackgroundAndNotify];
     NSData* data = [[notification userInfo] valueForKey:NSFileHandleNotificationDataItem];
     NSString* newStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    if ([newStr length])
-    {
-        if ([newStr rangeOfString:@"Development server is running at http://127.0.0.1:8000/"].location != NSNotFound)
-        {
-            NSLog(@"Server started");
-            NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/"]];
-            [[self.webView mainFrame] loadRequest:request];
-
-            // Ask for location
-            locationManager = [[CLLocationManager alloc] init];
-            locationManager.delegate = self;
-            [locationManager startUpdatingLocation];
-
+    [outputBuffer appendString:newStr];
+    [newStr release];
+    NSRange r;
+    while (true) {
+        r = [outputBuffer rangeOfString:@"\n"];
+        if (r.location == NSNotFound) {
+            return;
         }
-        else {
-            NSLog(@"%@", newStr);
+        newStr = [outputBuffer substringToIndex:r.location];
+        [outputBuffer deleteCharactersInRange:NSMakeRange(0, r.location+1)];
+        
+        if ([newStr length]) {
+            if ([newStr rangeOfString:@"Development server is running at http://127.0.0.1:8000/"].location != NSNotFound) {
+                NSLog(@"Server started");
+                NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/"]];
+                [[self.webView mainFrame] loadRequest:request];
+
+                // Ask for location
+                locationManager = [[CLLocationManager alloc] init];
+                locationManager.delegate = self;
+                [locationManager startUpdatingLocation];
+            }
+            else {
+                NSLog(@"%@", newStr);
+            }
         }
     }
-    [newStr release];    
 }
 
 - (void)handleURLEvent:(NSAppleEventDescriptor*)event withReplyEvent:(NSAppleEventDescriptor*)replyEvent
@@ -229,7 +239,6 @@ void key(int code)
     self->isPlaying = NO;
     [self hideOnScreenControls];
     [self showWeb];
-    key(53); // esc
 }
 
 - (IBAction)playPause:(id)sender
@@ -331,14 +340,14 @@ void setAlpha(NSView* v)
         float current = [self->movie currentTime];
         float end = [self->movie duration];
         NSURL* url = nil;
-        if (fabs(current - end) < 1000) {
+        if (fabs(current - end) < 3000) {
             url = [NSURL URLWithString:[urlprefix stringByAppendingString:@"/ended"]];
             [self stop:self];
         }
         else {
             url = [NSURL URLWithString:[urlprefix stringByAppendingFormat:@"/position/%d", (int)current]];
         }
-        [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:url] delegate:self];
+        [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:url] queue:nil completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
     }
 }
 
@@ -357,6 +366,7 @@ void setAlpha(NSView* v)
 
 - (void)showWeb
 {
+    [self.webView stringByEvaluatingJavaScriptFromString:@"/* From Obj-C: refresh when showing webView again */ refresh();"];
     [self->movie setHidden:YES];
     [self.webView setHidden:NO];
     [self.window makeFirstResponder:self.webView];
@@ -554,15 +564,17 @@ void setAlpha(NSView* v)
     [window toggleFullScreen:self];
 }
 
-#pragma mark CLLocationManager delegate
+#pragma mark    delegate
 - (void)locationManager:(CLLocationManager *)manager
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation
 {
-    NSString* url = [NSString stringWithFormat:@"http://127.0.0.1:8000/set_location/?location=%f,%f", [newLocation coordinate].latitude, [newLocation coordinate].longitude];
-    NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
-    [NSURLConnection sendAsynchronousRequest:request queue:nil completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
-    [self.webView stringByEvaluatingJavaScriptFromString:@"refresh();"];
+    if (oldLocation == nil || [newLocation distanceFromLocation:oldLocation] > 1000) {
+        NSString* url = [NSString stringWithFormat:@"http://127.0.0.1:8000/set_location/?location=%f,%f", [newLocation coordinate].latitude, [newLocation coordinate].longitude];
+        NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+        [NSURLConnection sendAsynchronousRequest:request queue:nil completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
+        [self.webView stringByEvaluatingJavaScriptFromString:@"/* From Obj-C: refresh to update location */ refresh();"];
+    }
 }
 
 @end

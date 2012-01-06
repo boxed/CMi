@@ -116,7 +116,9 @@ function set_focus(x, y) {
         current_pos_y = y;
         $(grid[x][y]).addClass('focus');
 
-        $('html,body').stop().animate({scrollTop: $(".focus").offset().top-300}, 100);
+        //$('html,body').stop().animate({scrollTop: $(grid[x][y]).offset().top-300}, 100);
+        $(grid[x][y]).intoViewport();
+        //console.log($(grid[x][y]).offset().top-300);
     }
 }
 

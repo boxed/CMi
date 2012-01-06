@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from threading import Thread
 from CMi.movies.sort_movies import handle_movie, run_movies_cleanup
 from CMi.tvshows.sort_eps import handle_tv_show_episode, run_tv_shows_cleanup, run_tv_shows_extra
@@ -48,6 +49,7 @@ def fix_icon_path(s):
         return ''
 
 location = None
+weather_cache = None
 def get_weather(place=None):
     global location
     if not place:
@@ -55,6 +57,9 @@ def get_weather(place=None):
     if not place:
         return None
     try:
+        global weather_cache
+        if weather_cache and (datetime.now() - weather_cache['cache_time']) < timedelta(hours=1):
+            return weather_cache
         weather = pywapi.get_weather_from_google(place)
         weather['current_conditions']['icon'] = fix_icon_path(weather['current_conditions']['icon'])
         # convert temperatures to celsius
@@ -62,33 +67,46 @@ def get_weather(place=None):
             value['high'] = int(round((float(value['high'])-32)*5.0/9.0))
             value['low'] = int(round((float(value['low'])-32)*5.0/9.0))
             value['icon'] = fix_icon_path(value['icon'])
+        weather_cache = weather
+        weather_cache['cache_time'] = datetime.now()
+        global should_refresh
+        print 'should refresh GUI because wheather data changed'
+        should_refresh = True
         return weather
     except:
         return None
 
 search_thread = None
 should_refresh = False
+files_that_match_nothing = set()
 def search_for_new_files(request):
     def do_search():
+        global files_that_match_nothing
         refresh = False
         for video in find_videos():
+            if video in files_that_match_nothing:
+                continue
             m = match_file(video)
             if m:
                 if m[0] == 'movie':
                     if handle_movie(m):
                         refresh = True
+                        print 'found movie', m
                 elif m[0] == 'tv show':
                     if handle_tv_show_episode(m):
                         refresh = True
+                        print 'found tv show', m
+            else:
+                files_that_match_nothing.add(video)
         run_tv_shows_cleanup()
         run_tv_shows_extra()
         run_movies_cleanup()
         global should_refresh
         should_refresh = refresh
-        print 'end search thread'
+        #print 'end search thread'
     global search_thread
     if not search_thread or not search_thread.is_alive():
-        print 'starting search thread...', search_thread
+        #print 'starting search thread...', search_thread
         search_thread = Thread(target=do_search)
         search_thread.start()
     global should_refresh
@@ -113,6 +131,7 @@ def weather(request):
 def set_location(request):
     global location
     location = ',,,'+request.REQUEST['location'].replace('.', '')
+    get_weather()
     return HttpResponse(':nothing')
 
 #def telldus(request, id, command):

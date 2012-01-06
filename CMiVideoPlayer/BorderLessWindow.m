@@ -7,7 +7,7 @@
 //
 
 #import "BorderLessWindow.h"
-
+#import "CMiVideoPlayerAppDelegate.h"
 
 @implementation BorderLessWindow
 
@@ -17,7 +17,7 @@
     if (hideCount == 4)
     {
         CGDisplayHideCursor(kCGDirectMainDisplay);
-        [self.delegate hideOnScreenControls];
+        [(CMiVideoPlayerAppDelegate*)self.delegate hideOnScreenControls];
 
     }
     else if (hideCount < 4)
@@ -52,12 +52,12 @@
     hideCount = 0;
     CGDisplayShowCursor(kCGDirectMainDisplay);
     [super mouseMoved:theEvent];
-    [self.delegate showOnScreenControls];
+    [(CMiVideoPlayerAppDelegate*)self.delegate showOnScreenControls];
 }
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-    [self.delegate keyDown:theEvent];
+    [(CMiVideoPlayerAppDelegate*)self.delegate keyDown:theEvent];
 }
 
 @end

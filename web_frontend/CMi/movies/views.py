@@ -11,7 +11,7 @@ def play_movie(request, movie_id):
     movie = get_object_or_404(Movie, pk=movie_id)
     path = playable_path(movie.filepath)
     subprocess.call(['open', 'CMiVideoPlayer://%s?seconds=%s&callback=movies/%s' % (path, movie.position, movie.pk)])
-    return render(request, 'playing.html', {})
+    return HttpResponse(':back')
 
 def movie_ended(request, movie_id):
     movie = get_object_or_404(Movie, pk=movie_id)

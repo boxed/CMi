@@ -17,7 +17,7 @@ def play_episode(request, show_id, episode_id):
     path = playable_path(episode.filepath)
     print 'playing ', episode, 'at', path
     subprocess.call(['open', 'CMiVideoPlayer://%s?seconds=%s&callback=tvshows/%s/%s' % (path, episode.position, episode.show.pk, episode.pk)])
-    return render(request, 'playing.html', {})
+    return HttpResponse(':back')
 
 def episode_ended(request, show_id, episode_id):
     episode = get_object_or_404(Episode, pk=episode_id)
@@ -35,7 +35,6 @@ def suggested_shows(request):
     return render(request, 'tvshows/suggested_shows.html', {'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
 
 def add_suggested_show(request, suggested_show_id):
-    print 'suggested show count before:', SuggestedShow.objects.filter(ignored=False).count()
     s = SuggestedShow.objects.get(pk=suggested_show_id)
     tvdb_result = tvdb.get_series(s.name)
     description = tvdb_result[0]['overview'] if len(tvdb_result) else ''
@@ -49,6 +48,7 @@ def add_suggested_show(request, suggested_show_id):
 def ignore_suggested_show(request, suggested_show_id):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
     s.ignore = True
+    s.save()
     if SuggestedShow.objects.all().count():
         return HttpResponse(':back')
     else:

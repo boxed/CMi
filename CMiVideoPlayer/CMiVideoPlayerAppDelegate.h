@@ -21,7 +21,7 @@ typedef enum {
     movieMode
 } Mode;
 
-@interface CMiVideoPlayerAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate> {
+@interface CMiVideoPlayerAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate, CLLocationManagerDelegate> {
 @private
     BorderLessWindow *window;
     OverlayWindow *HUDWindow;
@@ -60,6 +60,7 @@ typedef enum {
     Mode mode;
     BOOL stickyOnScreenControls;
     CLLocationManager* locationManager;
+    NSMutableString* outputBuffer;
 }
 
 @property(assign) IBOutlet BorderLessWindow *window;
@@ -86,5 +87,6 @@ typedef enum {
 - (IBAction)end:(id)sender;
 
 - (void)webServerWroteToStdOut:(NSNotification*)notification;
+- (void)keyDown:(NSEvent *)theEvent;
 
 @end

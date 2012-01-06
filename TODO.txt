@@ -1,9 +1,8 @@
-- Weather icons should adapt to night: crescent moon instead of sun
 - BUG: The mouse cursor is not shown when you wiggle it in the web GUI
 - BUG: Mouse clicks go to the recently flipped out items instead of the ones that are on screen, until they get cleaned up
+- BUG: when an episode is done playing the screen directly after sometimes still shows the episode until a refresh
+- Weather icons should adapt to night: crescent moon instead of sun. Need to know when the sun sets?
 - Gestures
 - SEMIDONE: Clickable back-button
     Show only when cursor is moving, hide after a timeout
-- BUG: when an episode is done playing the screen directly after sometimes still shows the episode until a refresh
-- The automatic scrolling of the screen is pretty crap
-- If you scroll down a few screens, when you go back you don't get the scroll position restored.
+- FEATURE: automatically download subtitles, http://code.google.com/p/periscope/

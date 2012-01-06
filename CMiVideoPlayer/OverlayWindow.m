@@ -7,7 +7,7 @@
 //
 
 #import "OverlayWindow.h"
-
+#import "CMiVideoPlayerAppDelegate.h"
 @implementation OverlayWindow
 
 - (id)init
@@ -30,6 +30,6 @@
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-    [self.delegate keyDown:theEvent];
+    [(CMiVideoPlayerAppDelegate*)self.delegate keyDown:theEvent];
 }
 @end

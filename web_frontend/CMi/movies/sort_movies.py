@@ -27,10 +27,13 @@ def clean(s):
         s = first(s, tag)
     return s.strip()
 
+is_not_movie_cache = set()
 def is_movie(c):
     if c in ('movies', 'tv shows'):
         return False, c
     c = canonical_format(c)
+    if c in is_not_movie_cache:
+        return False, c
     result = dict([(canonical_format(x['title']), x) for x in ia.search_movie(c) if c])
     if c in result:
         return True, result[c]
@@ -40,12 +43,13 @@ def is_movie(c):
         return True, result[c2]
     # We should also check x['akas'] if available for alternative titles. Example: 'A Separation::International (English title) (imdb display title)'
     print c, 'was not found on IMDB'
+    is_not_movie_cache.add(c)
     return False, None
 
 def run_movies_cleanup():
-    print 'cleaning movie db...'
+    #print 'cleaning movie db...'
     if not os.path.exists(movies_dir):
-        print 'entire path missing, aborting...'
+        print 'run_movies_cleanup: entire path missing, aborting...'
         return
     for movie in Movie.objects.all():
         if not os.path.exists(movie.filepath):
@@ -55,11 +59,11 @@ def handle_movie(data):
     type, filename, name, year = data
     assert type == 'movie'
     m, imdb_info = is_movie(clean(name))
-    try:
-        os.makedirs(movies_dir)
-    except:
-        pass
     if m:
+        try:
+            os.makedirs(movies_dir)
+        except:
+            pass
         source = os.path.join(downloads_dir, filename)
         destination = os.path.join(movies_dir, filename)
         print 'move', source, '->', destination

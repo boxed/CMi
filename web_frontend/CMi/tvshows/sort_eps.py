@@ -27,9 +27,9 @@ def delete_watched_episodes():
         episode.delete()
     
 def clean_episode_db():
-    print 'cleaning episode db...'
+    #print 'cleaning episode db...'
     if not os.path.exists(tv_shows_dir):
-        print 'entire path missing, aborting...'
+        print 'clean_episode_db: entire path missing, aborting...'
         return
     for episode in Episode.objects.all():
         if not os.path.exists(episode.filepath):
@@ -37,7 +37,7 @@ def clean_episode_db():
 
 # clean up empty directories
 def clean_empty_dirs():
-    print 'cleaning dirs...'
+    #print 'cleaning dirs...'
     def get_subdirs(path):
         for root, dirs, files in os.walk(path):
             return [os.path.join(root, x) for x in dirs]
@@ -52,13 +52,13 @@ def clean_empty_dirs():
     for show_dir in get_subdirs(tv_shows_dir):
         for subdir in get_subdirs(show_dir):
             if not has_subs(subdir):
-                print 'removing directory',subdir
+                #print 'removing directory',subdir
                 if not DEBUG:
                     send_to_trash(subdir)
                 continue
             for subdir2 in get_subdirs(subdir):
                 if not has_subs(subdir2):
-                    print 'removing directory',subdir2
+                    #print 'removing directory',subdir2
                     if not DEBUG:
                         send_to_trash(subdir2)
 
@@ -75,7 +75,7 @@ def get_series_data(series_name):
     series_name = series_name.lower()
     global series_data
     if series_name not in series_data:
-        print 'getting data for', series_name
+        #print 'getting data for', series_name
         if series_name == 'the daily show':
             series = tvdb.get_series('The Daily Show with Jon Stewart')[0]
         else:
@@ -92,7 +92,7 @@ def get_series_data(series_name):
 
 def fetch_description():
     for episode in Episode.objects.filter(name=''):
-        print 'fetching data for', episode
+        #print 'fetching data for', episode
         try:
             if episode.episode:
                 data = get_series_data(episode.show.name)['season_episode']['%s %s' % (episode.season, episode.episode)]
@@ -109,7 +109,7 @@ def fetch_description():
             print '---'
     global series_data
     series_data.clear()
-    print 'cleared cache'
+    #print 'cleared cache'
 
 def add_episode(data):
     type, filename, show_name = data[0], data[1], data[2]
@@ -139,6 +139,7 @@ def add_episode(data):
         return True
     return False
 
+is_not_tv_show_cache = set()
 def handle_tv_show_episode(data):
     type, filename, show_name = data[0], data[1], data[2]
     assert type == 'tv show'
@@ -147,6 +148,8 @@ def handle_tv_show_episode(data):
         print 'added episode', data
         return True
     else:
+        if show_name in is_not_tv_show_cache:
+            return False
         matches = tvdb.get_series(show_name)
         match = None
         for m in matches:
@@ -156,8 +159,9 @@ def handle_tv_show_episode(data):
         if match:
             if not SuggestedShow.objects.filter(name=match['name']).count():
                 SuggestedShow.objects.create(name=match['name'])
-                print 'found potential new show', match['name']
+                print 'found potential new show "%s"' % canonical_format(show_name)
                 return True
         else:
             print 'did not find', show_name, 'on tvdb, ignoring...'
+            is_not_tv_show_cache.add(show_name)
     return False
