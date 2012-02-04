@@ -34,11 +34,11 @@ def episode_position(request, show_id, episode_id, position):
 def suggested_shows(request):
     return render(request, 'tvshows/suggested_shows.html', {'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
 
-def add_suggested_show(request, suggested_show_id):
+def add_suggested_show(request, suggested_show_id, option):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
     tvdb_result = tvdb.get_series(s.name)
     description = tvdb_result[0]['overview'] if len(tvdb_result) else ''
-    Show.objects.create(name=s.name, description=description, canonical_name=canonical_format(s.name))
+    Show.objects.create(name=s.name, description=description, canonical_name=canonical_format(s.name), auto_erase=(option=='erase'))
     s.delete()
     if SuggestedShow.objects.filter(ignored=False).count():
         return HttpResponse(':back')

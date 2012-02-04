@@ -4,6 +4,9 @@ import sys
 sys.path.append(os.getcwd())
 sys.path.append(os.path.split(os.getcwd())[0]) # for embedded use
 sys.path.append(os.path.join(os.path.split(os.getcwd())[0], 'django')) # for development
+sys.path.append(os.path.join(os.path.split(os.getcwd())[0], 'django-south')) # for development
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'CMi.settings'
 
 from django.core.management import execute_manager
 try:
@@ -14,4 +17,6 @@ except ImportError:
     sys.exit(1)
 
 if __name__ == "__main__":
+    from CMi import migrate
+    migrate()
     execute_manager(settings)

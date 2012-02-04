@@ -11,6 +11,7 @@ urlpatterns = patterns('',
     (r'^weather/$', 'CMi.views.weather'),
     (r'^tvshows/', include('CMi.tvshows.urls')),
     (r'^movies/', include('CMi.movies.urls')),
+    (r'^filesystem/', include('CMi.filesystem.urls')),
     (r'^search_for_new_files/', 'CMi.views.search_for_new_files'),
     (r'^set_location/', 'CMi.views.set_location'),
 

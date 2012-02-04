@@ -23,8 +23,9 @@ date_regexs = [
 
 def delete_watched_episodes():
     for episode in Episode.objects.filter(watched=True):
-        send_to_trash(episode.filepath)
-        episode.delete()
+        if episode.show.auto_erase:
+            send_to_trash(episode.filepath)
+            episode.delete()
     
 def clean_episode_db():
     #print 'cleaning episode db...'

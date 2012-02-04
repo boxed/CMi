@@ -1,3 +1,6 @@
 [submodule "django"]
 	path = django
 	url = git://github.com/django/django.git
+[submodule "django-south"]
+	path = django-south
+	url = git://github.com/dmishe/django-south.git

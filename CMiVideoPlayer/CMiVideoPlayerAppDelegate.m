@@ -156,6 +156,9 @@ void key(int code)
 {
     NSString* s = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
     s = [s stringByReplacingOccurrencesOfString:@"CMiVideoPlayer://" withString:@"file://"];
+    if ([s hasPrefix:@"file://http://"]) {
+        s = [s stringByReplacingOccurrencesOfString:@"file://" withString:@""];
+    }
     NSLog(@"Handling url: %@", s);
     if ([@"file://sleep" isEqualToString:s]) {
         //[self sleepSystem];

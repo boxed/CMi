@@ -8,6 +8,6 @@ urlpatterns = patterns('CMi.tvshows.views',
     (r'^(?P<show_id>\d+)/(?P<episode_id>\d+)/position/(?P<position>\d+)$', 'episode_position'),
 
     (r'^suggested/$', 'suggested_shows'),
-    (r'^suggested/(?P<suggested_show_id>\d+)/add/$', 'add_suggested_show'),
+    (r'^suggested/(?P<suggested_show_id>\d+)/add/(?P<option>.*)/$', 'add_suggested_show'),
     (r'^suggested/(?P<suggested_show_id>\d+)/ignore/$', 'ignore_suggested_show'),
 )

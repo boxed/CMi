@@ -56,6 +56,7 @@ def run_movies_cleanup():
             movie.delete()
 
 def handle_movie(data):
+    print data
     type, filename, name, year = data
     assert type == 'movie'
     m, imdb_info = is_movie(clean(name))
@@ -68,6 +69,7 @@ def handle_movie(data):
         destination = os.path.join(movies_dir, filename)
         print 'move', source, '->', destination
         move(source, destination)
-        Movie.objects.create(name=imdb_info['title'], filepath=destination, aired=imdb_info['year'])
+        year = imdb_info['year'] if 'year' in imdb_info else ''
+        Movie.objects.create(name=imdb_info['title'], filepath=destination, aired=year)
         return True
     return False

@@ -38,7 +38,12 @@
 - (void)openURL:(NSURL*)url
 {
     [self lazyInit];
-    [player setMedia:[VLCMedia mediaWithPath:[url path]]];
+    if ([url isFileURL]) {
+        [player setMedia:[VLCMedia mediaWithPath:[url path]]];
+    }
+    else {
+        [player setMedia:[VLCMedia mediaWithURL:url]];
+    }
     [player play];
     isPaused = NO;
 }

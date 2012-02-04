@@ -107,6 +107,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
+    'CMi.base',
     'CMi.tvshows',
     'CMi.movies',
+    'CMi.cal',
+    'CMi.filesystem',
 )

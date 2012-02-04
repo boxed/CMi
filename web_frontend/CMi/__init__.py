@@ -32,7 +32,7 @@ if __name__ == '__main__':
     setup_environ(settings)
     execute_manager(settings, argv=['runserver', '127.0.0.1:2123'])
 
-# Turn off outpub buffering so the parent objc process can see our output property
+# Turn off output buffering so the parent objc process can see our output property
 class Unbuffered:
     def __init__(self, stream):
         self.stream = stream
@@ -43,4 +43,40 @@ class Unbuffered:
         return getattr(self.stream, attr)
 
 import sys
-sys.stdout=Unbuffered(sys.stdout)
+sys.stdout = Unbuffered(sys.stdout)
+
+def migrate():
+    import importlib
+    from django.core.management import call_command
+    call_command('syncdb', interactive=False)
+
+    # if no superuser exists, create it
+    from django.contrib.auth.models import User
+    try:
+        User.objects.get(pk=1)
+    except User.DoesNotExist:
+        User.objects.create_superuser('admin', 'example@example.com', 'admin')
+
+    from django.conf import settings
+    from CMi.base.models import Version
+
+    for app in settings.INSTALLED_APPS:
+        try:
+            upgrade = importlib.import_module(app+'.upgrade')
+            app_version = Version.objects.get_or_create(app=app, defaults={'version':0})[0]
+            for item_name in sorted(dir(upgrade)):
+                if item_name.startswith('upgrade_'):
+                    version = int(item_name[len('upgrade_'):])
+                    if version > app_version.version:
+                        print 'upgrading %s: %s -> %s' % (app, app_version.version, version)
+                        app_version.version = version
+                        getattr(upgrade, item_name)()
+                        app_version.save()
+        except ImportError:
+            pass
+
+def run_sql(statements):
+    from django.db import connection, transaction
+    cursor = connection.cursor()
+    for statement in statements.split(';'):
+        cursor.execute(statement)

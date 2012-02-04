@@ -4,9 +4,10 @@ class Show(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True)
     canonical_name = models.CharField(max_length=200)
+    auto_erase = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return '%s' % (self.name)
+        return '%s' % self.name
     
     class Meta:
         ordering = ['name']

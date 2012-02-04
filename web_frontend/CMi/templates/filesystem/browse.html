@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block contents %}
+<h1 class="header">{{ title }}</h1>
+
+<table class="list tiles">
+    <tr>
+        <td class="tile">
+            ..
+        </td>
+    </tr>
+    {% for  obj in objects %}
+        <tr>
+            <td class="tile" url="/filesystem/browse/{{ path }}/{{ obj }}">
+                {{ obj }}
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock %}

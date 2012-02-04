@@ -171,6 +171,10 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
 }
 
+.explanation {
+    font-size: 60%;
+}
+
 /*
  Colors:
  bg: #360a3f -> #431963

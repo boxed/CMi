@@ -4,6 +4,13 @@ from os.path import join, getsize, splitext
 from CMi.directories import downloads_dir
 import datetime
 
+def splitext(s):
+    from os.path import splitext as splitext2
+    foo = splitext2(s)
+    if len(foo) > 1 and len(foo[0]) > len(foo[1]):
+        return foo
+    return [s, '']
+
 SUPPORTED_FILE_FORMATS = set([
                               '.avi',
                               '.mkv',
@@ -15,9 +22,10 @@ SUPPORTED_FILE_FORMATS = set([
 
 # TV Shows
 season_ep_regexs = [
-                    '(?P<name>.*)s(?P<season>\d\d)e(?P<episode>\d\d?)',
+                    '(?P<name>.*?) season (?P<season>\d\d?) s(\\2)ep?(?P<episode>\d\d?)',
+                    '(?P<name>.*[^0-9]) season (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
+                    '(?P<name>.*)s(?P<season>\d\d?)ep?(?P<episode>\d\d?)',
                     '(?P<name>.*[^0-9])(?P<season>\d\d?)x(?P<episode>\d\d?)',
-                    '(?P<name>.*[^0-9])(?P<season>\d\d?)(?P<episode>\d\d)',
                     ]
 date_regexs = [
                '(?P<name>.*)(?P<year>\d\d\d\d) (?P<month>\d\d) (?P<day>\d\d)'
@@ -25,13 +33,14 @@ date_regexs = [
 
 # Movies
 year_regexs = [
-    '(?P<name>.*)(?P<year>19\d\d)',
-    '(?P<name>.*)(?P<year>20\d\d)',
-    '(?P<name>.*)(?P<year>21\d\d)', # Handle stuff until I'm dead at least :P
+    '(?P<name>.*) (?P<year>19\d\d)',
+    '(?P<name>.*) (?P<year>20\d\d)',
+    '(?P<name>.*) (?P<year>21\d\d)', # Handle stuff until I'm dead at least :P
 
      # Some pseudo-matches to handle common suffixes
     '(?P<name>.*) dvdrip(?P<year>)',
     '(?P<name>.*) bluray(?P<year>)',
+    '(?P<name>.*) xvid(?P<year>)',
 ]
 
 def supported_extension(s):
@@ -40,25 +49,37 @@ def supported_extension(s):
 
 def has_videos(directory):
     for root, dirs, files in os.walk(directory):
+        count = 0
         for f in files:
+            if '.rar' in f:
+                print f, supported_extension(f), os.path.split(directory)[-1]
             if supported_extension(f):
-                return True
+                # Used to have an extra check that the filename of the video file and the name of the directory had to match:
+                #   and os.path.split(directory)[-1] in f:
+                count += 1
+        if count == 1:
+            return True
         break
     return False
 
 def find_videos():
     videos = []
     for root, dirs, files in os.walk(downloads_dir):
+        for d in dirs[:]:
+            if d.lower() in ('movies', 'tv shows', 'incomplete'):
+                dirs.remove(d)
+                continue
+            full_path = os.path.join(root, d)
+            if has_videos(full_path):
+                print 'handle %s as dir' % full_path
+                videos.append(full_path[len(downloads_dir)+1:])
+                dirs.remove(d)
+                continue
         for f in files:
             if supported_extension(f):
-                videos.append(f)
-        for d in dirs:
-            if d.lower() in ('movies', 'tv shows', 'incomplete'):
-                continue
-            if has_videos(os.path.join(root, d)):
-                videos.append(d)
-        break
-    #print 'found', videos
+                full_path = os.path.join(root, f)
+                videos.append(full_path[len(downloads_dir)+1:])
+                print 'handle %s as file' % full_path
     return videos
 
 def playable_path(path):
@@ -78,7 +99,7 @@ def playable_path(path):
 def canonical_format(s):
     s2 = re.sub(r'^\[[^\]]*\]', '', s)
     s2 = re.sub(r'^\([^\)]*\)', '', s2)
-    s2 = s2.lower().replace('.', ' ').replace('_', ' ').replace('-', ' ').replace(':', ' ')
+    s2 = s2.lower().replace('/', ' ').replace('.', ' ').replace('_', ' ').replace('-', ' ').replace(':', ' ')
     s2 = s2.replace('&', 'and').replace("'", '').replace(' 720p ', ' ').replace(' 1080p ', ' ').replace(' x264 ', ' ')
     s2 = s2.replace('(', ' ').replace(')', ' ').replace('[', ' ').replace(']', ' ')
     s2 = re.sub(r' +', ' ', s2).strip()
@@ -93,29 +114,33 @@ def match_file(filename):
     global season_ep_regexs
     global date_regexs
     global year_regexs
-    video = canonical_format(filename)
+    video = canonical_format(splitext(filename)[0])
+#    print video
     m = None
     for date_regex in date_regexs:
         m = re.match(date_regex, video)
         if m:
+#            print 'matched date regex:', date_regex
             break
     if m:
         name, aired = canonical_format(m.groupdict()['name']), datetime.datetime(int(m.groupdict()['year']), int(m.groupdict()['month']), int(m.groupdict()['day']))
         return 'tv show', filename, name, aired
 
-    for year_regex in year_regexs:
-        m = re.match(year_regex, video.lower())
-        if m:
-            break
-    if m:
-        return 'movie', filename, canonical_format(m.groupdict()['name']), int(m.groupdict()['year'] or 0)
-
     for season_ep_regex in season_ep_regexs:
-        m = re.match(season_ep_regex, video.lower())
+        m = re.match(season_ep_regex, video)
         if m:
+#            print 'matched season ep regex:', date_regex
             break
     if m:
         name, season, episode = canonical_format(m.groupdict()['name']), m.groupdict()['season'], m.groupdict()['episode']
-        return 'tv show', filename, name, (season, episode)
-    print filename, 'matched nothing, ignoring...'
-    return None
+        return 'tv show', filename, name, (int(season), int(episode))
+
+    for year_regex in year_regexs:
+        m = re.match(year_regex, video)
+        if m:
+#            print 'matched year regex:', date_regex
+            break
+    if m:
+        return 'movie', filename, canonical_format(m.groupdict()['name']), int(m.groupdict()['year'] or 0)
+#    print 'matched nothing, defaulting'
+    return 'movie', filename, canonical_format(filename), 0
