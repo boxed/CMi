@@ -1,6 +1,5 @@
 import os
 import re
-from os.path import join, getsize, splitext
 from CMi.directories import downloads_dir
 import datetime
 
@@ -11,25 +10,18 @@ def splitext(s):
         return foo
     return [s, '']
 
-SUPPORTED_FILE_FORMATS = set([
-                              '.avi',
-                              '.mkv',
-                              '.m4v',
-                              '.mov',
-                              '.mp4',
-                              '.rar',
-                              ])
+SUPPORTED_FILE_FORMATS = set(['.avi', '.mkv', '.m4v', '.mov', '.mp4', '.rar'])
 
 # TV Shows
 season_ep_regexs = [
                     '(?P<name>.*?) season (?P<season>\d\d?) s(\\2)ep?(?P<episode>\d\d?)',
                     '(?P<name>.*[^0-9]) season (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
-                    '(?P<name>.*)s(?P<season>\d\d?)ep?(?P<episode>\d\d?)',
-                    '(?P<name>.*[^0-9])(?P<season>\d\d?)x(?P<episode>\d\d?)',
+                    '(?P<name>.*)\s?s(?P<season>\d\d?)\s?ep?(?P<episode>\d\d?)',
+                    '(?P<name>.*[^0-9])\s?(?P<season>\d\d?)x(?P<episode>\d\d?)',
                     ]
 date_regexs = [
-               '(?P<name>.*)(?P<year>\d\d\d\d) (?P<month>\d\d) (?P<day>\d\d)'
-               ]
+    '(?P<name>.*)(?P<year>\d\d\d\d) (?P<month>\d\d) (?P<day>\d\d)'
+]
 
 # Movies
 year_regexs = [
@@ -114,8 +106,20 @@ def match_file(filename):
     global season_ep_regexs
     global date_regexs
     global year_regexs
-    video = canonical_format(splitext(filename)[0])
-#    print video
+    if '/' in filename:
+        for part in xrange(filename.count('/')):
+            x = filename.rsplit('/', part+1)[-1]
+            result = match_video(x, canonical_format(splitext(x)[0]))
+            if result[0] != 'movie_fallback':
+                return result[0], filename, result[2], result[3]
+
+    result = match_video(filename, canonical_format(splitext(filename)[0]))
+    if result[0] == 'movie_fallback':
+        return 'movie', result[1], result[2], result[3]
+    return result
+
+def match_video(filename, video):
+    #    print video
     m = None
     for date_regex in date_regexs:
         m = re.match(date_regex, video)
@@ -124,7 +128,8 @@ def match_file(filename):
             break
     if m:
         name, aired = canonical_format(m.groupdict()['name']), datetime.datetime(int(m.groupdict()['year']), int(m.groupdict()['month']), int(m.groupdict()['day']))
-        return 'tv show', filename, name, aired
+        if name:
+            return 'tv show', filename, name, aired
 
     for season_ep_regex in season_ep_regexs:
         m = re.match(season_ep_regex, video)
@@ -133,7 +138,8 @@ def match_file(filename):
             break
     if m:
         name, season, episode = canonical_format(m.groupdict()['name']), m.groupdict()['season'], m.groupdict()['episode']
-        return 'tv show', filename, name, (int(season), int(episode))
+        if name:
+            return 'tv show', filename, name, (int(season), int(episode))
 
     for year_regex in year_regexs:
         m = re.match(year_regex, video)
@@ -143,4 +149,5 @@ def match_file(filename):
     if m:
         return 'movie', filename, canonical_format(m.groupdict()['name']), int(m.groupdict()['year'] or 0)
 #    print 'matched nothing, defaulting'
-    return 'movie', filename, canonical_format(filename), 0
+
+    return 'movie_fallback', filename, canonical_format(filename), 0

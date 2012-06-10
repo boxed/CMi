@@ -11,7 +11,6 @@
 
 @implementation BorderLessWindow
 
-
 - (void)hideCursor:(id)sender
 {
     if (hideCount == 4)

@@ -10,6 +10,7 @@ from CMi.engine import *
 # Boston Legal - 420 - Patriot Acts.avi|tv show|boston legal
 
 s = """
+Glee S3.E18 (xCrazy0328x)/Glee S3.E18.avi|tv show|glee|(3, 18)
 House.S07E23.Moving.On.HDTV.XviD-2HD.avi|tv show|house|(7, 23)
 [PDTV-Xvid-Mp3-ITA] Dexter S05E11 [CR-Bt].avi|tv show|dexter|(5, 11)
 Glee.S02E22.HDTV.XviD-LOL.[VTV].avi|tv show|glee|(2, 22)
@@ -68,6 +69,25 @@ Futurama/Season 1/S1EP03.avi|tv show|futurama|(1, 3)
 Futurama/Season 2/S2E02.avi|tv show|futurama|(2, 2)
 Men in Black 2 - [2002] HDDVDRip 720p H264-3Li|movie|men in black 2|2002
 Men.In.Black.1997.720p.BRRip.XviD.AC3-anoXmous|movie|men in black|1997
+Glee S03E21 HDTV XviD-AFG/Glee S03E21 HDTV XviD-AFG/Glee S03E21 HDTV XviD-AFG/Glee S03E21 HDTV XviD-AFG.avi|tv show|glee|(3, 21)
+Glee.S03E22.HDTV.x264-LOL.[VTV].mp4|tv show|glee|(3, 22)
+Smash.S01/Smash.S01E05.HDTV.x264-LOL.Let's.Be.Bad.mp4|tv show|smash|(1, 5)
+Smash.S01/Smash.S01E06.HDTV.x264-LOL.Chemistry.mp4|tv show|smash|(1, 6)
+Smash.S01/Smash.S01E07.HDTV.x264-LOL.The.Workshop.mp4|tv show|smash|(1, 7)
+Smash.S01/Smash.S01E08.HDTV.x264-LOL.The.Coup.mp4|tv show|smash|(1, 8)
+Smash.S01/Smash.S01E09.HDTV.XviD-FQM.Hell.on.Earth.avi|tv show|smash|(1, 9)
+Smash.S01/Smash.S01E10.HDTV.x264-LOL.Understudy.mp4|tv show|smash|(1, 10)
+Smash.S01/Smash.S01E11.HDTV.x264-LOL.The.Movie.Star.mp4|tv show|smash|(1, 11)
+Smash.S01/Smash.S01E12.HDTV.x264-LOL.Publicity.mp4|tv show|smash|(1, 12)
+Smash.S01/Smash.S01E13.HDTV.x264-LOL.Tech.mp4|tv show|smash|(1, 13)
+Smash.S01/Smash.S01E14.HDTV.x264-LOL.Previews.mp4|tv show|smash|(1, 14)
+Smash.S01/Smash.S01E15.HDTV.x264-LOL.Bombshell.mp4|tv show|smash|(1, 15)
+Smash.S01/Smash.S01E04.HDTV.x264-LOL.The.Cost.of.Art.mp4|tv show|smash|(1, 4)
+Enlightened Season 1 Complete 720p/Enlightened.S01E01.720p.HDTV.x264.mkv|tv show|enlightened|(1, 1)
+Awake - The Complete Season 1 [HDTV]/Awake.S01E01.HDTV.x264-LOL.mp4|tv show|awake|(1, 1)
+Awake - The Complete Season 1 [HDTV]/Awake.S01E02.HDTV.x264-LOL.mp4|tv show|awake|(1, 2)
+Merlin..Season.1/Merlin S01E05 Lancelot.avi|tv show|merlin|(1, 5)
+Unforgettable.S01/Unforgettable.S01E01.HDTV.XviD-LOL.Pilot.avi|tv show|unforgettable|(1, 1)
 """
 
 def classify(s):

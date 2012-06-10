@@ -93,7 +93,6 @@ void key(int code)
     [self->HUDWindow setFloatingPanel:YES];
     
     //self->movie = [[[QuickTimePlayer alloc] initWithParentWindow:self->window] retain];
-    self->movie = [[[VLCVideoPlayer alloc] initWithParentWindow:self->window] retain];
     [window setFrame:[[NSScreen mainScreen] frame] display:NO];
     
     // Register delegate as scriptable object for javascript
@@ -207,7 +206,9 @@ void key(int code)
         url = [NSURL URLWithString:[s substringToIndex:[s rangeOfString:@"?"].location]];
     }
 
-    [movie openURL:url];
+    assert(self->movie == nil);
+    self->movie = [[[VLCVideoPlayer alloc] initWithParentWindow:self->window] retain];
+    [self->movie openURL:url];
     float volume = [[NSUserDefaults standardUserDefaults] floatForKey:@"volume"];
     [self->movie setVolume:volume];
         
@@ -221,7 +222,6 @@ void key(int code)
         
     [self->movie play];
     self->isPlaying = YES;
-    //[self windowWillResize:self.window toSize:self.window.frame.size];
 
     return TRUE;
 }
@@ -242,6 +242,8 @@ void key(int code)
     self->isPlaying = NO;
     [self hideOnScreenControls];
     [self showWeb];
+    [self->movie release];
+    self->movie = nil;
 }
 
 - (IBAction)playPause:(id)sender
@@ -556,6 +558,19 @@ void setAlpha(NSView* v)
 - (void)windowDidResize:(NSNotification *)notification
 {
     [self->HUDWindow setFrame:[[notification object] frame] display:TRUE];
+    
+    
+/*    if ([self->window backingScaleFactor] > 1) {
+        CGFloat s = [self->window backingScaleFactor];
+        CGAffineTransform transform = CGAffineTransformMakeScale(1/s, 1/s);
+        [self->webView setWantsLayer:YES];
+        [[self->webView layer] setAffineTransform:transform];
+        NSRect frame = [[self->window contentView] frame];
+        frame.size.width *= s;
+        frame.size.height *= s;
+        [self->webView setFrame:frame];
+    }
+*/
 }
 
 #pragma mark WebView delegate
@@ -567,7 +582,7 @@ void setAlpha(NSView* v)
     [window toggleFullScreen:self];
 }
 
-#pragma mark    delegate
+#pragma mark location manager delegate
 - (void)locationManager:(CLLocationManager *)manager
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from shutil import move
 from datetime import datetime, date
-from CMi.engine import canonical_format
+from CMi.engine import canonical_format, splitext
 from CMi.tvshows.models import *
 from CMi.directories import *
 import tvdb
@@ -121,13 +121,14 @@ def add_episode(data):
     aired = None
     episode = 0
     show = Show.objects.get(canonical_name__exact=canonical_format(show_name))
+    extension = splitext(filename)[-1].strip('. ')
     if isinstance(data[3], datetime):
         aired = data[3]
         season = aired.year
-        destination = os.path.join(destination_dir, show.name, 'Season %s' % season, filename)
+        destination = os.path.join(destination_dir, show.name, 'Season %s' % season, '%s %s.%s' % (show_name, aired, extension))
     else:
         season, episode = data[3]
-        destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), filename)
+        destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), '%s S%sE%s.%s' % (show_name, season, episode, extension))
     if destination:
         print 'move %s -> %s' % (os.path.join(downloads_dir, filename), destination)
         if not DEBUG:
