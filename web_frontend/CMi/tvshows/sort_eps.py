@@ -125,7 +125,7 @@ def add_episode(data):
     if isinstance(data[3], datetime):
         aired = data[3]
         season = aired.year
-        destination = os.path.join(destination_dir, show.name, 'Season %s' % season, '%s %s.%s' % (show_name, aired, extension))
+        destination = os.path.join(destination_dir, show.name, 'Season %s' % season, '%s %s.%s' % (show_name, aired.strftime('%Y-%m-%d'), extension))
     else:
         season, episode = data[3]
         destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), '%s S%sE%s.%s' % (show_name, season, episode, extension))

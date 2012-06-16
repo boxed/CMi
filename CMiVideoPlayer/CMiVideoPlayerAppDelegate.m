@@ -344,6 +344,10 @@ void setAlpha(NSView* v)
         NSString* urlprefix = [NSString stringWithFormat:@"http://127.0.0.1:8000/%@", self->movieCallbackURL];
         float current = [self->movie currentTime];
         float end = [self->movie duration];
+        if (end < 2) {
+            NSLog(@"Prevented early stop of movie");
+            return;
+        }
         NSURL* url = nil;
         if (fabs(current - end) < 3000) {
             url = [NSURL URLWithString:[urlprefix stringByAppendingString:@"/ended"]];
