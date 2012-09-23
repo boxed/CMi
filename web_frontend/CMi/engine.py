@@ -10,7 +10,8 @@ def splitext(s):
         return foo
     return [s, '']
 
-SUPPORTED_FILE_FORMATS = set(['.avi', '.mkv', '.m4v', '.mov', '.mp4', '.rar'])
+SUPPORTED_FILE_FORMATS = set(['.avi', '.mkv', '.m4v', '.mov', '.mp4'])
+MINIMUM_FILE_SIZE = 1024*1024*50 # 50 megabytes
 
 # TV Shows
 season_ep_regexs = [
@@ -81,6 +82,8 @@ def playable_path(path):
                 continue
             for f in files:
                 if 'sample' in f.lower():
+                    continue
+                if os.path.getsize(os.path.join(root, f)) < MINIMUM_FILE_SIZE:
                     continue
                 extension = os.path.splitext(f)[1]
                 if extension in SUPPORTED_FILE_FORMATS:

@@ -88,6 +88,7 @@ Awake - The Complete Season 1 [HDTV]/Awake.S01E01.HDTV.x264-LOL.mp4|tv show|awak
 Awake - The Complete Season 1 [HDTV]/Awake.S01E02.HDTV.x264-LOL.mp4|tv show|awake|(1, 2)
 Merlin..Season.1/Merlin S01E05 Lancelot.avi|tv show|merlin|(1, 5)
 Unforgettable.S01/Unforgettable.S01E01.HDTV.XviD-LOL.Pilot.avi|tv show|unforgettable|(1, 1)
+Merlin.Season.1/Merlin S01E05 Lancelot.avi|tv show|merlin|(1, 5)
 """
 
 def classify(s):

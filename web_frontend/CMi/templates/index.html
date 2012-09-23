@@ -4,14 +4,14 @@
     <table class="tiles big_tiles">
         <tr>
             <td class="tile" url="/tvshows/">
-                <img src="/site-media/tv.svg" style="width: 160px;"/>
+                <img src="/site-media/tv.svg" class="big_icon"/>
                 <div class="content">
                     <h1>TV Shows</h1>
                     {{ new_episodes }} new episodes
                 </div>
             </td>
             <td class="tile" url="/movies/">
-                <img src="/site-media/movie.svg" style="width: 160px;"/>
+                <img src="/site-media/movie.svg" class="big_icon"/>
                 <div class="content">
                     <h1>Movies</h1>
                     {{ new_movies }} new / {{ total_movies }} total
@@ -19,7 +19,7 @@
             </td>
             <td class="tile" url="/weather/">
                 {% if weather.current_conditions.icon %}
-                    <img src="{{ weather.current_conditions.icon }}" style="width: 160px;"/>
+                    <img src="{{ weather.current_conditions.icon }}" class="big_icon"/>
                 {% endif %}
                 <div class="content">
                     <h1>Weather</h1>

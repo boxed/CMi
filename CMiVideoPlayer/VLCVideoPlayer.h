@@ -14,7 +14,8 @@
     VLCVideoView* view;
     VLCMediaPlayer* player;
     NSWindow* window;
-    BOOL isPaused; 
+    BOOL isPaused;
+    @private BOOL _hasSetAudioTrack;
 }
 
 - (id)initWithParentWindow:(NSWindow*)window;

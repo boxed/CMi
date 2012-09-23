@@ -92,6 +92,16 @@
 
 - (float)currentTime
 {
+    if (!self->_hasSetAudioTrack) {
+        for (int i = 0; i != player.audioTracks.count; i++) {
+            if ([[player.audioTracks[i] lowercaseString] rangeOfString:@"english"].location != NSNotFound) {
+                [player setAudioChannel:i];
+                self->_hasSetAudioTrack = YES;
+                break;
+            }
+        }
+    }
+
     VLCTime* time = [player time];
     return (float)[time intValue];
 }

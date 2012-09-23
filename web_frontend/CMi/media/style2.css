@@ -175,6 +175,10 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 60%;
 }
 
+.big_icon {
+    width: 160px;
+}
+
 /*
  Colors:
  bg: #360a3f -> #431963
