@@ -1,0 +1,199 @@
+@media only screen and (min--moz-device-pixel-ratio: 2),
+    only screen and (-o-min-device-pixel-ratio: 2/1),
+    only screen and (-webkit-min-device-pixel-ratio: 2),
+    only screen and (min-device-pixel-ratio: 2) {
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: century gothic;
+    /*
+     candara
+    */
+    border: 0;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    background: -webkit-gradient(linear, left top, right top, from(#3b1048), to(#470e48));
+}
+
+.header {
+    color: white;
+    position: absolute;
+    left: 90px;
+    top: 23px;
+    font-size: 35px;
+}
+
+
+td {
+    font-size: 15px;
+    color: white;
+    vertical-align: top;
+}
+
+.tiles .focus {
+    background: -webkit-gradient(linear, left top, right top, from(#23B4A9), to(#188E86));
+}
+
+.tile.list {
+    position: absolute;
+    top: 67px;
+    left: 75px;
+}
+
+.tiles .tile.list:hover
+{
+    background: transparent;
+}
+
+.tile.list td {
+    cursor: pointer;
+}
+
+.tiles {
+    border-spacing: 5px;
+    position: absolute;
+    top: 80px;
+    left: 80px;
+}
+
+.tiles.list {
+    top: 80px;
+    left: 80px;
+    width: auto;
+}
+
+.tiles td {
+    background: -webkit-gradient(linear, left top, right top, from(#6b1d57), to(#7d2764));
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tiles.list td {
+    padding: 5px 8px;
+}
+
+.tiles th, .tiles .label {
+    background: transparent;
+    cursor: default;
+    font-size: 18px;
+    color: white;
+    font-weight: normal;
+    text-align: left;
+}
+
+#back_link {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+    width: 30px;
+    height: 30px;
+    opacity: 0;
+}
+
+#clock {
+    position: fixed;
+    top: 3px;
+    right: 5px;
+    color: white;
+    font-size: 15px;
+}
+
+/*
+Metro style imitation
+*/
+
+#home {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 282px;
+    height: 100%;
+    max-height: 254px;
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-transition-timing-function: ease-in-out;
+}
+
+.header {
+    opacity: 0;
+    -webkit-transition-duration: 200ms;
+}
+
+.tiles {
+    -webkit-transform: translate3d(0, 0, 0);
+    -webkit-perspective: 1900px;
+}
+
+.tiles td {
+    -webkit-transform: translate3d(0,0,0) rotateY(90deg);
+}
+
+.tile {
+    position: relative;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 15px;
+    color: white;
+    vertical-align: top;
+    background: -webkit-gradient(linear, left top, right top, from(#6b1d57), to(#7d2764));
+    padding: 8px 10px;
+    opacity: 0;
+}
+
+.big_tiles td {
+    width: 200px;
+    height: 200px;
+    vertical-align: bottom;
+    text-align: center;
+}
+
+.content {
+    padding: 22px 38px 22px 38px;
+}
+
+h1 {
+    font-size: 22px;
+    margin: 0 0 10px;
+}
+
+h2 {
+    font-size: 17px;
+    margin: 0 0 20px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: lighter;
+}
+
+.fullscreen {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.explanation {
+    font-size: 60%;
+}
+
+.big_icon {
+    width: 80px;
+}
+
+/*
+ Colors:
+ bg: #360a3f -> #431963
+ #6b1d57 -> #7d2764
+ #25aea4
+ #466ecd
+ #89a007
+ #dd9100
+ #e84f0b
+ #0159a3
+*/
+
+} /* end retina section */
