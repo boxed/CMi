@@ -3,7 +3,7 @@ utils module (imdb package).
 
 This module provides basic utilities for the imdb package.
 
-Copyright 2004-2010 Davide Alberani <da@erlug.linux.it>
+Copyright 2004-2013 Davide Alberani <da@erlug.linux.it>
                2009 H. Turgut Uyar <uyar@tekir.org>
 
 This program is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@ from copy import copy, deepcopy
 from time import strptime, strftime
 
 from imdb import VERSION
-from imdb import articles
+from imdb import linguistics
 from imdb._exceptions import IMDbParserError
 
 
@@ -42,9 +42,14 @@ _utils_logger = logging.getLogger('imdbpy.utils')
 # and year of release.
 # XXX: probably L, C, D and M are far too much! ;-)
 re_year_index = re.compile(r'\(([0-9\?]{4}(/[IVXLCDM]+)?)\)')
+re_extended_year_index = re.compile(r'\((TV episode|TV Series|TV mini-series|TV|Video|Video Game)? ?((?:[0-9\?]{4})(?:-[0-9\?]{4})?)(?:/([IVXLCDM]+)?)?\)')
+re_remove_kind = re.compile(r'\((TV episode|TV Series|TV mini-series|TV|Video|Video Game)? ?')
 
 # Match only the imdbIndex (for name strings).
 re_index = re.compile(r'^\(([IVXLCDM]+)\)$')
+
+# Match things inside parentheses.
+re_parentheses = re.compile(r'(\(.*\))')
 
 # Match the number of episodes.
 re_episodes = re.compile('\s?\((\d+) episodes\)', re.I)
@@ -136,16 +141,17 @@ def analyze_name(name, canonical=None):
     res = {}
     imdbIndex = ''
     opi = name.rfind('(')
-    if opi != -1:
-        cpi = name.rfind(')')
-        if cpi > opi and re_index.match(name[opi:cpi+1]):
+    cpi = name.rfind(')')
+    # Strip  notes (but not if the name starts with a parenthesis).
+    if opi not in (-1, 0) and cpi > opi:
+        if re_index.match(name[opi:cpi+1]):
             imdbIndex = name[opi+1:cpi]
             name = name[:opi].rstrip()
         else:
             # XXX: for the birth and death dates case like " (1926-2004)"
-            name = name[:opi-1]
+            name = re_parentheses.sub('', name).strip()
     if not name:
-        raise IMDbParserError, 'invalid name: "%s"' % original_n
+        raise IMDbParserError('invalid name: "%s"' % original_n)
     if canonical is not None:
         if canonical:
             name = canonicalName(name)
@@ -178,34 +184,37 @@ def build_name(name_dict, canonical=None):
 
 
 # XXX: here only for backward compatibility.  Find and remove any dependency.
-_articles = articles.GENERIC_ARTICLES
-_unicodeArticles = articles.toUnicode(_articles)
-articlesDicts = articles.articlesDictsForLang(None)
-spArticles = articles.spArticlesForLang(None)
+_articles = linguistics.GENERIC_ARTICLES
+_unicodeArticles = linguistics.toUnicode(_articles)
+articlesDicts = linguistics.articlesDictsForLang(None)
+spArticles = linguistics.spArticlesForLang(None)
 
-def canonicalTitle(title, lang=None):
+def canonicalTitle(title, lang=None, imdbIndex=None):
     """Return the title in the canonic format 'Movie Title, The';
-    beware that it doesn't handle long imdb titles, but only the
-    title portion, without year[/imdbIndex] or special markup.
+    beware that it doesn't handle long imdb titles.
     The 'lang' argument can be used to specify the language of the title.
     """
     isUnicode = isinstance(title, unicode)
-    articlesDicts = articles.articlesDictsForLang(lang)
+    articlesDicts = linguistics.articlesDictsForLang(lang)
     try:
         if title.split(', ')[-1].lower() in articlesDicts[isUnicode]:
             return title
     except IndexError:
         pass
     if isUnicode:
-        _format = u'%s, %s'
+        _format = u'%s%s, %s'
     else:
-        _format = '%s, %s'
+        _format = '%s%s, %s'
     ltitle = title.lower()
-    spArticles = articles.spArticlesForLang(lang)
+    if imdbIndex:
+        imdbIndex = ' (%s)' % imdbIndex
+    else:
+        imdbIndex = ''
+    spArticles = linguistics.spArticlesForLang(lang)
     for article in spArticles[isUnicode]:
         if ltitle.startswith(article):
             lart = len(article)
-            title = _format % (title[lart:], title[:lart])
+            title = _format % (title[lart:], imdbIndex, title[:lart])
             if article[-1] == ' ':
                 title = title[:-1]
             break
@@ -230,7 +239,7 @@ def normalizeTitle(title, lang=None):
     """
     isUnicode = isinstance(title, unicode)
     stitle = title.split(', ')
-    articlesDicts = articles.articlesDictsForLang(lang)
+    articlesDicts = linguistics.articlesDictsForLang(lang)
     if len(stitle) > 1 and stitle[-1].lower() in articlesDicts[isUnicode]:
         sep = ' '
         if stitle[-1][-1] in ("'", '-'):
@@ -377,20 +386,59 @@ def analyze_title(title, canonical=None, canonicalSeries=None,
     if title.endswith('(TV)'):
         kind = u'tv movie'
         title = title[:-4].rstrip()
+    elif title.endswith('(TV Movie)'):
+        kind = u'tv movie'
+        title = title[:-10].rstrip()
     elif title.endswith('(V)'):
         kind = u'video movie'
         title = title[:-3].rstrip()
-    elif title.endswith('(video)'):
+    elif title.lower().endswith('(video)'):
         kind = u'video movie'
         title = title[:-7].rstrip()
-    elif title.endswith('(mini)'):
+    elif title.endswith('(TV Short)'):
+        kind = u'tv short'
+        title = title[:-10].rstrip()
+    elif title.endswith('(TV Mini-Series)'):
         kind = u'tv mini series'
         title = title[:-6].rstrip()
     elif title.endswith('(VG)'):
         kind = u'video game'
         title = title[:-4].rstrip()
+    elif title.endswith('(Video Game)'):
+        kind = u'video game'
+        title = title[:-12].rstrip()
+    elif title.endswith('(TV Series)'):
+        epindex = title.find('(TV Episode) - ')
+        if epindex >= 0:
+            # It's an episode of a series.
+            kind = u'episode'
+            series_info = analyze_title(title[epindex + 15:])
+            result['episode of'] = series_info.get('title')
+            result['series year'] = series_info.get('year')
+            title = title[:epindex]
+        else:
+            kind = u'tv series'
+            title = title[:-11].rstrip()
     # Search for the year and the optional imdbIndex (a roman number).
     yi = re_year_index.findall(title)
+    if not yi:
+        yi = re_extended_year_index.findall(title)
+        if yi:
+            yk, yiy, yii = yi[-1]
+            yi = [(yiy, yii)]
+            if yk == 'TV episode':
+                kind = u'episode'
+            elif yk == 'TV':
+                kind = u'tv movie'
+            elif yk == 'TV Series':
+                kind = u'tv series'
+            elif yk == 'Video':
+                kind = u'video movie'
+            elif yk == 'TV mini-series':
+                kind = u'tv mini series'
+            elif yk == 'Video Game':
+                kind = u'video game'
+            title = re_remove_kind.sub('(', title)
     if yi:
         last_yi = yi[-1]
         year = last_yi[0]
@@ -406,11 +454,8 @@ def analyze_title(title, canonical=None, canonicalSeries=None,
         if not kind:
             kind = u'tv series'
         title = title[1:-1].strip()
-    elif title.endswith('(TV series)'):
-        kind = u'tv series'
-        title = title[:-11].rstrip()
     if not title:
-        raise IMDbParserError, 'invalid title: "%s"' % original_t
+        raise IMDbParserError('invalid title: "%s"' % original_t)
     if canonical is not None:
         if canonical:
             title = canonicalTitle(title)
@@ -421,6 +466,9 @@ def analyze_title(title, canonical=None, canonicalSeries=None,
     result['title'] = title
     result['kind'] = kind or u'movie'
     if year and year != '????':
+        if '-' in year:
+            result['series years'] = year
+            year = year[:4]
         try:
             result['year'] = int(year)
         except (TypeError, ValueError):
@@ -462,7 +510,7 @@ def _convertTime(title, fromPTDFtoWEB=1, _emptyString=u''):
 
 def build_title(title_dict, canonical=None, canonicalSeries=None,
                 canonicalEpisode=None, ptdf=0, lang=None, _doYear=1,
-                _emptyString=u''):
+                _emptyString=u'', appendKind=False):
     """Given a dictionary that represents a "long" IMDb title,
     return a string.
 
@@ -484,6 +532,11 @@ def build_title(title_dict, canonical=None, canonicalSeries=None,
         doYear = 0
         if ptdf:
             doYear = 1
+        # XXX: for results coming from the new search page.
+        if not isinstance(episode_of, (dict, _Container)):
+            episode_of = {'title': episode_of, 'kind': 'tv series'}
+            if 'series year' in title_dict:
+                episode_of['year'] = title_dict['series year']
         pre_title = build_title(episode_of, canonical=canonicalSeries,
                                 ptdf=0, _doYear=doYear,
                                 _emptyString=_emptyString)
@@ -518,28 +571,28 @@ def build_title(title_dict, canonical=None, canonicalSeries=None,
                     episode_title += '.%s' % episode
                 episode_title += ')'
             episode_title = '{%s}' % episode_title
-        return '%s %s' % (pre_title, episode_title)
+        return _emptyString + '%s %s' % (_emptyString + pre_title,
+                            _emptyString + episode_title)
     title = title_dict.get('title', '')
+    imdbIndex = title_dict.get('imdbIndex', '')
     if not title: return _emptyString
     if canonical is not None:
         if canonical:
-            title = canonicalTitle(title, lang=lang)
+            title = canonicalTitle(title, lang=lang, imdbIndex=imdbIndex)
         else:
             title = normalizeTitle(title, lang=lang)
     if pre_title:
         title = '%s %s' % (pre_title, title)
-    if kind in (u'tv series', u'tv mini series'):
-        title = '"%s"' % title
     if _doYear:
         imdbIndex = title_dict.get('imdbIndex')
+        if imdbIndex and canonical is None:
+            title += ' (%s)' % imdbIndex
         year = title_dict.get('year') or u'????'
         if isinstance(_emptyString, str):
             year = str(year)
         title += ' (%s' % year
-        if imdbIndex:
-            title += '/%s' % imdbIndex
         title += ')'
-    if kind:
+    if appendKind and kind:
         if kind == 'tv movie':
             title += ' (TV)'
         elif kind == 'video movie':
@@ -582,7 +635,7 @@ def analyze_company_name(name, stripNotes=False):
             country = name[idx:]
             name = name[:idx].rstrip()
     if not name:
-        raise IMDbParserError, 'invalid name: "%s"' % o_name
+        raise IMDbParserError('invalid name: "%s"' % o_name)
     result = {'name': name}
     if country:
         result['country'] = country
@@ -1307,7 +1360,7 @@ class _Container(object):
 
     def getID(self):
         """Return movieID, personID, characterID or companyID."""
-        raise NotImplementedError, 'override this method'
+        raise NotImplementedError('override this method')
 
     def __cmp__(self, other):
         """Compare two Movie, Person, Character or Company objects."""
@@ -1482,14 +1535,14 @@ class _Container(object):
 
     def __repr__(self):
         """String representation of an object."""
-        raise NotImplementedError, 'override this method'
+        raise NotImplementedError('override this method')
 
     def __str__(self):
         """Movie title or person name."""
-        raise NotImplementedError, 'override this method'
+        raise NotImplementedError('override this method')
 
     def __contains__(self, key):
-        raise NotImplementedError, 'override this method'
+        raise NotImplementedError('override this method')
 
     def append_item(self, key, item):
         """The item is appended to the list identified by the given key."""
@@ -1505,7 +1558,7 @@ class _Container(object):
         return 0
 
     def __deepcopy__(self, memo):
-        raise NotImplementedError, 'override this method'
+        raise NotImplementedError('override this method')
 
     def copy(self):
         """Return a deep copy of the object itself."""

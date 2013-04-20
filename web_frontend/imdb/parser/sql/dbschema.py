@@ -6,7 +6,7 @@ This module provides the schema used to describe the layout of the
 database used by the imdb.parser.sql package; functions to create/drop
 tables and indexes are also provided.
 
-Copyright 2005-2010 Davide Alberani <da@erlug.linux.it>
+Copyright 2005-2012 Davide Alberani <da@erlug.linux.it>
                2006 Giuseppe "Cowo" Corbelli <cowo --> lugbs.linux.it>
 
 This program is free software; you can redistribute it and/or modify
@@ -187,7 +187,8 @@ DB_SCHEMA = [
         DBCol('id', INTCOL, notNone=True, alternateID=True),
         DBCol('name', UNICODECOL, notNone=True, index='idx_name', indexLen=6),
         DBCol('imdbIndex', UNICODECOL, length=12, default=None),
-        DBCol('imdbID', INTCOL, default=None),
+        DBCol('imdbID', INTCOL, default=None, index='idx_imdb_id'),
+        DBCol('gender', STRINGCOL, length=1, default=None),
         DBCol('namePcodeCf', STRINGCOL, length=5, default=None,
                 index='idx_pcodecf'),
         DBCol('namePcodeNf', STRINGCOL, length=5, default=None,
@@ -239,13 +240,13 @@ DB_SCHEMA = [
         DBCol('imdbIndex', UNICODECOL, length=12, default=None),
         DBCol('kindID', INTCOL, notNone=True, foreignKey='KindType'),
         DBCol('productionYear', INTCOL, default=None),
-        DBCol('imdbID', INTCOL, default=None),
+        DBCol('imdbID', INTCOL, default=None, index="idx_imdb_id"),
         DBCol('phoneticCode', STRINGCOL, length=5, default=None,
                 index='idx_pcode'),
         DBCol('episodeOfID', INTCOL, default=None, index='idx_epof',
                 foreignKey='Title'),
-        DBCol('seasonNr', INTCOL, default=None),
-        DBCol('episodeNr', INTCOL, default=None),
+        DBCol('seasonNr', INTCOL, default=None, index="idx_season_nr"),
+        DBCol('episodeNr', INTCOL, default=None, index="idx_episode_nr"),
         # Maximum observed length is 44; 49 can store 5 comma-separated
         # year-year pairs.
         DBCol('seriesYears', STRINGCOL, length=49, default=None),
@@ -354,7 +355,7 @@ DB_SCHEMA = [
         #      collation like utf8_unicode_ci) MySQL will consider
         #      some different keywords identical - like
         #      "fiancée" and "fiancee".
-        DBCol('keyword', UNICODECOL, length=255, notNone=True,
+        DBCol('keyword', UNICODECOL, notNone=True,
                 index='idx_keyword', indexLen=5),
         DBCol('phoneticCode', STRINGCOL, length=5, default=None,
                 index='idx_pcode')
@@ -443,19 +444,33 @@ def createTables(tables, ifNotExists=True):
                     table(**{key: unicode(value)})
 
 def createIndexes(tables, ifNotExists=True):
-    """Create the indexes in the database."""
+    """Create the indexes in the database.
+    Return a list of errors, if any."""
+    errors = []
     for table in tables:
         _dbschema_logger.info('creating indexes for table %s',
                                 table._imdbpyName)
-        table.addIndexes(ifNotExists)
+        try:
+            table.addIndexes(ifNotExists)
+        except Exception, e:
+            errors.append(e)
+            continue
+    return errors
 
 def createForeignKeys(tables, ifNotExists=True):
-    """Create Foreign Keys."""
+    """Create Foreign Keys.
+    Return a list of errors, if any."""
+    errors = []
     mapTables = {}
     for table in tables:
         mapTables[table._imdbpyName] = table
     for table in tables:
         _dbschema_logger.info('creating foreign keys for table %s',
                                 table._imdbpyName)
-        table.addForeignKeys(mapTables, ifNotExists)
+        try:
+            table.addForeignKeys(mapTables, ifNotExists)
+        except Exception, e:
+            errors.append(e)
+            continue
+    return errors
 

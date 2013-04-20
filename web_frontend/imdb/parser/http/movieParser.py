@@ -9,7 +9,7 @@ pages would be:
     plot summary:       http://akas.imdb.com/title/tt0094226/plotsummary
     ...and so on...
 
-Copyright 2004-2010 Davide Alberani <da@erlug.linux.it>
+Copyright 2004-2013 Davide Alberani <da@erlug.linux.it>
                2008 H. Turgut Uyar <uyar@tekir.org>
 
 This program is free software; you can redistribute it and/or modify
@@ -270,6 +270,20 @@ class DOMHTMLMovieParser(DOMParserBase):
                                         "'TV Series')]/..//a/text()")
                             ]),
 
+                Extractor(label='language codes',
+                            path="//h5[starts-with(text(), 'Language')]/..//a[starts-with(@href, '/language/')]",
+                            attrs=Attribute(key='language codes', multi=True,
+                                    path="./@href",
+                                    postprocess=lambda x: x.split('/')[2].strip()
+                                    )),
+
+                Extractor(label='country codes',
+                            path="//h5[starts-with(text(), 'Country')]/..//a[starts-with(@href, '/country/')]",
+                            attrs=Attribute(key='country codes', multi=True,
+                                    path="./@href",
+                                    postprocess=lambda x: x.split('/')[2].strip()
+                                    )),
+
                 Extractor(label='creator',
                             path="//h5[starts-with(text(), 'Creator')]/..//a",
                             attrs=Attribute(key='creator', multi=True,
@@ -329,8 +343,26 @@ class DOMHTMLMovieParser(DOMParserBase):
                                     '"::', 1).strip('"').replace('  ', ' '))),
 
                 Extractor(label='production notes/status',
-                        path="//div[@class='info inprod']",
-                        attrs=Attribute(key='production notes',
+                        path="//h5[starts-with(text(), 'Status:')]/..//div[@class='info-content']",
+                        attrs=Attribute(key='production status',
+                                path=".//text()",
+                                postprocess=lambda x: x.strip().split('|')[0].strip().lower())),
+
+                Extractor(label='production notes/status updated',
+                        path="//h5[starts-with(text(), 'Status Updated:')]/..//div[@class='info-content']",
+                        attrs=Attribute(key='production status updated',
+                                path=".//text()",
+                                postprocess=lambda x: x.strip())),
+
+                Extractor(label='production notes/comments',
+                        path="//h5[starts-with(text(), 'Comments:')]/..//div[@class='info-content']",
+                        attrs=Attribute(key='production comments',
+                                path=".//text()",
+                                postprocess=lambda x: x.strip())),
+
+                Extractor(label='production notes/note',
+                        path="//h5[starts-with(text(), 'Note:')]/..//div[@class='info-content']",
+                        attrs=Attribute(key='production note',
                                 path=".//text()",
                                 postprocess=lambda x: x.strip())),
 
@@ -369,7 +401,7 @@ class DOMHTMLMovieParser(DOMParserBase):
     preprocessors = [
         (re.compile(r'(<b class="blackcatheader">.+?</b>)', re.I),
             r'</div><div>\1'),
-        ('<small>Full cast and crew for<br></small>', ''),
+        ('<small>Full cast and crew for<br>', ''),
         ('<td> </td>', '<td>...</td>'),
         ('<span class="tv-extra">TV mini-series</span>',
             '<span class="tv-extra">(mini)</span>'),
@@ -418,29 +450,21 @@ class DOMHTMLMovieParser(DOMParserBase):
             akas = data.get('akas') or []
             other_akas = data.get('other akas') or []
             akas += other_akas
+            nakas = []
+            for aka in akas:
+                aka = aka.strip()
+                if aka.endswith('" -'):
+                    aka = aka[:-3].rstrip()
+                nakas.append(aka)
             if 'akas' in data:
                 del data['akas']
             if 'other akas' in data:
                 del data['other akas']
-            if akas:
-                data['akas'] = akas
+            if nakas:
+                data['akas'] = nakas
         if 'runtimes' in data:
             data['runtimes'] = [x.replace(' min', u'')
                                 for x in data['runtimes']]
-        if 'production notes' in data:
-            pn = data['production notes'].replace('\n\nComments:',
-                                '\nComments:').replace('\n\nNote:',
-                                '\nNote:').replace('Note:\n\n',
-                                'Note:\n').split('\n')
-            for k, v in zip(pn[::2], pn[1::2]):
-                v = v.strip()
-                if not v:
-                    continue
-                k = k.lower().strip(':')
-                if k == 'note':
-                    k = 'status note'
-                data[k] = v
-            del data['production notes']
         if 'original air date' in data:
             oid = self.re_space.sub(' ', data['original air date']).strip()
             data['original air date'] = oid
@@ -541,7 +565,10 @@ class DOMHTMLPlotParser(DOMParserBase):
 
 def _process_award(x):
     award = {}
-    award['award'] = x.get('award').strip()
+    _award = x.get('award')
+    if _award is not None:
+        _award = _award.strip()
+    award['award'] = _award
     if not award['award']:
         return {}
     award['year'] = x.get('year').strip()
@@ -761,9 +788,9 @@ class DOMHTMLSoundtrackParser(DOMHTMLAlternateVersionsParser):
         ]
 
     def postprocess_data(self, data):
-        if 'soundtrack' in data:
+        if 'alternate versions' in data:
             nd = []
-            for x in data['soundtrack']:
+            for x in data['alternate versions']:
                 ds = x.split('\n')
                 title = ds[0]
                 if title[0] == '"' and title[-1] == '"':
@@ -822,6 +849,13 @@ class DOMHTMLCrazyCreditsParser(DOMParserBase):
                                     x.replace('\n', ' ').replace('  ', ' ')))]
 
 
+def _process_goof(x):
+    if x['spoiler_category']:
+        return x['spoiler_category'].strip() + ': SPOILER: ' + x['text'].strip()
+    else:
+        return x['category'].strip() + ': ' + x['text'].strip()
+
+
 class DOMHTMLGoofsParser(DOMParserBase):
     """Parser for the "goofs" page of a given movie.
     The page should be provided as a string, as taken from
@@ -834,9 +868,14 @@ class DOMHTMLGoofsParser(DOMParserBase):
     """
     _defGetRefs = True
 
-    extractors = [Extractor(label='goofs', path="//ul[@class='trivia']/li",
-                    attrs=Attribute(key='goofs', multi=True, path=".//text()",
-                        postprocess=lambda x: (x or u'').strip()))]
+    extractors = [Extractor(label='goofs', path="//div[@class='soda odd']",
+                    attrs=Attribute(key='goofs', multi=True,
+                        path={
+                              'text':"./text()",
+                              'category':'./preceding-sibling::h4[1]/text()',
+                              'spoiler_category': './h4/text()'
+                        },
+                        postprocess=_process_goof))]
 
 
 class DOMHTMLQuotesParser(DOMParserBase):
@@ -852,9 +891,16 @@ class DOMHTMLQuotesParser(DOMParserBase):
     _defGetRefs = True
 
     extractors = [
-        Extractor(label='quotes',
-            path="//div[@class='_imdbpy']",
-            attrs=Attribute(key='quotes',
+        Extractor(label='quotes_odd',
+            path="//div[@class='quote soda odd']",
+            attrs=Attribute(key='quotes_odd',
+                multi=True,
+                path=".//text()",
+                postprocess=lambda x: x.strip().replace(' \n',
+                            '::').replace('::\n', '::').replace('\n', ' '))),
+        Extractor(label='quotes_even',
+            path="//div[@class='quote soda even']",
+            attrs=Attribute(key='quotes_even',
                 multi=True,
                 path=".//text()",
                 postprocess=lambda x: x.strip().replace(' \n',
@@ -862,27 +908,23 @@ class DOMHTMLQuotesParser(DOMParserBase):
         ]
 
     preprocessors = [
-        (re.compile('(<a name="?qt[0-9]{7}"?></a>)', re.I),
-            r'\1<div class="_imdbpy">'),
-        (re.compile('<hr width="30%">', re.I), '</div>'),
-        (re.compile('<hr/>', re.I), '</div>'),
-        (re.compile('<script.*?</script>', re.I|re.S), ''),
-        # For BeautifulSoup.
-        (re.compile('<!-- sid: t-channel : MIDDLE_CENTER -->', re.I), '</div>')
-        ]
+        (re.compile('<a href="#" class="hidesoda hidden">Hide options</a><br>', re.I), '')
+    ]
 
     def preprocess_dom(self, dom):
         # Remove "link this quote" links.
-        for qLink in self.xpath(dom, "//p[@class='linksoda']"):
+        for qLink in self.xpath(dom, "//span[@class='linksoda']"):
+            qLink.drop_tree()
+        for qLink in self.xpath(dom, "//div[@class='sharesoda_pre']"):
             qLink.drop_tree()
         return dom
 
     def postprocess_data(self, data):
-        if 'quotes' not in data:
+        quotes = data.get('quotes_odd', []) + data.get('quotes_even', [])
+        if not quotes:
             return {}
-        for idx, quote in enumerate(data['quotes']):
-            data['quotes'][idx] = quote.split('::')
-        return data
+        quotes = [q.split('::') for q in quotes]
+        return {'quotes': quotes}
 
 
 class DOMHTMLReleaseinfoParser(DOMParserBase):
@@ -934,10 +976,10 @@ class DOMHTMLReleaseinfoParser(DOMParserBase):
         akas = data.get('akas') or []
         nakas = []
         for aka in akas:
-            title = aka.get('title', '').strip()
+            title = (aka.get('title') or '').strip()
             if not title:
                 continue
-            countries = aka.get('countries', '').split('/')
+            countries = (aka.get('countries') or '').split('/')
             if not countries:
                 nakas.append(title)
             else:
@@ -1107,6 +1149,7 @@ class DOMHTMLEpisodesRatings(DOMParserBase):
 def _normalize_href(href):
     if (href is not None) and (not href.lower().startswith('http://')):
         if href.startswith('/'): href = href[1:]
+        # TODO: imdbURL_base may be set by the user!
         href = '%s%s' % (imdbURL_base, href)
     return href
 
@@ -1234,7 +1277,7 @@ class DOMHTMLTechParser(DOMParserBase):
                                         for t in x.split('\n') if t.strip()]))]
 
     preprocessors = [
-        (re.compile('(<h5>.*?</h5>)', re.I), r'\1<div class="_imdbpy">'),
+        (re.compile('(<h5>.*?</h5>)', re.I), r'</div>\1<div class="_imdbpy">'),
         (re.compile('((<br/>|</p>|</table>))\n?<br/>(?!<a)', re.I),
             r'\1</div>'),
         # the ones below are for the publicity parser
@@ -1266,84 +1309,6 @@ class DOMHTMLTechParser(DOMParserBase):
                 elif key.startswith('film length'):
                     data['film length'] = data[key]
                     del data[key]
-        return data
-
-
-class DOMHTMLDvdParser(DOMParserBase):
-    """Parser for the "dvd" page of a given movie.
-    The page should be provided as a string, as taken from
-    the akas.imdb.com server.  The final result will be a
-    dictionary, with a key for every relevant section.
-
-    Example:
-        dparser = DOMHTMLDvdParser()
-        result = dparser.parse(dvd_html_string)
-    """
-    _defGetRefs = True
-    extractors = [Extractor(label='dvd',
-            path="//div[@class='base_layer']",
-            attrs=[Attribute(key=None,
-                multi=True,
-                path={
-                    'title': "../table[1]//h3/text()",
-                    'cover': "../table[1]//img/@src",
-                    'region': ".//p[b='Region:']/text()",
-                    'asin': ".//p[b='ASIN:']/text()",
-                    'upc': ".//p[b='UPC:']/text()",
-                    'rating': ".//p/b[starts-with(text(), 'Rating:')]/../img/@alt",
-                    'certificate': ".//p[b='Certificate:']/text()",
-                    'runtime': ".//p[b='Runtime:']/text()",
-                    'label': ".//p[b='Label:']/text()",
-                    'studio': ".//p[b='Studio:']/text()",
-                    'release date': ".//p[b='Release Date:']/text()",
-                    'dvd format': ".//p[b='DVD Format:']/text()",
-                    'dvd features': ".//p[b='DVD Features: ']//text()",
-                    'supplements': "..//div[span='Supplements']" \
-                            "/following-sibling::div[1]//text()",
-                    'review': "..//div[span='Review']/following-sibling::div[1]//text()",
-                    'titles':  "..//div[starts-with(text(), 'Titles in this Product')]" \
-                            "/..//text()",
-                },
-                postprocess=lambda x: {
-                'title': (x.get('title') or u'').strip(),
-                'cover': (x.get('cover') or u'').strip(),
-                'region': (x.get('region') or u'').strip(),
-                'asin': (x.get('asin') or u'').strip(),
-                'upc': (x.get('upc') or u'').strip(),
-                'rating': (x.get('rating') or u'Not Rated').strip().replace('Rating: ', ''),
-                'certificate': (x.get('certificate') or u'').strip(),
-                'runtime': (x.get('runtime') or u'').strip(),
-                'label': (x.get('label') or u'').strip(),
-                'studio': (x.get('studio') or u'').strip(),
-                'release date': (x.get('release date') or u'').strip(),
-                'dvd format': (x.get('dvd format') or u'').strip(),
-                'dvd features': (x.get('dvd features') or u'').strip().replace('DVD Features: ', ''),
-                'supplements': (x.get('supplements') or u'').strip(),
-                'review': (x.get('review') or u'').strip(),
-                'titles in this product': (x.get('titles') or u'').strip().replace('Titles in this Product::', ''),
-                }
-                 )])]
-
-    preprocessors = [
-        (re.compile('<p>(<table class="dvd_section" .*)</p>\s*<hr\s*/>', re.I),
-         r'<div class="_imdbpy">\1</div>'),
-        (re.compile('<p>(<div class\s*=\s*"base_layer")', re.I), r'\1'),
-        (re.compile('</p>\s*<p>(<div class="dvd_section")', re.I), r'\1'),
-        (re.compile('</div><div class="dvd_row(_alt)?">', re.I), r'::')
-    ]
-
-    def postprocess_data(self, data):
-        if not data:
-            return data
-        dvds = data['dvd']
-        for dvd in dvds:
-            if dvd['cover'].find('noposter') != -1:
-                del dvd['cover']
-            for key in dvd.keys():
-                if not dvd[key]:
-                    del dvd[key]
-            if 'supplements' in dvd:
-                dvd['supplements'] = dvd['supplements'].split('::')
         return data
 
 
@@ -1459,125 +1424,113 @@ def _parse_review(x):
     return result
 
 
-class DOMHTMLAmazonReviewsParser(DOMParserBase):
-    """Parser for the "amazon reviews" page of a given movie.
+class DOMHTMLSeasonEpisodesParser(DOMParserBase):
+    """Parser for the "episode list" page of a given movie.
     The page should be provided as a string, as taken from
     the akas.imdb.com server.  The final result will be a
     dictionary, with a key for every relevant section.
 
     Example:
-        arparser = DOMHTMLAmazonReviewsParser()
-        result = arparser.parse(amazonreviews_html_string)
+        sparser = DOMHTMLSeasonEpisodesParser()
+        result = sparser.parse(episodes_html_string)
     """
     extractors = [
-        Extractor(label='amazon reviews',
-            group="//h3",
-            group_key="./a/text()",
-            group_key_normalize=lambda x: x[:-1],
-            path="./following-sibling::p[1]/span[@class='_review']",
-            attrs=Attribute(key=None,
-                multi=True,
-                path={
-                    'title': "../preceding-sibling::h3[1]/a[1]/text()",
-                    'link': "../preceding-sibling::h3[1]/a[1]/@href",
-                    'kind': "./preceding-sibling::b[1]/text()",
-                    'item': "./i/b/text()",
-                    'review': ".//text()",
-                    'author': "./i[starts-with(text(), '--')]/text()"
-                    },
-                postprocess=_parse_review))
-        ]
+            Extractor(label='series link',
+                path="//div[@class='parent']",
+                attrs=[Attribute(key='series link',
+                            path=".//a/@href")]
+            ),
 
-    preprocessors = [
-        (re.compile('<p>\n(?!<b>)', re.I), r'\n'),
-        (re.compile('(\n</b>\n)', re.I), r'\1<span class="_review">'),
-        (re.compile('(</p>\n\n)', re.I), r'</span>\1'),
-        (re.compile('(\s\n)(<i><b>)', re.I), r'</span>\1<span class="_review">\2')
-        ]
+            Extractor(label='series title',
+                path="//head/meta[@property='og:title']",
+                attrs=[Attribute(key='series title',
+                            path="./@content")]
+            ),
 
-    def postprocess_data(self, data):
-        if len(data) == 0:
-            return {}
-        nd = []
-        for item in data.keys():
-            nd = nd + data[item]
-        return {'amazon reviews': nd}
+            Extractor(label='seasons list',
+                path="//select[@id='bySeason']//option",
+                attrs=[Attribute(key='_seasons',
+                            multi=True,
+                            path="./@value")]),
 
+            Extractor(label='selected season',
+                path="//select[@id='bySeason']//option[@selected]",
+                attrs=[Attribute(key='_current_season',
+                            path='./@value')]),
 
-def _parse_merchandising_link(x):
-    result = {}
-    link = x.get('link')
-    result['link'] = _normalize_href(link)
-    text = x.get('text')
-    if text is not None:
-        result['link-text'] = text.strip()
-    cover = x.get('cover')
-    if cover is not None:
-        result['cover'] = cover
-    description = x.get('description')
-    if description is not None:
-        shop = x.get('shop')
-        if shop is not None:
-            result['description'] = u'%s::%s' % (shop, description.strip())
-        else:
-            result['description'] = description.strip()
-    return result
-
-
-class DOMHTMLSalesParser(DOMParserBase):
-    """Parser for the "merchandising links" page of a given movie.
-    The page should be provided as a string, as taken from
-    the akas.imdb.com server.  The final result will be a
-    dictionary, with a key for every relevant section.
-
-    Example:
-        sparser = DOMHTMLSalesParser()
-        result = sparser.parse(sales_html_string)
-    """
-    extractors = [
-        Extractor(label='shops',
-                    group="//h5/a[@name]/..",
-                    group_key="./a[1]/text()",
-                    group_key_normalize=lambda x: x.lower(),
-                    path=".//following-sibling::table[1]/" \
-                            "/td[@class='w_rowtable_colshop']//tr[1]",
-                    attrs=Attribute(key=None,
-                        multi=True,
-                        path={
-                            'link': "./td[2]/a[1]/@href",
-                            'text': "./td[1]/img[1]/@alt",
-                            'cover': "./ancestor::td[1]/../td[1]"\
-                                    "/a[1]/img[1]/@src",
-                            },
-                        postprocess=_parse_merchandising_link)),
-        Extractor(label='others',
-                    group="//span[@class='_info']/..",
-                    group_key="./h5/a[1]/text()",
-                    group_key_normalize=lambda x: x.lower(),
-                    path="./span[@class='_info']",
-                    attrs=Attribute(key=None,
-                        multi=True,
-                        path={
-                            'link': "./preceding-sibling::a[1]/@href",
-                            'shop': "./preceding-sibling::a[1]/text()",
-                            'description': ".//text()",
-                            },
-                        postprocess=_parse_merchandising_link))
-    ]
-
-    preprocessors = [
-        (re.compile('(<h5><a name=)', re.I), r'</div><div class="_imdbpy">\1'),
-        (re.compile('(</h5>\n<br/>\n)</div>', re.I), r'\1'),
-        (re.compile('(<br/><br/>\n)(\n)', re.I), r'\1</div>\2'),
-        (re.compile('(\n)(Search.*?)(</a>)(\n)', re.I), r'\3\1\2\4'),
-        (re.compile('(\n)(Search.*?)(\n)', re.I),
-            r'\1<span class="_info">\2</span>\3')
-        ]
+            Extractor(label='episodes',
+                path=".",
+                group="//div[@class='info']",
+                group_key=".//meta/@content",
+                group_key_normalize=lambda x: 'episode %s' % x,
+                attrs=[Attribute(key=None,
+                            multi=True,
+                            path={
+                                "link": ".//strong//a[@href][1]/@href",
+                                "original air date": ".//div[@class='airdate']/text()",
+                                "title": ".//strong//text()",
+                                "plot": ".//div[@class='item_description']//text()"
+                            }
+                        )]
+                )
+            ]
 
     def postprocess_data(self, data):
-        if len(data) == 0:
+        series_id = analyze_imdbid(data.get('series link'))
+        series_title = data.get('series title', '').strip()
+        selected_season = data.get('_current_season',
+                                    'unknown season').strip()
+        if not (series_id and series_title):
             return {}
-        return {'merchandising links': data}
+        series = Movie(title=series_title, movieID=str(series_id),
+                        accessSystem=self._as, modFunct=self._modFunct)
+        if series.get('kind') == 'movie':
+            series['kind'] = u'tv series'
+        try: selected_season = int(selected_season)
+        except: pass
+        nd = {selected_season: {}}
+        if 'episode -1' in data:
+          counter = 1
+          for episode in data['episode -1']:
+            while 'episode %d' % counter in data:
+              counter += 1
+            k = 'episode %d' % counter
+            data[k] = [episode]
+          del data['episode -1']
+        for episode_nr, episode in data.iteritems():
+            if not (episode and episode[0] and
+                    episode_nr.startswith('episode ')):
+                continue
+            episode = episode[0]
+            episode_nr = episode_nr[8:].rstrip()
+            try: episode_nr = int(episode_nr)
+            except: pass
+            episode_id = analyze_imdbid(episode.get('link' ''))
+            episode_air_date = episode.get('original air date',
+                                            '').strip()
+            episode_title = episode.get('title', '').strip()
+            episode_plot = episode.get('plot', '')
+            if not (episode_nr and episode_id and episode_title):
+                continue
+            ep_obj = Movie(movieID=episode_id, title=episode_title,
+                        accessSystem=self._as, modFunct=self._modFunct)
+            ep_obj['kind'] = u'episode'
+            ep_obj['episode of'] = series
+            ep_obj['season'] = selected_season
+            ep_obj['episode'] = episode_nr
+            if episode_air_date:
+                ep_obj['original air date'] = episode_air_date
+                if episode_air_date[-4:].isdigit():
+                    ep_obj['year'] = episode_air_date[-4:]
+            if episode_plot:
+                ep_obj['plot'] = episode_plot
+            nd[selected_season][episode_nr] = ep_obj
+        _seasons = data.get('_seasons') or []
+        for idx, season in enumerate(_seasons):
+            try: _seasons[idx] = int(season)
+            except: pass
+        return {'episodes': nd, '_seasons': _seasons,
+                '_current_season': selected_season}
 
 
 def _build_episode(x):
@@ -1623,6 +1576,8 @@ class DOMHTMLEpisodesParser(DOMParserBase):
         eparser = DOMHTMLEpisodesParser()
         result = eparser.parse(episodes_html_string)
     """
+    # XXX: no more used for the list of episodes parser,
+    #      but only for the episodes cast parser (see below).
     _containsObjects = True
 
     kind = 'episodes list'
@@ -1700,8 +1655,8 @@ class DOMHTMLEpisodesParser(DOMParserBase):
                         accessSystem=self._as, modFunct=self._modFunct)
         nd = {}
         for key in data.keys():
-            if key.startswith('season-'):
-                season_key = key[7:]
+            if key.startswith('filter-season-') or key.startswith('season-'):
+                season_key = key.replace('filter-season-', '').replace('season-', '')
                 try: season_key = int(season_key)
                 except: pass
                 nd[season_key] = {}
@@ -1949,12 +1904,10 @@ _OBJECTS = {
                             {'kind': 'business', '_defGetRefs': 1}),
     'literature_parser':  ((DOMHTMLTechParser,), {'kind': 'literature'}),
     'locations_parser':  ((DOMHTMLLocationsParser,), None),
-    'dvd_parser':  ((DOMHTMLDvdParser,), None),
     'rec_parser':  ((DOMHTMLRecParser,), None),
     'news_parser':  ((DOMHTMLNewsParser,), None),
-    'amazonrev_parser':  ((DOMHTMLAmazonReviewsParser,), None),
-    'sales_parser':  ((DOMHTMLSalesParser,), None),
     'episodes_parser':  ((DOMHTMLEpisodesParser,), None),
+    'season_episodes_parser':  ((DOMHTMLSeasonEpisodesParser,), None),
     'episodes_cast_parser':  ((DOMHTMLEpisodesCastParser,), None),
     'eprating_parser':  ((DOMHTMLEpisodesRatings,), None),
     'movie_faqs_parser':  ((DOMHTMLFaqsParser,), None),

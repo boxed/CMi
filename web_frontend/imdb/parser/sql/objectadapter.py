@@ -20,6 +20,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
 
+import sys
 import logging
 
 from sqlobject import *
@@ -183,6 +184,15 @@ def setConnection(uri, tables, encoding='utf8', debug=False):
         kw['charset'] = encoding
     conn = connectionForURI(uri, **kw)
     conn.debug = debug
+    # XXX: doesn't work and a work-around was put in imdbpy2sql.py;
+    #      is there any way to modify the text_factory parameter of
+    #      a SQLite connection?
+    #if uri.startswith('sqlite'):
+    #    major = sys.version_info[0]
+    #    minor = sys.version_info[1]
+    #    if major > 2 or (major == 2 and minor > 5):
+    #        sqliteConn = conn.getConnection()
+    #        sqliteConn.text_factory = str
     for table in tables:
         table.setConnection(conn)
         #table.sqlmeta.cacheValues = False

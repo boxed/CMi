@@ -64,7 +64,7 @@ def find_videos():
                 continue
             full_path = os.path.join(root, d)
             if has_videos(full_path):
-                print 'handle %s as dir' % full_path
+                # print 'handle %s as dir' % full_path
                 videos.append(full_path[len(downloads_dir)+1:])
                 dirs.remove(d)
                 continue
@@ -72,7 +72,7 @@ def find_videos():
             if supported_extension(f):
                 full_path = os.path.join(root, f)
                 videos.append(full_path[len(downloads_dir)+1:])
-                print 'handle %s as file' % full_path
+                # print 'handle %s as file' % full_path
     return videos
 
 def playable_path(path):

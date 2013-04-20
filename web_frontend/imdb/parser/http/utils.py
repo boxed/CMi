@@ -4,7 +4,7 @@ parser.http.utils module (imdb package).
 This module provides miscellaneous utilities used by
 the imdb.parser.http classes.
 
-Copyright 2004-2010 Davide Alberani <da@erlug.linux.it>
+Copyright 2004-2012 Davide Alberani <da@erlug.linux.it>
                2008 H. Turgut Uyar <uyar@tekir.org>
 
 This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import re
 import logging
+import warnings
 
 from imdb._exceptions import IMDbError
 
@@ -88,7 +89,7 @@ entitydefs = entitydefs.copy()
 entitydefsget = entitydefs.get
 entitydefs['nbsp'] = ' '
 
-sgmlentity = {'lt': '<', 'gt': '>', 'amp': '&', 'quot': '"', 'apos': '\''}
+sgmlentity = {'lt': '<', 'gt': '>', 'amp': '&', 'quot': '"', 'apos': '\'', 'ndash': '-'}
 sgmlentityget = sgmlentity.get
 _sgmlentkeys = sgmlentity.keys()
 
@@ -244,6 +245,7 @@ def build_person(txt, personID=None, billingPos=None,
         if lr == 1:
             role = role[0]
             roleID = roleID[0]
+            notes = roleNotes[0] or u''
     elif roleID is not None:
         roleID = str(roleID)
     if personID is not None:
@@ -293,8 +295,16 @@ def build_movie(txt, movieID=None, roleID=None, status=None,
         role = tsplit[1].lstrip()
     if title[-9:] == 'TV Series':
         title = title[:-9].rstrip()
+    #elif title[-7:] == '(short)':
+    #    title = title[:-7].rstrip()
+    #elif title[-11:] == '(TV series)':
+    #    title = title[:-11].rstrip()
+    #elif title[-10:] == '(TV movie)':
+    #    title = title[:-10].rstrip()
     elif title[-14:] == 'TV mini-series':
         title = title[:-14] + ' (mini)'
+    if title and title.endswith(_defSep.rstrip()):
+        title = title[:-len(_defSep)+1]
     # Try to understand where the movie title ends.
     while True:
         if year:
@@ -320,7 +330,8 @@ def build_movie(txt, movieID=None, roleID=None, status=None,
         if (first4.isdigit() or first4 == '????') and \
                 title[nidx+5:nidx+6] in (')', '/'): break
         # The last item in parentheses is a known kind: stop here.
-        if title[nidx+1:-1] in ('TV', 'V', 'mini', 'VG'): break
+        if title[nidx+1:-1] in ('TV', 'V', 'mini', 'VG', 'TV movie',
+                'TV series', 'short'): break
         # Else, in parentheses there are some notes.
         # XXX: should the notes in the role half be kept separated
         #      from the notes in the movie title half?
@@ -388,6 +399,8 @@ def build_movie(txt, movieID=None, roleID=None, status=None,
         if notes:
             notes += u' '
         notes += additionalNotes
+    if role and isinstance(role, list) and notes.endswith(role[-1].replace('\n', ' ')):
+        role = role[:-1]
     m = Movie(title=title, movieID=movieID, notes=notes, currentRole=role,
                 roleID=roleID, roleIsPerson=_parsingCharacter,
                 modFunct=modFunct, accessSystem=accessSystem)
@@ -447,20 +460,20 @@ class DOMParserBase(object):
                 self.fromstring = fromstring
                 self._tostring = tostring
                 if _gotError:
-                    self._logger.warn('falling back to "%s"' % mod)
+                    warnings.warn('falling back to "%s"' % mod)
                 break
             except ImportError, e:
                 if idx+1 >= nrMods:
                     # Raise the exception, if we don't have any more
                     # options to try.
-                    raise IMDbError, 'unable to use any parser in %s: %s' % \
-                                    (str(useModule), str(e))
+                    raise IMDbError('unable to use any parser in %s: %s' % \
+                                    (str(useModule), str(e)))
                 else:
-                    self._logger.warn('unable to use "%s": %s' % (mod, str(e)))
+                    warnings.warn('unable to use "%s": %s' % (mod, str(e)))
                     _gotError = True
                 continue
         else:
-            raise IMDbError, 'unable to use parsers in %s' % str(useModule)
+            raise IMDbError('unable to use parsers in %s' % str(useModule))
         # Fall-back defaults.
         self._modFunct = None
         self._as = 'http'
@@ -500,10 +513,13 @@ class DOMParserBase(object):
         # Temporary fix: self.parse_dom must work even for empty strings.
         html_string = self.preprocess_string(html_string)
         html_string = html_string.strip()
-        # tag attributes like title="&#x22;Family Guy&#x22;" will be
-        # converted to title=""Family Guy"" and this confuses BeautifulSoup.
         if self.usingModule == 'beautifulsoup':
+            # tag attributes like title="&#x22;Family Guy&#x22;" will be
+            # converted to title=""Family Guy"" and this confuses BeautifulSoup.
             html_string = html_string.replace('""', '"')
+            # Browser-specific escapes create problems to BeautifulSoup.
+            html_string = html_string.replace('<!--[if IE]>', '"')
+            html_string = html_string.replace('<![endif]-->', '"')
         #print html_string.encode('utf8')
         if html_string:
             dom = self.get_dom(html_string)
@@ -586,8 +602,9 @@ class DOMParserBase(object):
         """Here we can modify the text, before it's parsed."""
         if not html_string:
             return html_string
-        # Remove silly &nbsp;&raquo; chars.
+        # Remove silly &nbsp;&raquo; and &ndash; chars.
         html_string = html_string.replace(u' \xbb', u'')
+        html_string = html_string.replace(u'&ndash;', u'-')
         try:
             preprocessors = self.preprocessors
         except AttributeError:
@@ -810,7 +827,7 @@ class GatherRefs(DOMParserBase):
                             'link': './@href',
                             'info': './following::text()[1]'
                             },
-        postprocess=lambda x: _parse_ref(x.get('text'), x.get('link'),
+        postprocess=lambda x: _parse_ref(x.get('text') or u'', x.get('link') or '',
                                          (x.get('info') or u'').strip()))]
     extractors = [
         Extractor(label='names refs',
@@ -833,6 +850,10 @@ class GatherRefs(DOMParserBase):
         for item in ('names refs', 'titles refs', 'characters refs'):
             result[item] = {}
             for k, v in data.get(item, []):
+                k = k.strip()
+                v = v.strip()
+                if not (k and v):
+                    continue
                 if not v.endswith('/'): continue
                 imdbID = analyze_imdbid(v)
                 if item == 'names refs':

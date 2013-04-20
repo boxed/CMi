@@ -6,7 +6,7 @@ IMDb's data for mobile systems.
 the imdb.IMDb function will return an instance of this class when
 called with the 'accessSystem' argument set to "mobile".
 
-Copyright 2005-2010 Davide Alberani <da@erlug.linux.it>
+Copyright 2005-2012 Davide Alberani <da@erlug.linux.it>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import re
 import logging
 from urllib import unquote
 
-from imdb import imdbURL_movie_main, imdbURL_person_main, imdbURL_character_main
 from imdb.Movie import Movie
 from imdb.utils import analyze_title, analyze_name, canonicalName, \
                         date_and_notes
@@ -127,7 +126,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
     accessSystem = 'mobile'
     _mobile_logger = logging.getLogger('imdbpy.parser.mobile')
 
-    def __init__(self, isThin=1, *arguments, **keywords):
+    def __init__(self, isThin=0, *arguments, **keywords):
         self.accessSystem = 'mobile'
         IMDbHTTPAccessSystem.__init__(self, isThin, *arguments, **keywords)
 
@@ -194,7 +193,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
                                     title)
             return res
         tl = title[0].lower()
-        if not tl.startswith('imdb title'):
+        if not tl.startswith('find - imdb'):
             # a direct hit!
             title = _unHtml(title[0])
             mid = None
@@ -212,7 +211,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
             # XXX: this results*3 prevents some recursion errors, but...
             #      it's not exactly understandable (i.e.: why 'results' is
             #      not enough to get all the results?)
-            lis = _findBetween(cont, 'td valign="top">', '</td>',
+            lis = _findBetween(cont, 'td class="result_text">', '</td>',
                                 maxRes=results*3)
             for li in lis:
                 akas = re_makas.findall(li)
@@ -240,11 +239,13 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
         return res
 
     def get_movie_main(self, movieID):
-        cont = self._mretrieve(imdbURL_movie_main % movieID + 'maindetails')
+        cont = self._mretrieve(self.urls['movie_main'] % movieID + 'maindetails')
         title = _findBetween(cont, '<title>', '</title>', maxRes=1)
         if not title:
-            raise IMDbDataAccessError, 'unable to get movieID "%s"' % movieID
+            raise IMDbDataAccessError('unable to get movieID "%s"' % movieID)
         title = _unHtml(title[0])
+        if title.endswith(' - IMDb'):
+            title = title[:-7]
         if cont.find('<span class="tv-extra">TV mini-series</span>') != -1:
             title += ' (mini)'
         d = analyze_title(title)
@@ -335,29 +336,26 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
         if cvurl:
             cvurl = _findBetween(cvurl[0], 'src="', '"', maxRes=1)
             if cvurl: d['cover url'] = cvurl[0]
-        genres = _findBetween(cont, 'href="/Sections/Genres/', '/')
+        genres = _findBetween(cont, 'href="/genre/', '"')
         if genres:
             d['genres'] = list(set(genres))
-        ur = _findBetween(cont, '<div class="starbar-meta">', '</div>',
+        ur = _findBetween(cont, 'id="star-bar-user-rate">', '</div>',
                             maxRes=1)
         if ur:
             rat = _findBetween(ur[0], '<b>', '</b>', maxRes=1)
             if rat:
-                teni = rat[0].find('/10')
-                if teni != -1:
-                    rat = rat[0][:teni]
-                    try:
-                        rat = float(rat.strip())
-                        d['rating'] = rat
-                    except ValueError:
-                        self._mobile_logger.warn('wrong rating: %s', rat)
-            vi = ur[0].rfind('tn15more">')
+                if rat:
+                    d['rating'] = rat[0].strip()
+                else:
+                    self._mobile_logger.warn('wrong rating: %s', rat)
+            vi = ur[0].rfind('href="ratings"')
             if vi != -1 and ur[0][vi+10:].find('await') == -1:
                 try:
-                    votes = _unHtml(ur[0][vi+10:]).replace('votes', '').strip()
-                    votes = int(votes.replace(',', ''))
+                    votes = _findBetween(ur[0][vi:], "title='",
+                                        " IMDb", maxRes=1)
+                    votes = int(votes[0].replace(',', ''))
                     d['votes'] = votes
-                except ValueError:
+                except (ValueError, IndexError):
                     self._mobile_logger.warn('wrong votes: %s', ur)
         top250 = _findBetween(cont, 'href="/chart/top?', '</a>', maxRes=1)
         if top250:
@@ -470,7 +468,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
         return {'data': d}
 
     def get_movie_plot(self, movieID):
-        cont = self._mretrieve(imdbURL_movie_main % movieID + 'plotsummary')
+        cont = self._mretrieve(self.urls['movie_main'] % movieID + 'plotsummary')
         plot = _findBetween(cont, '<p class="plotpar">', '</p>')
         plot[:] = [_unHtml(x) for x in plot]
         for i in xrange(len(plot)):
@@ -494,7 +492,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
             self._mobile_logger.warn('no title tag searching for name %s', name)
             return res
         nl = name[0].lower()
-        if not nl.startswith('imdb name'):
+        if not nl.startswith('find - imdb'):
             # a direct hit!
             name = _unHtml(name[0])
             name = name.replace('- Filmography by type' , '').strip()
@@ -508,7 +506,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
                 return res
             res[:] = [(str(pid[0]), analyze_name(name, canonical=1))]
         else:
-            lis = _findBetween(cont, 'td valign="top">', '</td>',
+            lis = _findBetween(cont, 'td class="result_text">', '</td>',
                                 maxRes=results*3)
             for li in lis:
                 akas = _findBetween(li, '<em>"', '"</em>')
@@ -531,16 +529,16 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
 
     def get_person_main(self, personID, _parseChr=False):
         if not _parseChr:
-            url = imdbURL_person_main % personID + 'maindetails'
+            url = self.urls['person_main'] % personID + 'maindetails'
         else:
-            url = imdbURL_character_main % personID
+            url = self.urls['character_main'] % personID
         s = self._mretrieve(url)
         r = {}
         name = _findBetween(s, '<title>', '</title>', maxRes=1)
         if not name:
             if _parseChr: w = 'characterID'
             else: w = 'personID'
-            raise IMDbDataAccessError, 'unable to get %s "%s"' % (w, personID)
+            raise IMDbDataAccessError('unable to get %s "%s"' % (w, personID))
         name = _unHtml(name[0].replace(' - IMDb', ''))
         if _parseChr:
             name = name.replace('(Character)', '').strip()
@@ -568,19 +566,28 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
                         r['%s date' % dtitle] = date
                     if notes:
                         r['%s notes' % dtitle] = notes
-        akas = _findBetween(s, 'Alternate Names:</h5>', ('</div>',
+        akas = _findBetween(s, 'Alternate Names:</h4>', ('</div>',
                             '<br/><br/>'), maxRes=1)
         if akas:
             akas = akas[0]
+            if akas:
+                akas = _unHtml(akas)
             if akas.find(' | ') != -1:
-                akas = _unHtml(akas).split(' | ')
+                akas = akas.split(' | ')
             else:
-                akas = _unHtml(akas).split(' / ')
-            if akas: r['akas'] = akas
-        hs = _findBetween(s, 'name="headshot"', '</a>', maxRes=1)
+                akas = akas.split(' / ')
+            if akas: r['akas'] = filter(None, [x.strip() for x in akas])
+        hs = _findBetween(s, "rel='image_src'", '>', maxRes=1)
+        if not hs:
+            hs = _findBetween(s, 'rel="image_src"', '>', maxRes=1)
+        if not hs:
+            hs = _findBetween(s, '<a name="headshot"', '</a>', maxRes=1)
         if hs:
-            hs[:] = _findBetween(hs[0], 'src="', '"', maxRes=1)
-            if hs: r['headshot'] = hs[0]
+            hsl = _findBetween(hs[0], "href='", "'", maxRes=1)
+            if not hsl:
+                hsl = _findBetween(hs[0], 'href="', '"', maxRes=1)
+            if hsl and 'imdb-share-logo' not in hsl[0]:
+                r['headshot'] = hsl[0]
         # Build a list of tuples such [('hrefLink', 'section name')]
         workkind = _findBetween(s, 'id="jumpto_', '</a>')
         ws = []
@@ -601,6 +608,8 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
         #    ws.append(('filmography', 'filmography'))
         for sect, sectName in ws:
             raws = u''
+            if sectName == 'self':
+                sect = 'Self'
             # Everything between the current section link and the end
             # of the <ol> tag.
             if _parseChr and sect == 'filmography':
@@ -609,8 +618,10 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
                 inisect = s.find('<a name="%s' % sect)
             if inisect != -1:
                 endsect = s[inisect:].find('<div id="filmo-head-')
+                if endsect == -1:
+                    endsect = s[inisect:].find('<div class="article"')
                 if endsect != -1: raws = s[inisect:inisect+endsect]
-            if not raws: continue
+            #if not raws: continue
             mlist = _findBetween(raws, '<div class="filmo-row',
                     ('<div class="clear"/>',))
             for m in mlist:
@@ -687,7 +698,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
         return {'data': r, 'info sets': ('main', 'filmography')}
 
     def get_person_biography(self, personID):
-        cont = self._mretrieve(imdbURL_person_main % personID + 'bio')
+        cont = self._mretrieve(self.urls['person_main'] % personID + 'bio')
         d = {}
         spouses = _findBetween(cont, 'Spouse</h5>', ('</table>', '</dd>'),
                                 maxRes=1)
@@ -760,7 +771,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
         return {'data': d}
 
     def _search_character(self, name, results):
-        cont = subXMLRefs(self._get_search_content('char', name, results))
+        cont = subXMLRefs(self._get_search_content('ch', name, results))
         name = _findBetween(cont, '<title>', '</title>', maxRes=1)
         res = []
         if not name:
@@ -768,8 +779,7 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
                                     name)
             return res
         nl = name[0].lower()
-        if not (nl.startswith('imdb search') or nl.startswith('imdb  search') \
-                or nl.startswith('imdb character')):
+        if not nl.startswith('find - imdb'):
             # a direct hit!
             name = _unHtml(name[0]).replace('(Character)', '').strip()
             pid = None
@@ -782,30 +792,25 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
                 return res
             res[:] = [(str(pid[0]), analyze_name(name))]
         else:
-            sects = _findBetween(cont, '<b>Popular Characters</b>', '</table>',
-                                maxRes=results*3)
-            sects += _findBetween(cont, '<b>Characters', '</table>',
-                                maxRes=results*3)
-            for sect in sects:
-                lis = _findBetween(sect, '<a href="/character/',
-                                    ['<small', '</td>', '<br'])
-                for li in lis:
-                    li = '<%s' % li
-                    pid = re_imdbID.findall(li)
-                    pname = _unHtml(li)
-                    if not (pid and pname):
-                        self._mobile_logger.debug('no name/characterID' \
-                                                ' parsing %s searching for' \
-                                                ' character %s', li, name)
-                        continue
-                    res.append((str(pid[0]), analyze_name(pname)))
+            lis = _findBetween(cont, '<td class="result_text"',
+                                ['<small', '</td>', '<br'])
+            for li in lis:
+                li = '<%s' % li
+                pid = re_imdbID.findall(li)
+                pname = _unHtml(li)
+                if not (pid and pname):
+                    self._mobile_logger.debug('no name/characterID' \
+                                            ' parsing %s searching for' \
+                                            ' character %s', li, name)
+                    continue
+                res.append((str(pid[0]), analyze_name(pname)))
         return res
 
     def get_character_main(self, characterID):
         return self.get_person_main(characterID, _parseChr=True)
 
     def get_character_biography(self, characterID):
-        cont = self._mretrieve(imdbURL_character_main % characterID + 'bio')
+        cont = self._mretrieve(self.urls['character_main'] % characterID + 'bio')
         d = {}
         intro = _findBetween(cont, '<div class="display">',
                             ('<span>', '<h4>'), maxRes=1)
@@ -813,10 +818,10 @@ class IMDbMobileAccessSystem(IMDbHTTPAccessSystem):
             intro = _unHtml(intro[0]).strip()
             if intro:
                 d['introduction'] = intro
-        bios = _findBetween(cont, '<div class="display">',
-                            '<div class="history">')
-        if bios:
-            bios = _findBetween(bios[0], '<h4>', ('<h4>', '</div>'))
+        tocidx = cont.find('<table id="toc..')
+        if tocidx != -1:
+            cont = cont[tocidx:]
+        bios = _findBetween(cont, '<h4>', ('<h4>', '</div>'))
         if bios:
             for bio in bios:
                 bio = bio.replace('</h4>', '::')

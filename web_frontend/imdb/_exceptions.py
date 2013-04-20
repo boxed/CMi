@@ -33,7 +33,7 @@ class IMDbError(Exception):
         self._logger.critical('%s exception raised; args: %s; kwds: %s',
                                 self.__class__.__name__, args, kwargs,
                                 exc_info=True)
-        super(IMDbError, self).__init__(*args, **kwargs)
+        Exception.__init__(self, *args, **kwargs)
 
 class IMDbDataAccessError(IMDbError):
     """Exception raised when is not possible to access needed data."""
@@ -42,5 +42,4 @@ class IMDbDataAccessError(IMDbError):
 class IMDbParserError(IMDbError):
     """Exception raised when an error occurred parsing the data."""
     pass
-
 
