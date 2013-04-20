@@ -46,7 +46,7 @@ def is_movie(c):
         print c, 'was not found on IMDB'
         is_not_movie_cache.add(c)
     except IMDbDataAccessError, e:
-        print e
+        print 'IMDbDataAccessError:', e
     return False, None
 
 def run_movies_cleanup():
@@ -59,7 +59,6 @@ def run_movies_cleanup():
             movie.delete()
 
 def handle_movie(data):
-    print data
     type, filename, name, year = data
     assert type == 'movie'
     m, imdb_info = is_movie(clean(name))

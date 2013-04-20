@@ -134,7 +134,7 @@ void key(int code)
         [outputBuffer deleteCharactersInRange:NSMakeRange(0, r.location+1)];
         
         if ([newStr length]) {
-            if ([newStr rangeOfString:@"Development server is running at http://127.0.0.1:8000/"].location != NSNotFound) {
+            if ([newStr rangeOfString:@"Quit the server with CONTROL-C"].location != NSNotFound) {
                 NSLog(@"Server started");
                 NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/"]];
                 [[self.webView mainFrame] loadRequest:request];

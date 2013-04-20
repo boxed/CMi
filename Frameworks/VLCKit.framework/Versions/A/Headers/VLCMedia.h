@@ -2,26 +2,29 @@
  * VLCMedia.h: VLCKit.framework VLCMedia header
  *****************************************************************************
  * Copyright (C) 2007 Pierre d'Herbemont
- * Copyright (C) 2007 the VideoLAN team
- * $Id: d75503a6b54770c6b4b310d49d413af9b6cd230c $
+ * Copyright (C) 2013 Felix Paul K√ºhne
+ * Copyright (C) 2007-2013 VLC authors and VideoLAN
+ * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
+ *          Felix Paul K√ºhne <fkuehne # videolan.org>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
+#import <Foundation/Foundation.h>
 #import "VLCMediaList.h"
 #import "VLCTime.h"
 
@@ -63,7 +66,7 @@ typedef enum VLCMediaState
     VLCMediaStateNothingSpecial,        //< Nothing
     VLCMediaStateBuffering,             //< Stream is buffering
     VLCMediaStatePlaying,               //< Stream is playing
-    VLCMediaStateError,                 //< Can't be played because an error occured
+    VLCMediaStateError,                 //< Can't be played because an error occurred
 } VLCMediaState;
 
 /**
@@ -95,6 +98,13 @@ typedef enum VLCMediaState
  * \param key The key of the value that was changed.
  */
 - (void)media:(VLCMedia *)aMedia metaValueChangedFrom:(id)oldValue forKey:(NSString *)key;
+
+/**
+ * Delegate method called whenever the media was parsed.
+ * \param aMedia The media resource whose meta data has been changed.
+ */
+
+- (void)mediaDidFinishParsing:(VLCMedia *)aMedia;
 @end
 
 /**
@@ -116,6 +126,7 @@ typedef enum VLCMediaState
     BOOL                  areOthersMetaFetched; //< Value used to determine of the other meta has been parsed
     BOOL                  isArtURLFetched;   //< Value used to determine of the other meta has been preparsed
     VLCMediaState         state;             //< Current state of the media
+    BOOL                  isParsed;
 }
 
 /* Factories */
@@ -226,8 +237,250 @@ typedef enum VLCMediaState
 @property (readonly) VLCMediaState state;
 
 /**
- * Sets a value of the metaDictionary
+ * returns a bool whether is the media is expected to play fluently on this
+ * device or not. It always returns YES on a Mac.*/
+- (BOOL)isMediaSizeSuitableForDevice;
+
+/**
+ * Tracks information NSDictionary Possible Keys
  */
-- (void)setValue:(id)value forMeta:(NSString *)VLCMetaInformation;
+
+/**
+ * \returns a NSNumber
+ */
+extern NSString *VLCMediaTracksInformationCodec;
+
+/**
+ * \returns a NSNumber
+ */
+extern NSString *VLCMediaTracksInformationId;
+/**
+ * \returns a NSString
+ * \see VLCMediaTracksInformationTypeAudio
+ * \see VLCMediaTracksInformationTypeVideo
+ * \see VLCMediaTracksInformationTypeText
+ * \see VLCMediaTracksInformationTypeUnknown
+ */
+extern NSString *VLCMediaTracksInformationType;
+
+/**
+ * \returns a NSNumber
+ */
+extern NSString *VLCMediaTracksInformationCodecProfile;
+/**
+ * \returns a NSNumber
+ */
+extern NSString *VLCMediaTracksInformationCodecLevel;
+
+/**
+ * \returns the bitrate as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationBitrate;
+/**
+ * \returns the language as NSString
+ */
+extern NSString *VLCMediaTracksInformationLanguage;
+/**
+ * \returns the description as NSString
+ */
+extern NSString *VLCMediaTracksInformationDescription;
+
+/**
+ * \returns the audio channel number as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationAudioChannelsNumber;
+/**
+ * \returns the audio rate as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationAudioRate;
+
+/**
+ * \returns the height as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationVideoHeight;
+/**
+ * \returns the width as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationVideoWidth;
+
+/**
+ * \returns the source aspect ratio as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationSourceAspectRatio;
+/**
+ * \returns the source aspect ratio denominator as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationSourceAspectRatioDenominator;
+
+/**
+ * \returns the frame rate as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationFrameRate;
+/**
+ * \returns the frame rate denominator as NSNumber
+ */
+extern NSString *VLCMediaTracksInformationFrameRateDenominator;
+
+/**
+ * \returns the text encoding as NSString
+ */
+extern NSString *VLCMediaTracksInformationTextEncoding;
+
+/**
+ * Tracks information NSDictionary values for
+ * VLCMediaTracksInformationType
+ */
+extern NSString *VLCMediaTracksInformationTypeAudio;
+extern NSString *VLCMediaTracksInformationTypeVideo;
+extern NSString *VLCMediaTracksInformationTypeText;
+extern NSString *VLCMediaTracksInformationTypeUnknown;
+
+
+/**
+ * Returns the tracks information.
+ *
+ * This is an array of NSDictionary representing each track.
+ * It can contain the following keys:
+ *
+ * \see VLCMediaTracksInformationCodec
+ * \see VLCMediaTracksInformationId
+ * \see VLCMediaTracksInformationType
+ *
+ * \see VLCMediaTracksInformationCodecProfile
+ * \see VLCMediaTracksInformationCodecLevel
+ *
+ * \see VLCMediaTracksInformationBitrate
+ * \see VLCMediaTracksInformationLanguage
+ * \see VLCMediaTracksInformationDescription
+ *
+ * \see VLCMediaTracksInformationAudioChannelsNumber
+ * \see VLCMediaTracksInformationAudioRate
+ *
+ * \see VLCMediaTracksInformationVideoHeight
+ * \see VLCMediaTracksInformationVideoWidth
+ *
+ * \see VLCMediaTracksInformationSourceAspectRatio
+ * \see VLCMediaTracksInformationSourceAspectDenominator
+ *
+ * \see VLCMediaTracksInformationFrameRate
+ * \see VLCMediaTracksInformationFrameRateDenominator
+ *
+ * \see VLCMediaTracksInformationTextEncoding
+ */
+
+- (NSArray *)tracksInformation;
+
+/**
+ * Start asynchronously to parse the media.
+ * This will attempt to fetch the meta data and tracks information.
+ *
+ * This is automatically done when an accessor requiring parsing
+ * is called.
+ *
+ * \see -[VLCMediaDelegate mediaDidFinishParsing:]
+ */
+- (void)parse;
+
+/**
+ * Add options to the media, that will be used to determine how
+ * VLCMediaPlayer will read the media. This allow to use VLC advanced
+ * reading/streaming options in a per-media basis
+ *
+ * The options are detailed in vlc --long-help, for instance "--sout-all"
+ * And on the web: http://wiki.videolan.org/VLC_command-line_help
+*/
+- (void) addOptions:(NSDictionary*) options;
+
+/**
+ * Getter for statistics information
+ * Returns a NSDictionary with NSNumbers for values.
+ *
+ */
+- (NSDictionary*) stats;
+
+#pragma mark - individual stats
+
+/**
+ * returns the number of bytes read by the current input module
+ * \return a NSInteger with the raw number of bytes
+ */
+- (NSInteger)numberOfReadBytesOnInput;
+/**
+ * returns the current input bitrate. may be 0 if the buffer is full
+ * \return a float of the current input bitrate
+ */
+- (float)inputBitrate;
+
+/**
+ * returns the number of bytes read by the current demux module
+ * \return a NSInteger with the raw number of bytes
+ */
+- (NSInteger)numberOfReadBytesOnDemux;
+/**
+ * returns the current demux bitrate. may be 0 if the buffer is empty
+ * \return a float of the current demux bitrate
+ */
+- (float)demuxBitrate;
+
+/**
+ * returns the total number of decoded video blocks in the current media session
+ * \return a NSInteger with the total number of decoded blocks
+ */
+- (NSInteger)numberOfDecodedVideoBlocks;
+/**
+ * returns the total number of decoded audio blocks in the current media session
+ * \return a NSInteger with the total number of decoded blocks
+ */
+- (NSInteger)numberOfDecodedAudioBlocks;
+
+/**
+ * returns the total number of displayed pictures during the current media session
+ * \return a NSInteger with the total number of displayed pictures
+ */
+- (NSInteger)numberOfDisplayedPictures;
+/**
+ * returns the total number of pictures lost during the current media session
+ * \return a NSInteger with the total number of lost pictures
+ */
+- (NSInteger)numberOfLostPictures;
+
+/**
+ * returns the total number of played audio buffers during the current media session
+ * \return a NSInteger with the total number of played audio buffers
+ */
+- (NSInteger)numberOfPlayedAudioBuffers;
+/**
+ * returns the total number of audio buffers lost during the current media session
+ * \return a NSInteger with the total number of displayed pictures
+ */
+- (NSInteger)numberOfLostAudioBuffers;
+
+/**
+ * returns the total number of packets sent during the current media session
+ * \return a NSInteger with the total number of sent packets
+ */
+- (NSInteger)numberOfSentPackets;
+/**
+ * returns the total number of raw bytes sent during the current media session
+ * \return a NSInteger with the total number of sent bytes
+ */
+- (NSInteger)numberOfSentBytes;
+/**
+ * returns the current bitrate of sent bytes
+ * \return a float of the current bitrate of sent bits
+ */
+- (float)streamOutputBitrate;
+/**
+ * returns the total number of corrupted data packets during current sout session
+ * \note value is 0 on non-stream-output operations
+ * \return a NSInteger with the total number of corrupted data packets
+ */
+- (NSInteger)numberOfCorruptedDataPackets;
+/**
+ * returns the total number of discontinuties during current sout session
+ * \note value is 0 on non-stream-output operations
+ * \return a NSInteger with the total number of discontinuties
+ */
+- (NSInteger)numberOfDiscontinuties;
 
 @end

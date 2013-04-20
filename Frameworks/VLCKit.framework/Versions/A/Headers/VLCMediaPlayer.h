@@ -2,33 +2,40 @@
  * VLCMediaPlayer.h: VLCKit.framework VLCMediaPlayer header
  *****************************************************************************
  * Copyright (C) 2007-2009 Pierre d'Herbemont
- * Copyright (C) 2007-2009 the VideoLAN team
- * Partial Copyright (C) 2009 Felix Paul Kühne
- * $Id: e3669eac2accd99777256c4b0cd0a663668f0868 $
+ * Copyright (C) 2007-2009 VLC authors and VideoLAN
+ * Copyright (C) 2009-2013 Felix Paul Kühne
+ * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
  *          Felix Paul Kühne <fkuehne # videolan.org>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
+#import <Foundation/Foundation.h>
+#if TARGET_OS_IPHONE
+# import <CoreGraphics/CoreGraphics.h>
+#endif
 #import "VLCMedia.h"
-#import "VLCVideoView.h"
-#import "VLCVideoLayer.h"
 #import "VLCTime.h"
 #import "VLCAudio.h"
+
+#if !TARGET_OS_IPHONE
+@class VLCVideoView;
+@class VLCVideoLayer;
+#endif
 
 /* Notification Messages */
 extern NSString * VLCMediaPlayerTimeChanged;
@@ -75,6 +82,7 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 - (void)mediaPlayerStateChanged:(NSNotification *)aNotification;
 @end
 
+
 // TODO: Should we use medialist_player or our own flavor of media player?
 @interface VLCMediaPlayer : NSObject
 {
@@ -87,11 +95,14 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
     float position;                     //< The position of the media being played
     id drawable;                        //< The drawable associated to this media player
     VLCAudio *audio;
+    BOOL shouldResumePlaying;           //< resume playing on iOS
 }
 
+#if !TARGET_OS_IPHONE
 /* Initializers */
 - (id)initWithVideoView:(VLCVideoView *)aVideoView;
 - (id)initWithVideoLayer:(VLCVideoLayer *)aVideoLayer;
+#endif
 
 /* Properties */
 - (void)setDelegate:(id)value;
@@ -100,16 +111,43 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 /* Video View Options */
 // TODO: Should be it's own object?
 
+#if !TARGET_OS_IPHONE
 - (void)setVideoView:(VLCVideoView *)aVideoView;
 - (void)setVideoLayer:(VLCVideoLayer *)aVideoLayer;
+#endif
 
 @property (retain) id drawable; /* The videoView or videoLayer */
 
+/**
+ * Set/Get current video aspect ratio.
+ *
+ * \param psz_aspect new video aspect-ratio or NULL to reset to default
+ * \note Invalid aspect ratios are ignored.
+ * \return the video aspect ratio or NULL if unspecified
+ * (the result must be released with free()).
+ */
 - (void)setVideoAspectRatio:(char *)value;
 - (char *)videoAspectRatio;
 
+/**
+ * Set/Get current crop filter geometry.
+ *
+ * \param psz_geometry new crop filter geometry (NULL to unset)
+ * \return the crop filter geometry or NULL if unset
+ */
 - (void)setVideoCropGeometry:(char *)value;
 - (char *)videoCropGeometry;
+
+/**
+ * Set/Get the current video scaling factor.
+ * That is the ratio of the number of pixels on
+ * screen to the number of pixels in the original decoded video in each
+ * dimension. Zero is a special value; it will adjust the video to the output
+ * window/drawable (in windowed mode) or the entire screen.
+ *
+ * \param relative scale factor as float
+ */
+@property (readwrite) float scaleFactor;
 
 /**
  * Take a snapshot of the current video.
@@ -130,13 +168,73 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 - (void)setDeinterlaceFilter: (NSString *)name;
 
+/**
+ * Enable or disable adjust video filter (contrast, brightness, hue, saturation, gamma)
+ *
+ * \param bool value
+ */
+@property BOOL adjustFilterEnabled;
+/**
+ * Set/Get the adjust filter's contrast value
+ *
+ * \param float value (range: 0-2, default: 1.0)
+ */
+@property float contrast;
+/**
+ * Set/Get the adjust filter's brightness value
+ *
+ * \param float value (range: 0-2, default: 1.0)
+ */
+@property float brightness;
+/**
+ * Set/Get the adjust filter's hue value
+ *
+ * \param integer value (range: 0-360, default: 0)
+ */
+@property NSInteger hue;
+/**
+ * Set/Get the adjust filter's saturation value
+ *
+ * \param float value (range: 0-3, default: 1.0)
+ */
+@property float saturation;
+/**
+ * Set/Get the adjust filter's gamma value
+ *
+ * \param float value (range: 0-10, default: 1.0)
+ */
+@property float gamma;
+
+/**
+ * Get the requested movie play rate.
+ * @warning Depending on the underlying media, the requested rate may be
+ * different from the real playback rate. Due to limitations of some protocols
+ * this option may not be taken into account at all, if set.
+ * \param rate movie play rate to set
+ *
+ * \return movie play rate
+ */
 @property float rate;
 
 @property (readonly) VLCAudio * audio;
 
 /* Video Information */
-- (NSSize)videoSize;
+/**
+ * Get the current video size
+ * \return video size as CGSize
+ */
+- (CGSize)videoSize;
+/**
+ * Does the current media have a video output?
+ * \note a false return value doesn't mean that the video doesn't have any video
+ * \note tracks. Those might just be disabled.
+ * \return current video output status
+ */
 - (BOOL)hasVideoOut;
+/**
+ * Frames per second
+ * \return current media's frames per second value
+ */
 - (float)framesPerSecond;
 
 /**
@@ -152,22 +250,71 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 - (VLCTime *)time;
 
 @property (readonly) VLCTime *remainingTime;
-@property (readonly) NSUInteger fps;
+
+/**
+ * Frames per second
+ * \note this property is deprecated. use (float)fps instead.
+ * \return current media's frames per second value
+ */
+@property (readonly) NSUInteger fps __attribute__((deprecated));
+
+/**
+ * Return the current video track index
+ * Note that the handled values do not match the videoTracks array indexes
+ * but refer to videoSubTitlesIndexes.
+ * \return 0 if none is set.
+ *
+ * Pass -1 to disable.
+ */
+@property (readwrite) NSUInteger currentVideoTrackIndex;
+
+/**
+ * Returns the video track names, usually a language name or a description
+ * It includes the "Disabled" fake track at index 0.
+ */
+- (NSArray *)videoTrackNames;
+
+/**
+ * Returns the video track IDs
+ * those are needed to set the video index
+ */
+- (NSArray *)videoTrackIndexes;
+
+/**
+ * Return the video tracks
+ *
+ * It includes the disabled fake track at index 0.
+ */
+- (NSArray *)videoTracks __attribute__((deprecated));
 
 /**
  * Return the current video subtitle index
+ * Note that the handled values do not match the videoSubTitles array indexes
+ * but refer to videoSubTitlesIndexes
  * \return 0 if none is set.
  *
- * Pass 0 to disable.
+ * Pass -1 to disable.
  */
 @property (readwrite) NSUInteger currentVideoSubTitleIndex;
 
 /**
+ * Returns the video subtitle track names, usually a language name or a description
+ * It includes the "Disabled" fake track at index 0.
+ */
+- (NSArray *)videoSubTitlesNames;
+
+/**
+ * Returns the video subtitle track IDs
+ * those are needed to set the video subtitle index
+ */
+- (NSArray *)videoSubTitlesIndexes;
+
+/**
  * Return the video subtitle tracks
- *
+ * \note this property is deprecated. use (NSArray *)videoSubtitleNames instead.
  * It includes the disabled fake track at index 0.
  */
-- (NSArray *)videoSubTitles;
+- (NSArray *)videoSubTitles __attribute__((deprecated));
 
 /**
  * Load and set a specific video subtitle, from a file.
@@ -175,6 +322,14 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * \return if the call succeed..
  */
 - (BOOL)openVideoSubTitlesFromFile:(NSString *)path;
+
+/**
+ * Get the current subtitle delay. Positive values means subtitles are being
+ * displayed later, negative values earlier.
+ *
+ * \return time (in microseconds) the display of subtitles is being delayed
+ */
+@property (readwrite) NSInteger currentVideoSubTitleDelay;
 
 /**
  * Chapter selection and enumeration, it is bound
@@ -203,21 +358,43 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 /**
  * Return the current audio track index
+ * Note that the handled values do not match the audioTracks array indexes
+ * but refer to audioTrackIndexes.
  * \return 0 if none is set.
  *
- * Pass 0 to disable.
+ * Pass -1 to disable.
  */
 @property (readwrite) NSUInteger currentAudioTrackIndex;
+
+/**
+ * Returns the audio track names, usually a language name or a description
+ * It includes the "Disabled" fake track at index 0.
+ */
+- (NSArray *)audioTrackNames;
+
+/**
+ * Returns the audio track IDs
+ * those are needed to set the video index
+ */
+- (NSArray *)audioTrackIndexes;
 
 /**
  * Return the audio tracks
  *
  * It includes the "Disable" fake track at index 0.
  */
-- (NSArray *)audioTracks;
+- (NSArray *)audioTracks __attribute__((deprecated));
 
 - (void)setAudioChannel:(NSInteger)value;
 - (NSInteger)audioChannel;
+
+/**
+ * Get the current audio delay. Positive values means audio is delayed further,
+ * negative values less.
+ *
+ * \return time (in microseconds) the audio playback is being delayed
+ */
+@property (readwrite) NSInteger currentAudioPlaybackDelay;
 
 /* Media Options */
 - (void)setMedia:(VLCMedia *)value;
@@ -342,9 +519,13 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 /**
  * Returns the receiver's position in the reading.
- * \return A number between 0 and 1. indicating the position
+ * \return movie position as percentage between 0.0 and 1.0.
  */
 - (float)position;
+/**
+ * Set movie position. This has no effect if playback is not enabled.
+ * \param movie position as percentage between 0.0 and 1.0.
+ */
 - (void)setPosition:(float)newPosition;
 
 - (BOOL)isSeekable;

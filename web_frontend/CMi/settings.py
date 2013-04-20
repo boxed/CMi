@@ -55,7 +55,7 @@ USE_I18N = True
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.getcwd()+'/CMi/media/'
+MEDIA_ROOT = os.path.abspath(os.path.join(os.path.split(__file__)[0], 'media'))
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -97,7 +97,7 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     #'/Users/boxed/Projects/CMi/templates'
-    os.getcwd()+'/CMi/templates/',
+    os.path.abspath(os.path.join(os.path.split(__file__)[0], 'templates')),
 )
 
 INSTALLED_APPS = (
