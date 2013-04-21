@@ -4,49 +4,12 @@ from CMi.movies.sort_movies import handle_movie, run_movies_cleanup
 from CMi.tvshows.sort_eps import handle_tv_show_episode, run_tv_shows_cleanup, run_tv_shows_extra
 from django.http import HttpResponse
 from django.shortcuts import render
-import pywapi
 from CMi.tvshows.models import *
 from CMi.movies.models import *
 from CMi.engine import match_file, find_videos
 
 #def telldus_command(id, command):
 #    os.system('arch -i386 /usr/bin/python2.6 CMi/tellstick.py %s %s' % (command, id))
-
-weather_icon_translation = {
-    '/ig/images/weather/sunny.gif': '/site-media/weather/sun.svg',
-    '/ig/images/weather/mostly_sunny.gif': '/site-media/weather/sun.svg',
-    '/ig/images/weather/rain.gif': '/site-media/weather/rain.svg',
-    '/ig/images/weather/chance_of_rain.gif': '/site-media/weather/rain.svg',
-
-    '/ig/images/weather/partly_cloudy.gif': '/site-media/weather/partly_cloudy.svg',
-    '/ig/images/weather/mostly_cloudy.gif': '/site-media/weather/partly_cloudy.svg',
-    '/ig/images/weather/cloudy.gif': '/site-media/weather/cloud.svg',
-
-    '/ig/images/weather/mist.gif': '/site-media/weather/fog.svg',
-    '/ig/images/weather/fog.gif': '/site-media/weather/fog.svg',
-
-    '/ig/images/weather/storm.gif': '/site-media/weather/wind.svg',
-    '/ig/images/weather/chance_of_storm.gif': '/site-media/weather/wind.svg',
-    '/ig/images/weather/thunderstorm.gif': '/site-media/weather/wind.svg',
-    '/ig/images/weather/chance_of_tstorm.gif': '/site-media/weather/wind.svg',
-
-    '/ig/images/weather/sleet.gif': '/site-media/weather/snow.svg', # really hail
-    '/ig/images/weather/snow.gif': '/site-media/weather/snow.svg',
-    '/ig/images/weather/chance_of_snow.gif': '/site-media/weather/snow.svg',
-
-#    '/ig/images/weather/icy.gif': '',
-#    '/ig/images/weather/dust.gif': '',
-#    '/ig/images/weather/smoke.gif': '',
-#    '/ig/images/weather/haze.gif': '',
-#    '/ig/images/weather/flurries.gif': '',
-}
-
-def fix_icon_path(s):
-    if s in weather_icon_translation:
-        return weather_icon_translation[s]
-    else:
-        print 'no weather icon for', s
-        return ''
 
 location = None
 weather_cache = None
@@ -60,20 +23,61 @@ def get_weather(place=None):
         global weather_cache
         if weather_cache and (datetime.now() - weather_cache['cache_time']) < timedelta(hours=1):
             return weather_cache
-        weather = pywapi.get_weather_from_google(place)
-        weather['current_conditions']['icon'] = fix_icon_path(weather['current_conditions']['icon'])
-        # convert temperatures to celsius
-        for value in weather['forecasts']:
-            value['high'] = int(round((float(value['high'])-32)*5.0/9.0))
-            value['low'] = int(round((float(value['low'])-32)*5.0/9.0))
-            value['icon'] = fix_icon_path(value['icon'])
+
+        # Weather data from openweathermap
+        from json import load
+        from urllib2 import urlopen
+
+        def celsius_from_kelvin(k):
+            return k - 273.15
+
+        data = urlopen('http://openweathermap.org/data/2.1/find/city?lat=59.416365&lon=17.961050&radius=10')
+        data = load(data)['list'][0]
+        # from pprint import pprint
+        # pprint(data)
+        temp = int(round(celsius_from_kelvin(data['main']['temp'])))
+        temp_max = int(round(celsius_from_kelvin(data['main']['temp_max'])))
+        temp_min = int(round(celsius_from_kelvin(data['main']['temp_min'])))
+
+        # Convert the weather codes from http://openweathermap.org/wiki/API/Weather_Condition_Codes to the images in CMi
+        weather_code = int(str(data['weather'][0]['id'])[0])
+        if weather_code == 8:
+            weather_code = data['weather'][0]['id']
+        if data['weather'][0]['id'] == 905:
+            weather_code = 905
+        weather_code_to_icon_name = {
+            # 1: ???
+            2: 'lightning', # thunderstorm
+            3: 'rain', # drizzle
+            # 4: ???
+            5: 'rain',
+            6: 'snow',
+            7: 'fog',
+            800: 'sun', # or clear_night if it's night time
+            801: 'partly_cloudy',
+            802: 'cloud',
+            803: 'cloud',
+            804: 'cloud',
+            # 9: extreme
+            905: 'wind',
+        }
+        weather_image = '/site-media/weather/'+weather_code_to_icon_name[weather_code]+'.svg'
+
+        weather = {
+            'icon': weather_image,
+            'temp': temp,
+            'temp_max': temp_max,
+            'temp_min': temp_min,
+            'humidity': data['main']['humidity']
+        }
+
         weather_cache = weather
         weather_cache['cache_time'] = datetime.now()
         global should_refresh
-        print 'should refresh GUI because wheather data changed'
+        print 'should refresh GUI because weather data changed'
         should_refresh = True
         return weather
-    except:
+    except Exception:
         return None
 
 search_thread = None

@@ -22,9 +22,9 @@
 {% if not ajax %}
         <script>
             var transitionDuration = 1200;
-            var menu_history = new Array();
-            var menu_history_position = new Array();
-            var menu_history_scroll_position = new Array();
+            var menu_history = [];
+            var menu_history_position = [];
+            var menu_history_scroll_position = [];
 
             function pad(number, length) {
                 var str = '' + number;

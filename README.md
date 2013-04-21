@@ -2,7 +2,7 @@
 
 CMi is pronounced "See me!", because it wants you to. It's a Mac-based media center like for example XBMC, Boxee, etc. 
 
-![CMi version 1.0](https://github.com/boxed/CMi/raw/master/screenshots/2011-12-21.png)
+![CMi version 2.0](https://github.com/boxed/CMi/raw/master/screenshots/2013-04-21_1.png)
 
 
 ## Why I wasn't satisfied with existing systems
@@ -31,5 +31,3 @@ Longer version: XBMC was the closest to an acceptable system but I still had to 
 1. After cloning the repository, run "git submodule update --init" to get the dependencies.
 2. Open up CMi.xcodeproject and hit build.
 3. There is no 3!
-
-Note though that when you change things inside web_frontend XCode is pretty stupid and won't understand you've changed that so you'll have to clean before rebuilding. During development I just run the django runserver to debug all the html stuff anyway so this isn't a big problem.

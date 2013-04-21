@@ -18,14 +18,14 @@
                 </div>
             </td>
             <td class="tile" url="/weather/">
-                {% if weather.current_conditions.icon %}
-                    <img src="{{ weather.current_conditions.icon }}" class="big_icon"/>
+                {% if weather.icon %}
+                    <img src="{{ weather.icon }}" class="big_icon"/>
                 {% endif %}
                 <div class="content">
                     <h1>Weather</h1>
                     {% if weather %}
-                        {{ weather.current_conditions.temp_c }}&deg;,
-                        {{ weather.current_conditions.humidity }}
+                        {{ weather.temp }}&deg;,
+                        {{ weather.humidity }}%
                     {% endif %}
                 </div>
             </td>
@@ -33,6 +33,7 @@
         <tr>
             {% if new_shows %}
                 <td class="tile" url="/tvshows/suggested/">
+                    <img src="/site-media/new_tv.svg" class="big_icon"/>
                     <div class="content">
                         <h1>New TV Shows</h1>
                         {{ new_shows }} new shows
@@ -40,6 +41,7 @@
                 </td>
             {% endif %}
             <td class="tile" url="/filesystem/browse/">
+                <img src="/site-media/folders.svg" class="big_icon"/>
                 <div class="content">
                     <h1>Filesystem</h1>
                 </div>
