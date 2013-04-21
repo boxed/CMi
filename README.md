@@ -4,6 +4,8 @@ CMi is pronounced "See me!", because it wants you to. It's a Mac-based media cen
 
 ![CMi version 2.0](https://github.com/boxed/CMi/raw/master/screenshots/2013-04-21_1.png)
 
+Download at: http://kodare.net/site-media/cmi/CMi.app.zip
+
 
 ## Why I wasn't satisfied with existing systems
 
