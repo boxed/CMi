@@ -16,6 +16,7 @@ MINIMUM_FILE_SIZE = 1024*1024*50 # 50 megabytes
 # TV Shows
 season_ep_regexs = [
                     '(?P<name>.*?) season (?P<season>\d\d?) s(\\2)ep?(?P<episode>\d\d?)',
+                    '(?P<name>.*?) season (?P<season>\d\d?) episode (?P<episode>\d\d?)',
                     '(?P<name>.*[^0-9]) season (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
                     '(?P<name>.*)\s?s(?P<season>\d\d?)\s?ep?(?P<episode>\d\d?)',
                     '(?P<name>.*[^0-9])\s?(?P<season>\d\d?)x(?P<episode>\d\d?)',

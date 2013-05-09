@@ -1,4 +1,5 @@
 import subprocess
+from django.db import IntegrityError
 from CMi.engine import playable_path, canonical_format
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -38,7 +39,10 @@ def add_suggested_show(request, suggested_show_id, option):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
     tvdb_result = tvdb.get_series(s.name)
     description = tvdb_result[0]['overview'] if len(tvdb_result) else ''
-    Show.objects.create(name=s.name, description=description, canonical_name=canonical_format(s.name), auto_erase=(option=='erase'))
+    try:
+        Show.objects.create(name=s.name, description=description, canonical_name=canonical_format(s.name), auto_erase=(option=='erase'))
+    except IntegrityError:
+        pass
     s.delete()
     if SuggestedShow.objects.filter(ignored=False).count():
         return HttpResponse(':back')
