@@ -17,7 +17,7 @@ Longer version: XBMC was the closest to an acceptable system but I still had to 
 
 * It scans your download folder and automatically figures out if you have episodes from TV shows or movies in there and will handle that correctly. Without any configuration. At all.
 * It keeps track of what you've watched.
-* If you get a blackout it will still remember where you were in the video when you restart it.
+* Even if you get a power outage it will still remember where you were in the video when you restart the video.
 * It will automatically clear out old files by sending them to the trash (not deleting them without a trace!)
 * It will show you the weather :P
 * It has some nice animations that were heavily inspired by Microsofts Metro style.
