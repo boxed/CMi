@@ -1,84 +1,30 @@
-from datetime import datetime, timedelta
 from threading import Thread
+from django.conf import settings
+from django.utils import importlib
+from django.utils.safestring import mark_safe
 from CMi.movies.sort_movies import handle_movie, run_movies_cleanup
 from CMi.tvshows.sort_eps import handle_tv_show_episode, run_tv_shows_cleanup, run_tv_shows_extra
 from django.http import HttpResponse
 from django.shortcuts import render
-from CMi.tvshows.models import *
-from CMi.movies.models import *
 from CMi.engine import match_file, find_videos
+
+plugin_api_modules = []
+for app in settings.INSTALLED_APPS:
+    try:
+        plugin_api_modules.append(importlib.import_module(app+'.api'))
+        print app
+    except ImportError:
+        pass
 
 #def telldus_command(id, command):
 #    os.system('arch -i386 /usr/bin/python2.6 CMi/tellstick.py %s %s' % (command, id))
 
-location = None
-weather_cache = None
-def get_weather(place=None):
-    global location
-    if not place:
-        place = location
-    if not place:
-        return None
-    try:
-        global weather_cache
-        if weather_cache and (datetime.now() - weather_cache['cache_time']) < timedelta(hours=1):
-            return weather_cache
+def chunks(l, n):
+    """ Yield successive n-sized chunks from l.
+    """
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
 
-        # Weather data from openweathermap
-        from json import load
-        from urllib2 import urlopen
-
-        def celsius_from_kelvin(k):
-            return k - 273.15
-
-        data = urlopen('http://openweathermap.org/data/2.1/find/city?lat=59.416365&lon=17.961050&radius=10')
-        data = load(data)['list'][0]
-        # from pprint import pprint
-        # pprint(data)
-        temp = int(round(celsius_from_kelvin(data['main']['temp'])))
-        temp_max = int(round(celsius_from_kelvin(data['main']['temp_max'])))
-        temp_min = int(round(celsius_from_kelvin(data['main']['temp_min'])))
-
-        # Convert the weather codes from http://openweathermap.org/wiki/API/Weather_Condition_Codes to the images in CMi
-        weather_code = int(str(data['weather'][0]['id'])[0])
-        if weather_code == 8:
-            weather_code = data['weather'][0]['id']
-        if data['weather'][0]['id'] == 905:
-            weather_code = 905
-        weather_code_to_icon_name = {
-            # 1: ???
-            2: 'lightning', # thunderstorm
-            3: 'rain', # drizzle
-            # 4: ???
-            5: 'rain',
-            6: 'snow',
-            7: 'fog',
-            800: 'sun', # or clear_night if it's night time
-            801: 'partly_cloudy',
-            802: 'cloud',
-            803: 'cloud',
-            804: 'cloud',
-            # 9: extreme
-            905: 'wind',
-        }
-        weather_image = '/site-media/weather/'+weather_code_to_icon_name[weather_code]+'.svg'
-
-        weather = {
-            'icon': weather_image,
-            'temp': temp,
-            'temp_max': temp_max,
-            'temp_min': temp_min,
-            'humidity': data['main']['humidity']
-        }
-
-        weather_cache = weather
-        weather_cache['cache_time'] = datetime.now()
-        global should_refresh
-        print 'should refresh GUI because weather data changed'
-        should_refresh = True
-        return weather
-    except Exception:
-        return None
 
 search_thread = None
 should_refresh = False
@@ -119,25 +65,17 @@ def search_for_new_files(request):
     return HttpResponse(result)
 
 def index(request):
-    c = {
-        'weather': get_weather(),
-        'new_episodes': Episode.objects.filter(watched=False).count(),
-        'new_shows': SuggestedShow.objects.filter(ignored=False).count(),
-        'new_movies': Movie.objects.filter(watched=False).count(),
-        'total_movies': Movie.objects.filter().count(),
-    }
-    return render(request, 'index.html', c)
+    tiles = []
+    for api in plugin_api_modules:
+        if hasattr(api, 'tiles'):
+            tiles.extend(api.tiles())
+
+    tiles.sort()
+    tiles = [mark_safe(tile) for _, tile in tiles]
+    rows = chunks(tiles, 3)
+
+    return render(request, 'index.html', {'rows': rows})
     
-def weather(request):
-    weather = get_weather()
-    return render(request, 'weather.html', {'weather': weather})
-
-def set_location(request):
-    global location
-    location = ',,,'+request.REQUEST['location'].replace('.', '')
-    get_weather()
-    return HttpResponse(':nothing')
-
 #def telldus(request, id, command):
 #   telldus_command(id, command)
 #   return render(request, 'telldus_on.html', {'id': id})

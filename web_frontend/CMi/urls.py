@@ -1,27 +1,24 @@
 from django.conf import settings
 from django.conf.urls import patterns, include, url
-
 from django.contrib import admin
+from CMi.views import plugin_api_modules
+
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Example:
-    # (r'^CMi/', include('CMi.foo.urls')),
     (r'^$', 'CMi.views.index'),
-    (r'^weather/$', 'CMi.views.weather'),
-    (r'^tvshows/', include('CMi.tvshows.urls')),
-    (r'^movies/', include('CMi.movies.urls')),
-    (r'^filesystem/', include('CMi.filesystem.urls')),
     (r'^search_for_new_files/', 'CMi.views.search_for_new_files'),
-    (r'^set_location/', 'CMi.views.set_location'),
 
-    #(r'^telldus/(?P<id>\d+)/(?P<command>.+)$', 'CMi.views.telldus'),
-
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
+    # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^site-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+    url(r'^media/admin/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT+'/../../../django/django/contrib/admin/static/admin'}),
 
     (r'^admin/', include(admin.site.urls)),
 )
+
+for api in plugin_api_modules:
+    if hasattr(api, 'urls'):
+        urlpatterns += api.urls()

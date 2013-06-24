@@ -2,56 +2,13 @@
 
 {% block contents %}
     <table class="tiles big_tiles">
-        <tr>
-            <td class="tile" url="/tvshows/">
-                <img src="/site-media/tv.svg" class="big_icon"/>
-                <div class="content">
-                    <h1>TV Shows</h1>
-                    {{ new_episodes }} new episodes
-                </div>
-            </td>
-            <td class="tile" url="/movies/">
-                <img src="/site-media/movie.svg" class="big_icon"/>
-                <div class="content">
-                    <h1>Movies</h1>
-                    {{ new_movies }} new / {{ total_movies }} total
-                </div>
-            </td>
-            <td class="tile" url="/weather/">
-                {% if weather.icon %}
-                    <img src="{{ weather.icon }}" class="big_icon"/>
-                {% endif %}
-                <div class="content">
-                    <h1>Weather</h1>
-                    {% if weather %}
-                        {{ weather.temp }}&deg;,
-                        {{ weather.humidity }}%
-                    {% endif %}
-                </div>
-            </td>
-        </tr>
-        <tr>
-            {% if new_shows %}
-                <td class="tile" url="/tvshows/suggested/">
-                    <img src="/site-media/new_tv.svg" class="big_icon"/>
-                    <div class="content">
-                        <h1>New TV Shows</h1>
-                        {{ new_shows }} new shows
-                    </div>
-                </td>
-            {% endif %}
-            <td class="tile" url="/filesystem/browse/">
-                <img src="/site-media/folders.svg" class="big_icon"/>
-                <div class="content">
-                    <h1>Filesystem</h1>
-                </div>
-            </td>
-            <!--
-            <td url="/telldus/2/off">
-                TV Off
-            </td>
-             -->
-        </tr>
+        {% for row in rows %}
+            <tr>
+                {% for tile in row %}
+                    {{ tile }}
+                {% endfor %}
+            </tr>
+        {% endfor %}
     </table>
 
 

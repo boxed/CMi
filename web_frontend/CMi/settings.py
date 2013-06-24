@@ -1,6 +1,6 @@
 # Django settings for CMi project.
 import os
-import os.path
+import sys
 import shutil
 
 DEBUG = True
@@ -20,6 +20,8 @@ if not os.path.exists(support_folder):
 if not os.path.exists(support_folder+'cmi.db') and os.path.exists(os.getcwd()+'/CMi/cmi.db'):
     print 'copying db file...'
     shutil.copyfile(os.getcwd()+'/CMi/cmi.db', support_folder+'cmi.db')
+
+sys.path.append(os.path.join(support_folder, 'plugins'))
 
 DATABASES = {
     'default': {
@@ -66,6 +68,8 @@ MEDIA_URL = ''
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/media/'
+STATIC_ROOT = '/media/'
+STATIC_URL = '/media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '@wb(e#@u4vdu*9!+0%0&zimpzud)-x)-+71)*vrgo+jak2&k1n'
@@ -79,6 +83,7 @@ TEMPLATE_LOADERS = (
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
     'CMi.context_processors.ajax',
 )
 
@@ -100,6 +105,11 @@ TEMPLATE_DIRS = (
     os.path.abspath(os.path.join(os.path.split(__file__)[0], 'templates')),
 )
 
+plugins = []
+for root, dirs, files in os.walk(os.path.join(support_folder, 'plugins')):
+    plugins = dirs
+    break
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -112,4 +122,5 @@ INSTALLED_APPS = (
     'CMi.movies',
     'CMi.cal',
     'CMi.filesystem',
-)
+    'CMi.weather',
+)+tuple(plugins)

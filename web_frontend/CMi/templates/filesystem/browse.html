@@ -4,14 +4,9 @@
 <h1 class="header">{{ title }}</h1>
 
 <table class="list tiles">
-    <tr>
-        <td class="tile">
-            ..
-        </td>
-    </tr>
     {% for  obj in objects %}
         <tr>
-            <td class="tile" url="/filesystem/browse/{{ path }}/{{ obj }}">
+            <td class="tile" url="/browse/?path={{ path }}/{{ obj }}">
                 {{ obj }}
             </td>
         </tr>

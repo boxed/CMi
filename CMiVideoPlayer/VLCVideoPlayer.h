@@ -9,13 +9,13 @@
 #import <VLCKit/VLCKit.h>
 #import "VideoPlayerProtocol.h"
 
-@interface VLCVideoPlayer : NSObject <VideoPlayerProtocol>
+@interface VLCVideoPlayer : NSObject <VideoPlayerProtocol, VLCMediaPlayerDelegate>
 {
     VLCVideoView* view;
     VLCMediaPlayer* player;
     NSWindow* window;
     BOOL isPaused;
-    @private BOOL _hasSetAudioTrack;
+    VLCMediaPlayerState prevState;
 }
 
 - (id)initWithParentWindow:(NSWindow*)window;

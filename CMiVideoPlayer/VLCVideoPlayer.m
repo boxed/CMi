@@ -30,6 +30,7 @@
     if (view == nil) {
         view = [[VLCVideoView alloc] initWithFrame:[[window contentView] bounds]];
         player = [[VLCMediaPlayer alloc] initWithVideoView:view];
+        player.delegate = self;
         [[window contentView] addSubview:view positioned:NSWindowBelow relativeTo:nil];
         [view setAutoresizingMask: NSViewHeightSizable|NSViewWidthSizable];
     }
@@ -38,6 +39,7 @@
 - (void)openURL:(NSURL*)url
 {
     [self lazyInit];
+    self->prevState = VLCMediaPlayerStateOpening;
     if ([url isFileURL]) {
         [player setMedia:[VLCMedia mediaWithPath:[url path]]];
     }
@@ -71,6 +73,9 @@
 - (void)setCurrentTime:(float)time
 {
     VLCTime* vlctime = [VLCTime timeWithInt:(int)time];
+    if ((int)time == 0) {
+        vlctime = [VLCTime nullTime];
+    }
     [player setTime:vlctime];
 }
 
@@ -92,16 +97,6 @@
 
 - (float)currentTime
 {
-    if (!self->_hasSetAudioTrack) {
-        for (int i = 0; i != player.audioTracks.count; i++) {
-            if ([[player.audioTracks[i] lowercaseString] rangeOfString:@"english"].location != NSNotFound) {
-                [player setAudioChannel:i];
-                self->_hasSetAudioTrack = YES;
-                break;
-            }
-        }
-    }
-
     VLCTime* time = [player time];
     return (float)[time intValue];
 }
@@ -112,17 +107,24 @@
     return (float)[total intValue];
 }
 
-#pragma mark NSView
-/*- (void)drawRect:(NSRect)dirtyRect
+#pragma mark VLCMediaPlayerDelegate
+- (void)mediaPlayerStateChanged:(NSNotification *)aNotification
 {
-   if ([self hasVideo]) {
-        [super drawRect:dirtyRect];
+    if (self->prevState != self->player.state && self->player.state == VLCMediaPlayerStatePlaying) {
+        player.currentVideoSubTitleIndex = -1;
+        
+        for (int i = 0; i != player.audioTrackIndexes.count; i++) {
+            if ([[player.audioTrackNames[i] lowercaseString] rangeOfString:@"english"].location != NSNotFound) {
+                player.currentAudioTrackIndex = player.audioTrackIndexes[i];
+                break;
+            }
+        }
     }
-    else {
-        NSBezierPath* bp = [NSBezierPath bezierPathWithRect:dirtyRect];
-        [[NSColor blueColor] setFill];
-        [bp fill];
-    }
-}*/
+    self->prevState = self->player.state;
+}
+
+- (void)mediaPlayerTimeChanged:(NSNotification *)aNotification
+{
+}
 
 @end
