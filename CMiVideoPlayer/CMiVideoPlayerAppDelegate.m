@@ -349,9 +349,11 @@ void setAlpha(NSView* v)
             return;
         }
         NSURL* url = nil;
-        if (fabs(current - end) < 3000) {
+        if (fabs(current - end) / end  < 0.05) {
             url = [NSURL URLWithString:[urlprefix stringByAppendingString:@"/ended"]];
-            [self stop:self];
+            if (fabs(current - end) < 3000) {
+                [self stop:self];
+            }
         }
         else {
             url = [NSURL URLWithString:[urlprefix stringByAppendingFormat:@"/position/%d", (int)current]];
