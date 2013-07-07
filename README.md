@@ -21,6 +21,7 @@ Longer version: XBMC was the closest to an acceptable system but I still had to 
 * It will automatically clear out old files by sending them to the trash (not deleting them without a trace!)
 * It will show you the weather :P
 * It has some nice animations that were heavily inspired by Microsofts Metro style.
+* It has a plugin API: https://github.com/boxed/CMi/wiki/Plugin-API
 
 ## Installing
 
