@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <h1 class="header">{{ title }}</h1>
+    
+    <table class="list tiles">
+        {% for item in items %}
+            <tr>
+                <td class="tile" url="{{ item.url }}/">
+                    {{ item }}
+                    <span style="font-size: 70%;">{{ item.description }}</span>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

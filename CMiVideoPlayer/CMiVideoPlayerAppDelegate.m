@@ -33,6 +33,8 @@ void key(int code)
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
 {
     [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
+    
+    self->queue = [[NSOperationQueue alloc] init];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
@@ -78,6 +80,7 @@ void key(int code)
     [remote setDelegate:self];
     self->progressTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(progressTimer:) userInfo:nil repeats:YES];
     self->GUITimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(GUITimer:) userInfo:nil repeats:YES];
+    self->searchForFilesTimer = [NSTimer scheduledTimerWithTimeInterval:15 target:self selector:@selector(searchForFilesTimer:) userInfo:nil repeats:YES];
     CGDisplayHideCursor(kCGDirectMainDisplay);
     [self->window initTimer];
     
@@ -358,7 +361,14 @@ void setAlpha(NSView* v)
         else {
             url = [NSURL URLWithString:[urlprefix stringByAppendingFormat:@"/position/%d", (int)current]];
         }
-        [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:url] queue:nil completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
+        [NSURLConnection sendAsynchronousRequest:[NSURLRequest requestWithURL:url] queue:self->queue completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
+    }
+}
+
+- (void)searchForFilesTimer:(NSTimer*)timer
+{
+    if (!self->isPlaying) {
+        [self.webView stringByEvaluatingJavaScriptFromString:@"/* From Obj-C */ search_for_new_files();"];
     }
 }
 
@@ -596,7 +606,7 @@ void setAlpha(NSView* v)
     if (oldLocation == nil || [newLocation distanceFromLocation:oldLocation] > 1000) {
         NSString* url = [NSString stringWithFormat:@"http://127.0.0.1:8000/set_location/?location=%f,%f", [newLocation coordinate].latitude, [newLocation coordinate].longitude];
         NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
-        [NSURLConnection sendAsynchronousRequest:request queue:nil completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
+        [NSURLConnection sendAsynchronousRequest:request queue:self->queue completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
         [self.webView stringByEvaluatingJavaScriptFromString:@"/* From Obj-C: refresh to update location */ refresh();"];
     }
 }

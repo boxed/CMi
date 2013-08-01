@@ -37,7 +37,7 @@ class Episode(models.Model):
     description = models.TextField(blank=True, null=True)
     watched = models.BooleanField(default=False)
     position = models.FloatField(default=0)
-    filepath = models.TextField()
+    filepath = models.TextField(blank=True)
     
     def __unicode__(self):
         return '%s s%se%s %s' % (self.show, self.season, self.episode, self.name)

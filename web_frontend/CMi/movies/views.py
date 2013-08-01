@@ -5,7 +5,7 @@ from CMi.movies.models import *
 import subprocess
 
 def index(request):
-    return render(request, 'movies/index.html', {'movies': Movie.objects.filter(watched=False)})
+    return render(request, 'list.html', {'title': 'Movies', 'items': Movie.objects.filter(watched=False)})
 
 def play_movie(request, movie_id):
     movie = get_object_or_404(Movie, pk=movie_id)

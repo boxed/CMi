@@ -211,7 +211,6 @@ function search_for_new_files() {
                 handle_response(data);
             }
     });
-    setTimeout(search_for_new_files, 10000);
 }
 
 $(document).ready(function (){
@@ -247,7 +246,6 @@ $(document).ready(function (){
 
     setTimeout(function() {
         update_clock();
-        search_for_new_files();
     }, 100);
 });
 

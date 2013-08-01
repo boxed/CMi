@@ -28,13 +28,13 @@ def chunks(l, n):
 
 search_thread = None
 should_refresh = False
-files_that_match_nothing = set()
+handled_files = set()
 def search_for_new_files(request):
     def do_search():
-        global files_that_match_nothing
+        global handled_files
         refresh = False
         for video in find_videos():
-            if video in files_that_match_nothing:
+            if video in handled_files:
                 continue
             m = match_file(video)
             if m:
@@ -46,8 +46,7 @@ def search_for_new_files(request):
                     if handle_tv_show_episode(m):
                         refresh = True
                         print 'found tv show', m
-            else:
-                files_that_match_nothing.add(video)
+            handled_files.add(video)
         run_tv_shows_cleanup()
         run_tv_shows_extra()
         run_movies_cleanup()
@@ -60,6 +59,9 @@ def search_for_new_files(request):
         search_thread = Thread(target=do_search)
         search_thread.start()
     global should_refresh
+    for api in plugin_api_modules:
+        if hasattr(api, 'should_refresh'):
+            should_refresh = api.should_refresh() or should_refresh
     result = ':refresh' if should_refresh else ':nothing'
     should_refresh = False
     return HttpResponse(result)

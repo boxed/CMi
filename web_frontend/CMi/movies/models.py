@@ -10,6 +10,12 @@ class Movie(models.Model):
     
     def __unicode__(self):
         return self.name
+
+    def description(self):
+        return self.aired
+
+    def url(self):
+        return '/movies/%s' % self.id
     
     class Meta:
         ordering = ['name']

@@ -61,6 +61,8 @@ typedef enum {
     BOOL stickyOnScreenControls;
     CLLocationManager* locationManager;
     NSMutableString* outputBuffer;
+    NSOperationQueue* queue;
+    NSTimer* searchForFilesTimer;
 }
 
 @property(assign) IBOutlet BorderLessWindow *window;
@@ -74,6 +76,7 @@ typedef enum {
 - (BOOL)readFromURL:(NSString*)s;
 - (void)progressTimer:(NSTimer*)timer;
 - (void)GUITimer:(NSTimer*)timer;
+- (void)searchForFilesTimer:(NSTimer*)timer;
 - (void)showWeb;
 - (void)showMovie;
 - (void)hideOnScreenControls;
