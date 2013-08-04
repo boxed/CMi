@@ -1,3 +1,5 @@
+- BUG: "The Newsroom" and "The Newsroom (2012)" are the same show! Same with Castle
+
 - FEATURE: file system browsing
 	Viewing videos and pictures
 	Marking video files as unread

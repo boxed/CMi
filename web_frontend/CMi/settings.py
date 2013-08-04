@@ -107,7 +107,7 @@ TEMPLATE_DIRS = (
 
 plugins = []
 for root, dirs, files in os.walk(os.path.join(support_folder, 'plugins')):
-    plugins = dirs
+    plugins = [x for x in dirs if not x.startswith('.')]
     break
 
 INSTALLED_APPS = (
