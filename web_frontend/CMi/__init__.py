@@ -30,7 +30,7 @@ if __name__ == '__main__':
     
     
     setup_environ(settings)
-    execute_manager(settings, argv=['runserver', '127.0.0.1:2123'])
+    execute_manager(settings, argv=['runserver', '0.0.0.0:2123'])
 
 # Turn off output buffering so the parent objc process can see our output property
 class Unbuffered:
@@ -63,20 +63,21 @@ def migrate():
     for app in settings.INSTALLED_APPS:
         try:
             upgrade = importlib.import_module(app+'.upgrade')
-            app_version = Version.objects.get_or_create(app=app, defaults={'version':0})[0]
-            for item_name in sorted(dir(upgrade)):
-                if item_name.startswith('upgrade_'):
-                    version = int(item_name[len('upgrade_'):])
-                    if version > app_version.version:
-                        print 'upgrading %s: %s -> %s' % (app, app_version.version, version)
-                        app_version.version = version
-                        getattr(upgrade, item_name)()
-                        app_version.save()
+
+            versions = [int(item_name[len('upgrade_'):]) for item_name in sorted(dir(upgrade)) if item_name.startswith('upgrade_')]
+
+            app_version = Version.objects.get_or_create(app=app, defaults={'version': max(versions)})[0]
+            for version in versions:
+                if version > app_version.version:
+                    print 'upgrading %s: %s -> %s' % (app, app_version.version, version)
+                    app_version.version = version
+                    getattr(upgrade, 'upgrade_%s' % version)()
+                    app_version.save()
         except ImportError:
             pass
 
 def run_sql(statements):
-    from django.db import connection, transaction
+    from django.db import connection
     cursor = connection.cursor()
     for statement in statements.split(';'):
         cursor.execute(statement)

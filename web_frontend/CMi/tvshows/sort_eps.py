@@ -34,8 +34,10 @@ def clean_episode_db():
         print 'clean_episode_db: entire path missing, aborting...'
         return
     for episode in Episode.objects.all():
-        if not os.path.exists(episode.filepath):
-            episode.delete()
+        if not os.path.exists(episode.filepath) and episode.filepath:
+            send_to_trash(episode.filepath)
+            episode.filepath = ''
+            episode.save()
 
 # clean up empty directories
 def clean_empty_dirs():
@@ -103,6 +105,8 @@ def fetch_description():
             episode.name = data['name']
             episode.description = data['overview']
             episode.save()
+        except KeyError:
+            pass
         except:
             import traceback
             print '---'
@@ -129,7 +133,7 @@ def add_episode(data):
         destination = os.path.join(destination_dir, show.name, 'Season %s' % season, '%s %s.%s' % (show_name, aired.strftime('%Y-%m-%d'), extension))
     else:
         season, episode = data[3]
-        destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), '%s S%sE%s.%s' % (show_name, season, episode, extension))
+        destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), '%s S%02dE%02d.%s' % (show_name, season, episode, extension))
     if destination:
         print 'move %s -> %s' % (os.path.join(downloads_dir, filename), destination)
         if not DEBUG:

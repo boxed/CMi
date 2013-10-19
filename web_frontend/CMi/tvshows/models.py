@@ -40,7 +40,10 @@ class Episode(models.Model):
     filepath = models.TextField(blank=True)
     
     def __unicode__(self):
-        return '%s s%se%s %s' % (self.show, self.season, self.episode, self.name)
+        if self.aired:
+            return '%s %s' % (self.show, self.aired)
+        else:
+            return '%s s%se%s %s' % (self.show, self.season, self.episode, self.name)
 
     class Meta:
         ordering = ['season', 'episode', 'aired']

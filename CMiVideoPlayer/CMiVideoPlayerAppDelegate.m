@@ -45,7 +45,7 @@ void key(int code)
     outputBuffer = [[NSMutableString stringWithCapacity:1000] retain];
     
     // Set up webserver backend
-    NSArray* arguments = [NSArray arrayWithObjects:@"-u", @"CMi/manage.py", @"runserver", @"--noreload", nil];
+    NSArray* arguments = [NSArray arrayWithObjects:@"-u", @"CMi/manage.py", @"runserver", @"0.0.0.0:8000", @"--noreload", nil];
     webServer = [[NSTask alloc] init];
     [webServer setLaunchPath:@"/usr/bin/python"];
     NSString* foo = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"web_frontend"];

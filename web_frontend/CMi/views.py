@@ -27,7 +27,7 @@ def chunks(l, n):
 
 
 search_thread = None
-should_refresh = False
+_should_refresh = False
 handled_files = set()
 def search_for_new_files(request):
     def do_search():
@@ -50,20 +50,20 @@ def search_for_new_files(request):
         run_tv_shows_cleanup()
         run_tv_shows_extra()
         run_movies_cleanup()
-        global should_refresh
-        should_refresh = refresh
+        global _should_refresh
+        _should_refresh = refresh
         #print 'end search thread'
     global search_thread
     if not search_thread or not search_thread.is_alive():
         #print 'starting search thread...', search_thread
         search_thread = Thread(target=do_search)
         search_thread.start()
-    global should_refresh
+    global _should_refresh
     for api in plugin_api_modules:
         if hasattr(api, 'should_refresh'):
-            should_refresh = api.should_refresh() or should_refresh
-    result = ':refresh' if should_refresh else ':nothing'
-    should_refresh = False
+            _should_refresh = api.should_refresh() or _should_refresh
+    result = ':refresh' if _should_refresh else ':nothing'
+    _should_refresh = False
     return HttpResponse(result)
 
 def index(request):

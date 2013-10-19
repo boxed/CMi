@@ -1,3 +1,4 @@
+from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
 from django.conf.urls import patterns
 from datetime import datetime, timedelta
@@ -6,9 +7,9 @@ def tiles():
     weather = get_weather()
     return [(30, render_to_string('tile.html', {
             'url': '',
-            'image': weather.icon if weather else '',
+            'image': weather['icon'] if weather else '',
             'title': 'Weather',
-            'content': ('%s&deg;, %s%%' % (weather.temp, weather.humidity)) if weather else '',
+            'content': mark_safe('%s&deg;, %s%%' % (weather['temp'], weather['humidity'])) if weather else '',
         }))]
 
 def urls():
@@ -17,6 +18,9 @@ def urls():
         (r'^set_location/$', 'set_location'),
     )
 
+_should_refresh = False
+def should_refresh():
+    return _should_refresh
 
 location = None
 weather_cache = None
@@ -26,6 +30,8 @@ def get_weather(place=None):
         place = location
     if not place:
         return None
+    if place:
+        location = place
     try:
         global weather_cache
         if weather_cache and (datetime.now() - weather_cache['cache_time']) < timedelta(hours=1):
@@ -38,7 +44,9 @@ def get_weather(place=None):
         def celsius_from_kelvin(k):
             return k - 273.15
 
-        data = urlopen('http://openweathermap.org/data/2.1/find/city?lat=59.416365&lon=17.961050&radius=10')
+        lat, lon = location.split(',')
+
+        data = urlopen('http://openweathermap.org/data/2.1/find/city?lat=%s&lon=%s&radius=10' % (lat, lon))
         data = load(data)['list'][0]
         # from pprint import pprint
         # pprint(data)
@@ -80,9 +88,10 @@ def get_weather(place=None):
 
         weather_cache = weather
         weather_cache['cache_time'] = datetime.now()
-        global should_refresh
+        global _should_refresh
         print 'should refresh GUI because weather data changed'
-        should_refresh = True
+        _should_refresh = True
         return weather
-    except Exception:
+    except Exception, e:
+        print e
         return None

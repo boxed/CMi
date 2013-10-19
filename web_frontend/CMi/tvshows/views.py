@@ -10,8 +10,7 @@ def index(request):
     return render(request, 'tvshows/index.html', {'shows': Show.objects.all()})
 
 def show(request, show_id):
-    show = get_object_or_404(Show, pk=show_id)
-    return render(request, 'tvshows/show.html', {'show': show})
+    return render(request, 'tvshows/show.html', {'show': get_object_or_404(Show, pk=show_id)})
 
 def play_episode(request, show_id, episode_id):
     episode = get_object_or_404(Episode, pk=episode_id)

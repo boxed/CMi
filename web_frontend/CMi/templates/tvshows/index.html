@@ -8,8 +8,9 @@
             {% if show.unwatched_episodes.count %}
                 <tr>
                     <td class="tile" url="/tvshows/{{ show.id }}/">
-                        {{ show.name|title }}
-                        <span style="font-size: 70%">{{ show.unwatched_episodes.count }}/{{ show.episodes.count }}</span>
+                        <span style="font-size: 70%; float: right; margin-top: 0.3em">{{ show.unwatched_episodes.count }}</span>
+
+                        <span style="margin-right: 3em">{{ show.name|title }}</span>
                     </td>
                 </tr>
             {% endif %}
