@@ -51,7 +51,7 @@ def add_suggested_show(request, suggested_show_id, option):
 
 def ignore_suggested_show(request, suggested_show_id):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
-    s.ignore = True
+    s.ignored = True
     s.save()
     if SuggestedShow.objects.all().count():
         return HttpResponse(':back')
