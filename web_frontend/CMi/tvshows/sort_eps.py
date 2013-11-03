@@ -4,6 +4,7 @@ from datetime import datetime, date
 from CMi.engine import canonical_format, splitext
 from CMi.tvshows.models import *
 from CMi.directories import *
+from send2trash import send2trash
 import tvdb
 
 tvdb.API_KEY = "1645288C00EAD78F"
@@ -24,7 +25,7 @@ date_regexs = [
 def delete_watched_episodes():
     for episode in Episode.objects.filter(watched=True).exclude(filepath=''):
         if episode.show.auto_erase:
-            send_to_trash(episode.filepath)
+            send2trash(episode.filepath)
             episode.filepath = ''
             episode.save()
     
@@ -35,7 +36,7 @@ def clean_episode_db():
         return
     for episode in Episode.objects.all():
         if not os.path.exists(episode.filepath) and episode.filepath:
-            send_to_trash(episode.filepath)
+            send2trash(episode.filepath)
             episode.filepath = ''
             episode.save()
 
@@ -58,13 +59,13 @@ def clean_empty_dirs():
             if not has_subs(subdir):
                 #print 'removing directory',subdir
                 if not DEBUG:
-                    send_to_trash(subdir)
+                    send2trash(subdir)
                 continue
             for subdir2 in get_subdirs(subdir):
                 if not has_subs(subdir2):
                     #print 'removing directory',subdir2
                     if not DEBUG:
-                        send_to_trash(subdir2)
+                        send2trash(subdir2)
 
 def run_tv_shows_cleanup():
     delete_watched_episodes()

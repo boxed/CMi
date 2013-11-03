@@ -1,4 +1,5 @@
 import subprocess
+from CMi.utils import title_sort_key
 from django.db import IntegrityError
 from CMi.engine import playable_path, canonical_format
 from django.http import HttpResponse
@@ -7,9 +8,9 @@ from CMi.tvshows.models import *
 import tvdb
 
 def index(request):
-    return render(request, 'tvshows/index.html', {'shows': Show.objects.all()})
+    return render(request, 'tvshows/index.html', {'shows': sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))})
 
-def show(request, show_id):
+def episode_list(request, show_id):
     return render(request, 'tvshows/show.html', {'show': get_object_or_404(Show, pk=show_id)})
 
 def play_episode(request, show_id, episode_id):

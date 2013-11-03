@@ -15,9 +15,9 @@
             <tr>
                 <td class="tile" url="/tvshows/{{ show.id }}/{{ episode.id }}/">
                     {% if not episode.episode %}
-                        {{ episode.aired }}{% if episode.name %} - {{ episode.name }}{% endif %}
+                        {{ episode.aired }}{% if episode.name %} - {{ episode.name|safe }}{% endif %}
                     {% else %}
-                        {{ episode.episode }}{% if episode.name %}. {{ episode.name }}{% endif %}
+                        {{ episode.episode }}{% if episode.name %}. {{ episode.name|safe }}{% endif %}
                     {% endif %}
                 </td>
             </tr>

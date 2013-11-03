@@ -1,5 +1,8 @@
+from functools import total_ordering
+from CMi.utils import title_sort_key
 from django.db import models
 
+@total_ordering
 class Show(models.Model):
     name = models.CharField(max_length=200, unique=True)
     description = models.TextField(blank=True)
@@ -8,12 +11,17 @@ class Show(models.Model):
 
     def __unicode__(self):
         return '%s' % self.name
-    
-    class Meta:
-        ordering = ['name']
-        
+
     def unwatched_episodes(self):
         return self.episodes.filter(watched=False)
+
+    def __eq__(self, other):
+        if not isinstance(other, Show):
+            return False
+        return self.name == other.name
+
+    def __lt__(self, other):
+        return title_sort_key(self.name) == title_sort_key(other.name)
 
 class SuggestedShow(models.Model):
     name = models.CharField(max_length=200, unique=True)

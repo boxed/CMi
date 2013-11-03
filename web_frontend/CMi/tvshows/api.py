@@ -25,7 +25,7 @@ def tiles():
 def urls():
     return patterns('CMi.tvshows.views',
         (r'^tvshows/$', 'index'),
-        (r'^tvshows/(?P<show_id>\d+)/$', 'show'),
+        (r'^tvshows/(?P<show_id>\d+)/$', 'episode_list'),
         (r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/$', 'play_episode'),
         (r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/ended$', 'episode_ended'),
         (r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/position/(?P<position>\d+)$', 'episode_position'),
