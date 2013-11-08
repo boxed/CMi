@@ -1,0 +1,4 @@
+*.pyc
+.idea
+xcuserdata
+.DS_Store

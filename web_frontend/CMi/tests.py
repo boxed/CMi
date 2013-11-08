@@ -91,6 +91,7 @@ def test_classification():
     Merlin.Season.1/Merlin S01E05 Lancelot.avi|tv show|merlin|(1, 5)
     The.Big.Bang.Theory.S06E19.HDTV.Subtitulado.Esp.SC.avi|tv show|the big bang theory|(6, 19)
     Nurse Jackie/Nurse Jackie Season1/Nurse_Jackie-S01E01-XviD.avi|tv show|nurse jackie|(1, 1)
+    www.Torrenting.com - The.Colbert.Report.2013.11.06.Brian.Lehrer.HDTV.XviD-AFG.avi|tv show|the colbert report|2013-11-06 00:00:00
     """
 
     def classify(s):

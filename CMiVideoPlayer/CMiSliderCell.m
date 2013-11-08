@@ -24,7 +24,12 @@
 {
     [[NSColor whiteColor] set];
     aRect.size.width -= [self knobThickness];
-    aRect.size.width *= [self floatValue]/[self maxValue];
+    if ([self maxValue]) {
+        aRect.size.width *= [self floatValue]/[self maxValue];
+    }
+    else {
+        aRect.size.width = 1;
+    }
     aRect.size.width += [self knobThickness]/2;
     aRect.size.height /= 2;
     aRect.origin.y += aRect.size.height/2;

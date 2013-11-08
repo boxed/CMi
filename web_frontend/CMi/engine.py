@@ -10,7 +10,7 @@ def splitext(s):
         return foo
     return [s, '']
 
-SUPPORTED_FILE_FORMATS = set(['.avi', '.mkv', '.m4v', '.mov', '.mp4'])
+SUPPORTED_FILE_FORMATS = {'.avi', '.mkv', '.m4v', '.mov', '.mp4'}
 MINIMUM_FILE_SIZE = 1024*1024*50 # 50 megabytes
 
 # TV Shows
@@ -93,9 +93,11 @@ def playable_path(path):
     return path
 
 def canonical_format(s):
-    s2 = re.sub(r'^\[[^\]]*\]', '', s)
+    s2 = s.lower()
+    s2 = re.sub(r'^\[[^\]]*\]', '', s2)
     s2 = re.sub(r'^\([^\)]*\)', '', s2)
-    s2 = s2.lower().replace('/', ' ').replace('.', ' ').replace('_', ' ').replace('-', ' ').replace(':', ' ')
+    s2 = re.sub(r'^www\.[a-z]+\.[a-z]{2,3}', '', s2)
+    s2 = s2.replace('/', ' ').replace('.', ' ').replace('_', ' ').replace('-', ' ').replace(':', ' ')
     s2 = s2.replace('&', 'and').replace("'", '').replace(' 720p ', ' ').replace(' 1080p ', ' ').replace(' x264 ', ' ').replace("'", '')
     s2 = s2.replace('(', ' ').replace(')', ' ').replace('[', ' ').replace(']', ' ')
     s2 = re.sub(r' +', ' ', s2).strip()
@@ -124,12 +126,12 @@ def match_file(filename):
     return result
 
 def match_video(filename, video):
-    #    print video
+    #print video
     m = None
     for date_regex in date_regexs:
         m = re.match(date_regex, video)
         if m:
-#            print 'matched date regex:', date_regex
+            #print 'matched date regex:', date_regex
             break
     if m:
         name, aired = canonical_format(m.groupdict()['name']), datetime.datetime(int(m.groupdict()['year']), int(m.groupdict()['month']), int(m.groupdict()['day']))
@@ -139,7 +141,7 @@ def match_video(filename, video):
     for season_ep_regex in season_ep_regexs:
         m = re.match(season_ep_regex, video)
         if m:
-#            print 'matched season ep regex:', date_regex
+            #print 'matched season ep regex:', date_regex
             break
     if m:
         name, season, episode = canonical_format(m.groupdict()['name']), m.groupdict()['season'], m.groupdict()['episode']
@@ -149,10 +151,10 @@ def match_video(filename, video):
     for year_regex in year_regexs:
         m = re.match(year_regex, video)
         if m:
-#            print 'matched year regex:', date_regex
+            #print 'matched year regex:', date_regex
             break
     if m:
         return 'movie', filename, canonical_format(m.groupdict()['name']), int(m.groupdict()['year'] or 0)
-#    print 'matched nothing, defaulting'
+    #print 'matched nothing, defaulting'
 
     return 'movie_fallback', filename, canonical_format(filename), 0
