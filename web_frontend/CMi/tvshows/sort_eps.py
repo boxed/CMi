@@ -32,7 +32,6 @@ def delete_watched_episodes():
 def clean_episode_db():
     #print 'cleaning episode db...'
     if not os.path.exists(tv_shows_dir):
-        print 'clean_episode_db: entire path missing, aborting...'
         return
     for episode in Episode.objects.all():
         if not os.path.exists(episode.filepath) and episode.filepath:

@@ -52,7 +52,6 @@ def is_movie(c):
 def run_movies_cleanup():
     #print 'cleaning movie db...'
     if not os.path.exists(movies_dir):
-        print 'run_movies_cleanup: entire path missing, aborting...'
         return
     for movie in Movie.objects.all():
         if not os.path.exists(movie.filepath):

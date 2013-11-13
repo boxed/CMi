@@ -148,7 +148,9 @@ void key(int code)
                 [locationManager startUpdatingLocation];
                 hasStarted = YES;
             }
-            else if ([newStr rangeOfString:@"code_changed"].location != NSNotFound) {
+            else if ([newStr rangeOfString:@"code_changed"].location != NSNotFound ||
+                     [newStr rangeOfString:@"search_for_new_files"].location != NSNotFound
+                     ) {
                 // throw away
             }
             else {

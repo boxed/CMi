@@ -216,6 +216,8 @@ function search_for_new_files() {
 $(document).ready(function (){
     menu_history.push('/');
     flip_in('table');
+                  
+    document.body.style.zoom = 1
 
     $(document).keyup(function(e) {e.preventDefault(); return false;});
     $(document).keydown(function(e) {
@@ -237,6 +239,15 @@ $(document).ready(function (){
             case 'R'.charCodeAt(0):
                 refresh();
                 e.preventDefault();
+                return false;
+            case 107: // '+'
+                document.body.style.zoom = parseFloat(document.body.style.zoom) + 0.1;
+                return false;
+            case 109: // '-'
+                document.body.style.zoom = parseFloat(document.body.style.zoom) - 0.1;
+                return false;
+            case '0'.charCodeAt(0):
+                document.body.style.zoom = 1;
                 return false;
             default:
                 break;
