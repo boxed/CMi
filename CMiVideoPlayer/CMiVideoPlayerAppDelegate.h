@@ -32,6 +32,7 @@ typedef enum {
     NSPipe* webServerStdErr;
     NSFileHandle* webServerStdOutFile;
     NSFileHandle* webServerStdErrFile;
+    BOOL hasStarted;
 
     // web GUI
     WebView *webView;

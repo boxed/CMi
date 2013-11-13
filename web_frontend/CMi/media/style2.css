@@ -115,7 +115,11 @@ Metro style imitation
 
 .header {
     opacity: 0;
+<<<<<<< Updated upstream
     -webkit-transition-duration: 200ms;
+=======
+    -webkit-transition-duration: 300ms;
+>>>>>>> Stashed changes
 }
 
 .tiles {

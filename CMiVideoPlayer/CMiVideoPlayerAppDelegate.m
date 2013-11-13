@@ -45,7 +45,7 @@ void key(int code)
     outputBuffer = [[NSMutableString stringWithCapacity:1000] retain];
     
     // Set up webserver backend
-    NSArray* arguments = [NSArray arrayWithObjects:@"-u", @"CMi/manage.py", @"runserver", @"0.0.0.0:8000", @"--noreload", nil];
+    NSArray* arguments = @[@"-u", @"CMi/manage.py", @"runserver", @"0.0.0.0:8000"]; //, @"--noreload"];
     webServer = [[NSTask alloc] init];
     [webServer setLaunchPath:@"/usr/bin/python"];
     NSString* foo = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"web_frontend"];
@@ -137,7 +137,7 @@ void key(int code)
         [outputBuffer deleteCharactersInRange:NSMakeRange(0, r.location+1)];
         
         if ([newStr length]) {
-            if ([newStr rangeOfString:@"Quit the server with CONTROL-C"].location != NSNotFound) {
+            if (!hasStarted && [newStr rangeOfString:@"Quit the server with CONTROL-C"].location != NSNotFound) {
                 NSLog(@"Server started");
                 NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/"]];
                 [[self.webView mainFrame] loadRequest:request];
@@ -146,6 +146,10 @@ void key(int code)
                 locationManager = [[CLLocationManager alloc] init];
                 locationManager.delegate = self;
                 [locationManager startUpdatingLocation];
+                hasStarted = YES;
+            }
+            else if ([newStr rangeOfString:@"code_changed"].location != NSNotFound) {
+                // throw away
             }
             else {
                 NSLog(@"%@", newStr);

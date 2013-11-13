@@ -124,3 +124,5 @@ INSTALLED_APPS = (
     'CMi.filesystem',
     'CMi.weather',
 )+tuple(plugins)
+
+CODE_CHANGED = 1

@@ -77,7 +77,13 @@ def index(request):
     rows = chunks(tiles, 3)
 
     return render(request, 'index.html', {'rows': rows})
-    
+
+def code_changed(request):
+    from django.conf import settings
+    result = settings.CODE_CHANGED
+    settings.CODE_CHANGED = 0
+    return HttpResponse(str(result))
+
 #def telldus(request, id, command):
 #   telldus_command(id, command)
 #   return render(request, 'telldus_on.html', {'id': id})

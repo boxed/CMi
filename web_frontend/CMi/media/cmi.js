@@ -253,6 +253,16 @@ function update_clock() {
     var d = new Date();
     $('#clock').html(d.getHours()+':'+pad(d.getMinutes(), 2));
     setTimeout(update_clock, 500);
+    
+    $.ajax({
+        url: '/code_changed/',
+        data: {ajax: 'True'},
+        success: function(data) {
+            if (parseInt(data)) {
+                refresh();
+            }
+        }
+    });
 }
 
 function prepare_tiles(tiles) {
