@@ -11,16 +11,22 @@ def splitext(s):
     return [s, '']
 
 SUPPORTED_FILE_FORMATS = {'.avi', '.mkv', '.m4v', '.mov', '.mp4'}
-MINIMUM_FILE_SIZE = 1024*1024*50 # 50 megabytes
+MINIMUM_FILE_SIZE = 1024 * 1024 * 50 # 50 megabytes
 
 # TV Shows
 season_ep_regexs = [
-                    '(?P<name>.*?) season (?P<season>\d\d?) s(\\2)ep?(?P<episode>\d\d?)',
-                    '(?P<name>.*?) season (?P<season>\d\d?) episode (?P<episode>\d\d?)',
-                    '(?P<name>.*[^0-9]) season (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
-                    '(?P<name>.*)\s?s(?P<season>\d\d?)\s?ep?(?P<episode>\d\d?)',
-                    '(?P<name>.*[^0-9])\s?(?P<season>\d\d?)x(?P<episode>\d\d?)',
-                    ]
+    '(?P<name>.*?) season (?P<season>\d\d?) s?(\\2)?ep?(?P<episode>\d\d?)',
+    '(?P<name>.*?) season (?P<season>\d\d?) episode (?P<episode>\d\d?)',
+    '(?P<name>.*[^0-9]) season (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
+
+    '(?P<name>.*?) series (?P<season>\d\d?) s?(\\2)?ep?(?P<episode>\d\d?)',
+    '(?P<name>.*?) series (?P<season>\d\d?) episode (?P<episode>\d\d?)',
+    '(?P<name>.*[^0-9]) series (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
+
+    '(?P<name>.*)\s?s(?P<season>\d\d?)\s?ep?(?P<episode>\d\d?)',
+    '(?P<name>.*[^0-9])\s?(?P<season>\d\d?)x(?P<episode>\d\d?)',
+]
+
 date_regexs = [
     '(?P<name>.*)(?P<year>\d\d\d\d) (?P<month>\d\d) (?P<day>\d\d)'
 ]
@@ -94,13 +100,19 @@ def playable_path(path):
 
 def canonical_format(s):
     s2 = s.lower()
-    s2 = re.sub(r'^\[[^\]]*\]', '', s2)
-    s2 = re.sub(r'^\([^\)]*\)', '', s2)
-    s2 = re.sub(r'^www\.[a-z]+\.[a-z]{2,3}', '', s2)
-    s2 = s2.replace('/', ' ').replace('.', ' ').replace('_', ' ').replace('-', ' ').replace(':', ' ')
-    s2 = s2.replace('&', 'and').replace("'", '').replace(' 720p ', ' ').replace(' 1080p ', ' ').replace(' x264 ', ' ').replace("'", '')
-    s2 = s2.replace('(', ' ').replace(')', ' ').replace('[', ' ').replace(']', ' ')
-    s2 = re.sub(r' +', ' ', s2).strip()
+    remove_regexes = [
+        r'^\[[^\]]*\]',
+        r'^\([^\)]*\)',
+        r'^www\.[a-z]+\.[a-z]{2,3}',
+        r"'",
+    ]
+    s2 = re.sub('|'.join(remove_regexes), '', s2)
+
+    replace_with_space_literals = ['\\%s' % x for x in '/._-:()[]'] + [' 720p ?', ' 1080p ?', ' x264 ?']
+    s2 = re.sub('|'.join(replace_with_space_literals), ' ', s2)
+
+    s2 = s2.replace('&', 'and') # standardize on "and"
+    s2 = re.sub(r' +', ' ', s2).strip() # remove duplicate spaces
     replace_list = {
         'the daily show with jon stewart': 'the daily show',
         'marvels agents of s h i e l d': 'marvels agents of shield',

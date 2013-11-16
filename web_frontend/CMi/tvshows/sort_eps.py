@@ -11,17 +11,6 @@ tvdb.API_KEY = "1645288C00EAD78F"
 
 DEBUG = False
 
-season_ep_regexs = [
-                    '(?P<name>.*)s(?P<season>\d\d)e(?P<episode>\d\d)',
-                    '(?P<name>.*)\[(?P<season>\d\d?)x(?P<episode>\d\d)[.\]]',
-                    '(?P<name>.*)[. ](?P<season>\d\d?)x(?P<episode>\d\d)[. ]',
-                    '(?P<name>.*)(?P<season>\d\d?)(?P<episode>\d\d)',
-                    ]
-date_regexs = [
-               '.*(?P<year>\d\d\d\d).(?P<month>\d\d).(?P<day>\d\d)'
-               ]
-
-
 def delete_watched_episodes():
     for episode in Episode.objects.filter(watched=True).exclude(filepath=''):
         if episode.show.auto_erase:

@@ -92,6 +92,9 @@ def test_classification():
     The.Big.Bang.Theory.S06E19.HDTV.Subtitulado.Esp.SC.avi|tv show|the big bang theory|(6, 19)
     Nurse Jackie/Nurse Jackie Season1/Nurse_Jackie-S01E01-XviD.avi|tv show|nurse jackie|(1, 1)
     www.Torrenting.com - The.Colbert.Report.2013.11.06.Brian.Lehrer.HDTV.XviD-AFG.avi|tv show|the colbert report|2013-11-06 00:00:00
+    Nine.2009.720p.Bluray.x264.anoXmous|movie|nine|2009
+    9.2009.720p.BluRay.x264-METiS [PublicHD].mkv|movie|9|2009
+    Black Books/Series 2/EP3 - The Fixer.avi|tv show|black books|(2, 3)
     """
 
     def classify(s):

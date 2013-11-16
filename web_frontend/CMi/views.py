@@ -16,9 +16,6 @@ for app in settings.INSTALLED_APPS:
     except ImportError:
         pass
 
-#def telldus_command(id, command):
-#    os.system('arch -i386 /usr/bin/python2.6 CMi/tellstick.py %s %s' % (command, id))
-
 def chunks(l, n):
     """ Yield successive n-sized chunks from l.
     """
@@ -83,7 +80,3 @@ def code_changed(request):
     result = settings.CODE_CHANGED
     settings.CODE_CHANGED = 0
     return HttpResponse(str(result))
-
-#def telldus(request, id, command):
-#   telldus_command(id, command)
-#   return render(request, 'telldus_on.html', {'id': id})

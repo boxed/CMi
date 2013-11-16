@@ -4,7 +4,7 @@ from CMi.weather.api import get_weather
 
 def index(request):
     weather = get_weather()
-    return render(request, 'weather.html', {'weather': weather})
+    return render(request, 'weather/weather.html', {'weather': weather})
 
 def set_location(request):
     get_weather(request.REQUEST['location'])
