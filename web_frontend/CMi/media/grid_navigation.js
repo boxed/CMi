@@ -101,25 +101,27 @@ function init_navigation() {
 }
 
 function set_focus(x, y) {
-    if (x >= 0 && x < grid.length && y >= 0 && y < grid[x].length) {
-        if (grid[current_pos_x][current_pos_y] == grid[x][y] || grid[x][y] == null) {
-            var diff_x = x-current_pos_x;
-            var diff_y = y-current_pos_y;
-            if (diff_x != 0 && diff_y != 0) {
-                set_focus(x+diff_x, y+diff_y);
-            }
+    if (x < 0 || x >= grid.length || y < 0 || y >= grid[current_pos_x].length) {
+        return;
+    }
+    var diff_x = x - current_pos_x;
+    var diff_y = y - current_pos_y;
+    while (grid[current_pos_x][current_pos_y] == grid[x][y] || grid[x][y] == null) {
+        x += diff_x;
+        y += diff_y;
+        if (x < 0 || x >= grid.length || y < 0 || y >= grid[current_pos_x].length) {
             return;
         }
-
-        $(grid[current_pos_x][current_pos_y]).removeClass('focus');
-        current_pos_x = x;
-        current_pos_y = y;
-        $(grid[x][y]).addClass('focus');
-
-        //$('html,body').stop().animate({scrollTop: $(grid[x][y]).offset().top-300}, 100);
-        $(grid[x][y]).intoViewport();
-        //console.log($(grid[x][y]).offset().top-300);
     }
+
+    $(grid[current_pos_x][current_pos_y]).removeClass('focus');
+    current_pos_x = x;
+    current_pos_y = y;
+    $(grid[x][y]).addClass('focus');
+
+    //$('html,body').stop().animate({scrollTop: $(grid[x][y]).offset().top-300}, 100);
+    $(grid[x][y]).intoViewport();
+    //console.log($(grid[x][y]).offset().top-300);
 }
 
 function current_cell() {
@@ -137,6 +139,7 @@ function get_x_y_of(cell) {
             }
         }
     }
+    return [null, null];
 }
 
 $(document).ready(function(){
