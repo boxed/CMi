@@ -9,6 +9,7 @@ urlpatterns = patterns('',
     (r'^$', 'CMi.views.index'),
     (r'^search_for_new_files/', 'CMi.views.search_for_new_files'),
     (r'^code_changed/', 'CMi.views.code_changed'),
+    (r'^test/', 'CMi.views.test'),
                        
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:

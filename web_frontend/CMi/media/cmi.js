@@ -34,15 +34,17 @@ function flip_in(selector, new_page) { // new_page defaults to true
     prepare_tiles(tiles);
     var _i = 0;
     if (new_page) {
+        tiles.css({
+            'z-index': '5000',
+            webkitTransitionDelay: "1000ms",
+            webkitTransform: "translate3d(0,0,0) rotateY(0deg)",
+            webkitTransitionDuration: transitionDuration+'ms'
+        });
         tiles.each(function() {
             $(this).css({
                 webkitTransitionDelay: Math.min(_i, 10) * 80 + "ms"
             });
             _i++;
-        });
-        tiles.css({
-            webkitTransform: "translate3d(0,0,0) rotateY(0deg)",
-            webkitTransitionDuration: transitionDuration+'ms'
         });
     }
     else {
@@ -63,21 +65,21 @@ function flip_out() {
     header.css('opacity', 0);
     header.removeClass('display');
     var tiles = get_tiles();
-    tiles.css('z-index', '5000');
     var _i = 0;
+    tiles.css({
+        'z-index': '5000',
+        webkitTransitionDelay: "1000ms",
+        webkitTransform: "translate3d(0,0,0) rotateY(-90deg)",
+        webkitTransitionDuration: transitionDuration+'ms'
+    });
     tiles.each(function() {
         $(this).css({
             webkitTransitionDelay: Math.min(_i, 10) * 80 + "ms"
         });
         _i++;
     });
-    tiles.css({
-        webkitTransform: "translate3d(0,0,0) rotateY(-90deg)",
-        webkitTransitionDuration: transitionDuration+'ms'
-    });
     tiles.unbind('hover');
     tiles.unbind('click');
-    tiles.removeClass('tile');
     setTimeout(function() {
         tiles.remove();
         header.remove();
@@ -286,18 +288,15 @@ function update_clock() {
 function prepare_tiles(tiles) {
     tiles = $(tiles);
     var tilePosX = 0, tilePosY = 0;
+    tiles.css({
+        opacity: 1
+    });
     tiles.each(
-        function() {
+        function(_i) {
             var _me = $(this);
-            var tileWidth = _me.width();
-            var tileOriginOffset = $($('.tiles td')[0]).offset().left;
-            var origin = -$(_me[0]).offset().left;
-            _me.css({webkitTransformOriginX:origin + "px"});
-            _me.css('opacity', '1');
-            if (tilePosX % 2 || _me.hasClass("wide")) {
-                tilePosX = 0;
-                tilePosY++
-            } else tilePosX++
+            var origin = -(_me.offset().left);
+            _me.css({webkitTransformOriginX: origin + "px"});
+            console.log(''+_i+' '+origin)
         }).click(function() {
             $(".tiles .selected").removeClass("selected");
             $(this).addClass("selected");

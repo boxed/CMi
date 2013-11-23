@@ -8,10 +8,7 @@ html {
 }
 
 body {
-    font-family: century gothic;
-    /*
-     candara
-    */
+    font-family: century gothic, segoe ui, verdana, arial, sans-serif;
     border: 0;
     padding: 0;
     margin: 0;
@@ -34,23 +31,8 @@ td {
     vertical-align: top;
 }
 
-.tiles .focus {
+.tile.focus {
     background: -webkit-gradient(linear, left top, right top, from(#23B4A9), to(#188E86));
-}
-
-.tile.list {
-    position: absolute;
-    top: 67px;
-    left: 75px;
-}
-
-.tiles .tile.list:hover
-{
-    background: transparent;
-}
-
-.tile.list td {
-    cursor: pointer;
 }
 
 .tiles {
@@ -60,20 +42,10 @@ td {
     left: 80px;
 }
 
-.tiles.list {
-    top: 80px;
-    left: 80px;
-    width: auto;
-}
-
-.tiles td {
+.tile {
     background: -webkit-gradient(linear, left top, right top, from(#6b1d57), to(#7d2764));
     cursor: pointer;
     white-space: nowrap;
-}
-
-.tiles.list td {
-    padding: 5px 8px;
 }
 
 .tiles th, .tiles .label {
@@ -129,7 +101,7 @@ Metro style imitation
 }
 
 .tiles td {
-    -webkit-transform: translate3d(0,0,0) rotateY(90deg);
+    -webkit-transform: translate3d(0,0,0) rotateY(150deg);
 }
 
 .tile {

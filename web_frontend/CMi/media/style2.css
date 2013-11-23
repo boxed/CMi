@@ -4,9 +4,6 @@ html {
 
 body {
     font-family: century gothic, segoe ui, verdana, arial, sans-serif;
-    /*
-     candara
-    */
     border: 0;
     padding: 0;
     margin: 0;
@@ -29,23 +26,8 @@ td {
     vertical-align: top;
 }
 
-.tiles .focus {
+.tile.focus {
     background: -webkit-gradient(linear, left top, right top, from(#23B4A9), to(#188E86));
-}
-
-.tile.list {
-    position: absolute;
-    top: 135px;
-    left: 150px;
-}
-
-.tiles .tile.list:hover
-{
-    background: transparent;
-}
-
-.tile.list td {
-    cursor: pointer;
 }
 
 .tiles {
@@ -55,23 +37,14 @@ td {
     left: 160px;
 }
 
-.tiles.list {
-    top: 160px;
-    left: 160px;
-    width: auto;
-}
-
-.tiles td {
+.tile {
     background: -webkit-gradient(linear, left top, right top, from(#6b1d57), to(#7d2764));
     cursor: pointer;
     white-space: nowrap;
-}
-
-.tiles.list td {
     padding: 10px 16px;
 }
 
-.tiles th, .tiles .label {
+.tiles th, .tile.label {
     background: transparent;
     cursor: default;
     font-size: 35px;
@@ -115,11 +88,7 @@ Metro style imitation
 
 .header {
     opacity: 0;
-<<<<<<< Updated upstream
     -webkit-transition-duration: 200ms;
-=======
-    -webkit-transition-duration: 300ms;
->>>>>>> Stashed changes
 }
 
 .tiles {
@@ -128,7 +97,7 @@ Metro style imitation
 }
 
 .tiles td {
-    -webkit-transform: translate3d(0,0,0) rotateY(90deg);
+    -webkit-transform: translate3d(0,0,0) rotateY(150deg);
 }
 
 .tile {

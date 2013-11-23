@@ -80,3 +80,6 @@ def code_changed(request):
     result = settings.CODE_CHANGED
     settings.CODE_CHANGED = 0
     return HttpResponse(str(result))
+
+def test(request):
+    return render(request, 'test.html')
