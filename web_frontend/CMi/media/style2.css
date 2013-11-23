@@ -88,7 +88,6 @@ Metro style imitation
 
 .header {
     opacity: 0;
-    -webkit-transition-duration: 200ms;
 }
 
 .tiles {

@@ -94,7 +94,6 @@ function refresh() {
            url: url,
            data: {ajax: 'True'},
            success: function(data) {
-               //console.log(data);
                $('.header').remove();
                $('table').remove();
                var d = $(data);
@@ -105,7 +104,6 @@ function refresh() {
 }
 
 function handle_response(data, url) {
-    //console.log(data);
     if (data == ':nothing') {
     }
     else if (data == ':refresh') {
@@ -166,7 +164,15 @@ function del() {
 
 function do_hover() {
     var xy = get_x_y_of(this);
-    set_focus(xy[0], xy[1]);
+    if (xy) {
+        $('.focus').removeClass('focus');
+        current_pos_x = xy[0];
+        current_pos_y = xy[1];
+        $(grid[current_pos_x][current_pos_y]).addClass('focus');
+    }
+    else {
+        console.log('hover failed '+this);
+    }
 }
 
 function setup_menu() {
@@ -226,7 +232,7 @@ $(document).ready(function (){
     menu_history.push('/');
     flip_in('table');
                   
-    document.body.style.zoom = 1
+    document.body.style.zoom = 1;
 
     $(document).keyup(function(e) {e.preventDefault(); return false;});
     $(document).keydown(function(e) {

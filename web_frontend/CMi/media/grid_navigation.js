@@ -142,7 +142,7 @@ function get_x_y_of(cell) {
             }
         }
     }
-    return [null, null];
+    return null;
 }
 
 $(document).ready(function(){
