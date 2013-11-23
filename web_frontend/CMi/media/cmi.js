@@ -36,16 +36,17 @@ function flip_in(selector, new_page) { // new_page defaults to true
     if (new_page) {
         tiles.each(function() {
             $(this).css({
-                webkitTransform:"translate3d(0,0,0) rotateY(0deg)",
-                webkitTransitionDelay:_i * 80 + "ms",
-                webkitTransitionDuration:transitionDuration+'ms'});
+                webkitTransitionDelay: Math.min(_i, 10) * 80 + "ms"
+            });
             _i++;
+        });
+        tiles.css({
+            webkitTransform: "translate3d(0,0,0) rotateY(0deg)",
+            webkitTransitionDuration: transitionDuration+'ms'
         });
     }
     else {
-        tiles.each(function() {
-            $(this).css({webkitTransform:"translate3d(0,0,0) rotateY(0deg)"});
-        });
+        tiles.css({webkitTransform: "translate3d(0,0,0) rotateY(0deg)"});
     }
     $('.header.display').css('opacity', 1);
     if (new_page) {
@@ -65,8 +66,14 @@ function flip_out() {
     tiles.css('z-index', '5000');
     var _i = 0;
     tiles.each(function() {
-        $(this).css({webkitTransform:"translate3d(0,0,0) rotateY(-90deg)",webkitTransitionDelay:_i * 80 + "ms",webkitTransitionDuration:transitionDuration+'ms'});
+        $(this).css({
+            webkitTransitionDelay: Math.min(_i, 10) * 80 + "ms"
+        });
         _i++;
+    });
+    tiles.css({
+        webkitTransform: "translate3d(0,0,0) rotateY(-90deg)",
+        webkitTransitionDuration: transitionDuration+'ms'
     });
     tiles.unbind('hover');
     tiles.unbind('click');

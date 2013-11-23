@@ -144,7 +144,7 @@ Metro style imitation
     opacity: 0;
 }
 
-.big_tiles td {
+.big_tiles td, .big_tile {
     width: 200px;
     height: 200px;
     vertical-align: bottom;

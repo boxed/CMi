@@ -143,7 +143,7 @@ Metro style imitation
     opacity: 0;
 }
 
-.big_tiles td {
+.big_tiles td, .big_tile {
     width: 400px;
     height: 400px;
     vertical-align: bottom;

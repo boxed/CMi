@@ -13,8 +13,11 @@ DEBUG = False
 
 def delete_watched_episodes():
     for episode in Episode.objects.filter(watched=True).exclude(filepath=''):
-        if episode.show.auto_erase:
-            send2trash(episode.filepath)
+        if episode.show.auto_erase and episode.filepath:
+            try:
+                send2trash(episode.filepath)
+            except OSError:
+                pass
             episode.filepath = ''
             episode.save()
     

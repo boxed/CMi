@@ -57,4 +57,3 @@ def ignore_suggested_show(request, suggested_show_id):
         return HttpResponse(':back')
     else:
         return HttpResponse(':back2')
-    

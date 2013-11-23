@@ -109,6 +109,9 @@ function set_focus(x, y) {
     while (grid[current_pos_x][current_pos_y] == grid[x][y] || grid[x][y] == null) {
         x += diff_x;
         y += diff_y;
+        if (diff_x == 0 && diff_y == 0) {
+            return;
+        }
         if (x < 0 || x >= grid.length || y < 0 || y >= grid[current_pos_x].length) {
             return;
         }
