@@ -1,5 +1,6 @@
+import chunk
 import subprocess
-from CMi.utils import title_sort_key
+from CMi.utils import title_sort_key, ListItem, chunks
 from django.db import IntegrityError
 from CMi.engine import playable_path, canonical_format
 from django.http import HttpResponse
@@ -8,7 +9,10 @@ from CMi.tvshows.models import *
 import tvdb
 
 def index(request):
-    return render(request, 'tvshows/index.html', {'shows': sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))})
+    shows = sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))
+    shows = [ListItem('/tvshows/%s' % show.pk, show.name, show.unwatched_episodes().count()) for show in shows if show.unwatched_episodes()]
+    rows = chunks(shows, 2)
+    return render(request, 'list.html', {'title': 'TV Shows', 'rows': rows})
 
 def episode_list(request, show_id):
     return render(request, 'tvshows/show.html', {'show': get_object_or_404(Show, pk=show_id)})

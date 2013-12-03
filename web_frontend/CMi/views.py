@@ -1,4 +1,5 @@
 from threading import Thread
+from CMi.utils import chunks
 from django.conf import settings
 from django.utils import importlib
 from django.utils.safestring import mark_safe
@@ -15,13 +16,6 @@ for app in settings.INSTALLED_APPS:
         print app
     except ImportError:
         pass
-
-def chunks(l, n):
-    """ Yield successive n-sized chunks from l.
-    """
-    for i in xrange(0, len(l), n):
-        yield l[i:i+n]
-
 
 search_thread = None
 _should_refresh = False

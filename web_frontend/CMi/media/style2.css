@@ -118,6 +118,14 @@ Metro style imitation
     text-align: center;
 }
 
+.list .extra_info {
+    font-size: 70%; float: right; margin-top: 0.3em;
+}
+
+.list .main_info {
+    margin-right: 3em;
+}
+
 .content {
     padding: 45px 75px 45px 75px;
 }

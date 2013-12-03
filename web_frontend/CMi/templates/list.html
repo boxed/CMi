@@ -4,11 +4,26 @@
     <h1 class="header">{{ title }}</h1>
     
     <table class="list tiles">
+        {% for row in rows %}
+            <tr>
+                {% for item in row %}
+                    {% if item %}
+                        <td class="tile" url="{{ item.url }}/">
+                            <span class="extra_info">{{ item.extra }}</span>
+
+                            <span class="main_info">{{ item }}</span>
+                        </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+
         {% for item in items %}
             <tr>
                 <td class="tile" url="{{ item.url }}/">
-                    {{ item }}
-                    <span style="font-size: 70%;">{{ item.description }}</span>
+                    <span class="extra_info">{{ item.extra }}</span>
+
+                    <span class="main_info">{{ item }}</span>
                 </td>
             </tr>
         {% endfor %}
