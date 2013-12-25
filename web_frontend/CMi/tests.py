@@ -95,6 +95,7 @@ def test_classification():
     Nine.2009.720p.Bluray.x264.anoXmous|movie|nine|2009
     9.2009.720p.BluRay.x264-METiS [PublicHD].mkv|movie|9|2009
     Black Books/Series 2/EP3 - The Fixer.avi|tv show|black books|(2, 3)
+    The.Big.Bang.Theory.S 06 E 19.HDTV.Subtitulado.Esp.SC.avi|tv show|the big bang theory|(6, 19)
     """
 
     def classify(s):
