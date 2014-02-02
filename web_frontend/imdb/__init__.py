@@ -6,7 +6,7 @@ a person from the IMDb database.
 It can fetch data through different media (e.g.: the IMDb web pages,
 a SQL database, etc.)
 
-Copyright 2004-2013 Davide Alberani <da@erlug.linux.it>
+Copyright 2004-2014 Davide Alberani <da@erlug.linux.it>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 __all__ = ['IMDb', 'IMDbError', 'Movie', 'Person', 'Character', 'Company',
             'available_access_systems']
-__version__ = VERSION = '5.0dev20130414'
+__version__ = VERSION = '5.0dev20140119'
 
 # Import compatibility module (importing it is enough).
 import _compat
@@ -831,6 +831,7 @@ class IMDbBase:
         # to the mobile search. :-/
         if not ton:
             return None
+        ton = ton.strip('"')
         aSystem = IMDb('mobile')
         if kind == 'tt':
             searchFunct = aSystem.search_movie
@@ -856,7 +857,7 @@ class IMDbBase:
         title_only_matches = []
         for item in searchRes:
             # Return the first perfect match.
-            if item[check] == ton:
+            if item[check].strip('"') == ton:
                 # For titles do additional check for kind
                 if kind != 'tt' or title_kind == item['kind']:
                     return item.getID()
@@ -915,7 +916,8 @@ class IMDbBase:
                 imdbID = aSystem.get_imdbMovieID(mop.movieID)
             else:
                 imdbID = aSystem.title2imdbID(build_title(mop, canonical=0,
-                                                ptdf=0), mop['kind'])
+                                                ptdf=0, appendKind=False),
+                                                mop['kind'])
         elif isinstance(mop, Person.Person):
             if mop.personID is not None:
                 imdbID = aSystem.get_imdbPersonID(mop.personID)

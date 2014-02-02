@@ -531,9 +531,6 @@ class DOMHTMLMovieParser(DOMParserBase):
 def _process_plotsummary(x):
     """Process a plot (contributed by Rdian06)."""
     xauthor = x.get('author')
-    if xauthor:
-        xauthor = xauthor.replace('{', '<').replace('}', '>').replace('(',
-                                    '<').replace(')', '>').strip()
     xplot = x.get('plot', u'').strip()
     if xauthor:
         xplot += u'::%s' % xauthor
@@ -555,12 +552,12 @@ class DOMHTMLPlotParser(DOMParserBase):
     # Notice that recently IMDb started to put the email of the
     # author only in the link, that we're not collecting, here.
     extractors = [Extractor(label='plot',
-                    path="//p[@class='plotpar']",
-                    attrs=Attribute(key='plot',
-                            multi=True,
-                            path={'plot': './text()',
-                                'author': './i/a/text()'},
-                            postprocess=_process_plotsummary))]
+                            path="//ul[@class='zebraList']//p",
+                            attrs=Attribute(key='plot',
+                                            multi=True,
+                                            path={'plot': './text()[1]',
+                                                  'author': './span/em/a/text()'},
+                                            postprocess=_process_plotsummary))]
 
 
 def _process_award(x):
@@ -712,9 +709,15 @@ class DOMHTMLTaglinesParser(DOMParserBase):
         result = tparser.parse(taglines_html_string)
     """
     extractors = [Extractor(label='taglines',
-                            path="//div[@id='tn15content']/p",
-                            attrs=Attribute(key='taglines', multi=True,
+                            path='//*[contains(concat(" ", normalize-space(@class), " "), " soda ")]',
+                            attrs=Attribute(key='taglines',
+                                            multi=True,
                                             path="./text()"))]
+
+    def postprocess_data(self, data):
+        if 'taglines' in data:
+            data['taglines'] = [tagline.strip() for tagline in data['taglines']]
+        return data
 
 
 class DOMHTMLKeywordsParser(DOMParserBase):
@@ -938,13 +941,13 @@ class DOMHTMLReleaseinfoParser(DOMParserBase):
         result = rdparser.parse(releaseinfo_html_string)
     """
     extractors = [Extractor(label='release dates',
-                    path="//th[@class='xxxx']/../../tr",
+                    path="//table[@id='release_dates']//tr",
                     attrs=Attribute(key='release dates', multi=True,
                         path={'country': ".//td[1]//text()",
                             'date': ".//td[2]//text()",
                             'notes': ".//td[3]//text()"})),
                 Extractor(label='akas',
-                    path="//div[@class='_imdbpy_akas']/table/tr",
+                    path="//table[@id='akas']//tr",
                     attrs=Attribute(key='akas', multi=True,
                         path={'title': "./td[1]/text()",
                             'countries': "./td[2]/text()"}))]
@@ -979,7 +982,7 @@ class DOMHTMLReleaseinfoParser(DOMParserBase):
             title = (aka.get('title') or '').strip()
             if not title:
                 continue
-            countries = (aka.get('countries') or '').split('/')
+            countries = (aka.get('countries') or '').split(',')
             if not countries:
                 nakas.append(title)
             else:
@@ -1153,7 +1156,28 @@ def _normalize_href(href):
         href = '%s%s' % (imdbURL_base, href)
     return href
 
+class DOMHTMLCriticReviewsParser(DOMParserBase):
+    """Parser for the "critic reviews" pages of a given movie.
+    The page should be provided as a string, as taken from
+    the akas.imdb.com server.  The final result will be a
+    dictionary, with a key for every relevant section.
 
+    Example:
+        osparser = DOMHTMLCriticReviewsParser()
+        result = osparser.parse(officialsites_html_string)
+    """
+    kind = 'critic reviews'
+
+    extractors = [
+        Extractor(label='metascore',
+                path="//div[@class='metascore_wrap']/div/span",
+                attrs=Attribute(key='metascore',
+                                path=".//text()")),
+        Extractor(label='metacritic url',
+                path="//div[@class='article']/div[@class='see-more']/a",
+                attrs=Attribute(key='metacritic url',
+                                path="./@href")) ]
+    
 class DOMHTMLOfficialsitesParser(DOMParserBase):
     """Parser for the "official sites", "external reviews", "newsgroup
     reviews", "miscellaneous links", "sound clips", "video clips" and
@@ -1886,6 +1910,8 @@ _OBJECTS = {
     'releasedates_parser':  ((DOMHTMLReleaseinfoParser,), None),
     'ratings_parser':  ((DOMHTMLRatingsParser,), None),
     'officialsites_parser':  ((DOMHTMLOfficialsitesParser,), None),
+    'criticrev_parser':  ((DOMHTMLCriticReviewsParser,),
+                            {'kind': 'critic reviews'}),
     'externalrev_parser':  ((DOMHTMLOfficialsitesParser,),
                             {'kind': 'external reviews'}),
     'newsgrouprev_parser':  ((DOMHTMLOfficialsitesParser,),

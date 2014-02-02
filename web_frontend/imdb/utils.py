@@ -400,6 +400,9 @@ def analyze_title(title, canonical=None, canonicalSeries=None,
         title = title[:-10].rstrip()
     elif title.endswith('(TV Mini-Series)'):
         kind = u'tv mini series'
+        title = title[:-16].rstrip()
+    elif title.endswith('(mini)'):
+        kind = u'tv mini series'
         title = title[:-6].rstrip()
     elif title.endswith('(VG)'):
         kind = u'video game'
@@ -510,7 +513,7 @@ def _convertTime(title, fromPTDFtoWEB=1, _emptyString=u''):
 
 def build_title(title_dict, canonical=None, canonicalSeries=None,
                 canonicalEpisode=None, ptdf=0, lang=None, _doYear=1,
-                _emptyString=u'', appendKind=False):
+                _emptyString=u'', appendKind=True):
     """Given a dictionary that represents a "long" IMDb title,
     return a string.
 
@@ -583,15 +586,22 @@ def build_title(title_dict, canonical=None, canonicalSeries=None,
             title = normalizeTitle(title, lang=lang)
     if pre_title:
         title = '%s %s' % (pre_title, title)
+    if kind in (u'tv series', u'tv mini series'):
+        title = '"%s"' % title
     if _doYear:
-        imdbIndex = title_dict.get('imdbIndex')
-        if imdbIndex and canonical is None:
-            title += ' (%s)' % imdbIndex
-        year = title_dict.get('year') or u'????'
+        year = title_dict.get('year') or '????'
         if isinstance(_emptyString, str):
             year = str(year)
-        title += ' (%s' % year
-        title += ')'
+        imdbIndex = title_dict.get('imdbIndex')
+        if not ptdf:
+            if imdbIndex and (canonical is None or canonical):
+                title += ' (%s)' % imdbIndex
+            title += ' (%s)' % year
+        else:
+            title += ' (%s' % year
+            if imdbIndex and (canonical is None or canonical):
+                title += '/%s' % imdbIndex
+            title += ')'
     if appendKind and kind:
         if kind == 'tv movie':
             title += ' (TV)'
