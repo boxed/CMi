@@ -9,6 +9,7 @@ urlpatterns = patterns('',
     (r'^$', 'CMi.views.index'),
     (r'^search_for_new_files/', 'CMi.views.search_for_new_files'),
     (r'^code_changed/', 'CMi.views.code_changed'),
+    (r'^css/', 'CMi.views.css'),
     (r'^test/', 'CMi.views.test'),
                        
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
@@ -16,7 +17,7 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^site-media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
-    url(r'^media/admin/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT+'/../../../django/django/contrib/admin/static/admin'}),
+    url(r'^media/admin/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT+'/../../../django/contrib/admin/static/admin'}),
 
     (r'^admin/', include(admin.site.urls)),
 )

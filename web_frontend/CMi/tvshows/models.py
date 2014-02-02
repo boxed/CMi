@@ -54,4 +54,4 @@ class Episode(models.Model):
             return '%s s%se%s %s' % (self.show, self.season, self.episode, self.name)
 
     class Meta:
-        ordering = ['season', 'episode', 'aired']
+        ordering = ['show__name', 'season', 'episode', 'aired']

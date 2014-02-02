@@ -25,27 +25,25 @@ function get_tiles() {
 function flip_in(selector, new_page) { // new_page defaults to true
     new_page = typeof(new_page) != 'undefined' ? new_page: true;
 
-    $(selector).addClass('display');
+    var foo = $(selector);
+
+    foo.addClass('display');
     setup_menu();
     show_hide_back_button();
 
-    $(selector).css({'z-index':'0'});
+    foo.css({'z-index':'0'});
     var tiles = get_tiles();
     prepare_tiles(tiles);
-    var _i = 0;
     if (new_page) {
         tiles.css({
             'z-index': '5000',
-            webkitTransitionDelay: "1000ms",
             webkitTransform: "translate3d(0,0,0) rotateY(0deg)",
             webkitTransitionDuration: transitionDuration+'ms'
         });
-        tiles.each(function() {
-            $(this).css({
-                webkitTransitionDelay: Math.min(_i, 10) * 80 + "ms"
-            });
-            _i++;
+        tiles.each(function(i) {
+            $(this).addClass('flip_'+i);
         });
+        foo.addClass('started');
     }
     else {
         tiles.css({webkitTransform: "translate3d(0,0,0) rotateY(0deg)"});
@@ -68,7 +66,6 @@ function flip_out() {
     var _i = 0;
     tiles.css({
         'z-index': '5000',
-        webkitTransitionDelay: "1000ms",
         webkitTransform: "translate3d(0,0,0) rotateY(-90deg)",
         webkitTransitionDuration: transitionDuration+'ms'
     });
@@ -280,7 +277,7 @@ function update_clock() {
     $('#clock').html(d.getHours()+':'+pad(d.getMinutes(), 2));
     setTimeout(update_clock, 500);
     
-    $.ajax({
+    /*$.ajax({
         url: '/code_changed/',
         data: {ajax: 'True'},
         success: function(data) {
@@ -288,7 +285,7 @@ function update_clock() {
                 refresh();
             }
         }
-    });
+    });*/
 }
 
 function prepare_tiles(tiles) {
