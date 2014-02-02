@@ -96,6 +96,10 @@ def test_classification():
     9.2009.720p.BluRay.x264-METiS [PublicHD].mkv|movie|9|2009
     Black Books/Series 2/EP3 - The Fixer.avi|tv show|black books|(2, 3)
     The.Big.Bang.Theory.S 06 E 19.HDTV.Subtitulado.Esp.SC.avi|tv show|the big bang theory|(6, 19)
+    This Is Spinal Tap 1984 Xvid BRRip HD720p.avi|movie|this is spinal tap|1984
+    9.2009.720p.BluRay.x264-METiS [PublicHD].mkv|movie|9|2009
+    Lovestruck.The.Musical.2013.720p.WEB-DL.DD5.1.H.264-BS.mkv|movie|lovestruck the musical|2013
+    Groundhog Day [1993] 720p BRRip H264 AC3 - CODY.mp4|movie|groundhog day|1993
     """
 
     def classify(s):
