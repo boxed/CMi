@@ -27,11 +27,8 @@ typedef enum {
     OverlayWindow *HUDWindow;
  
     // web backend
-    NSTask* webServer;
     NSPipe* webServerStdOut;
-    NSPipe* webServerStdErr;
     NSFileHandle* webServerStdOutFile;
-    NSFileHandle* webServerStdErrFile;
     BOOL hasStarted;
 
     // web GUI
@@ -64,6 +61,8 @@ typedef enum {
     NSMutableString* outputBuffer;
     NSOperationQueue* queue;
     NSTimer* searchForFilesTimer;
+    NSThread* pythonThread;
+    
 }
 
 @property(assign) IBOutlet BorderLessWindow *window;

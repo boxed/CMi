@@ -31,6 +31,7 @@
 		AE94390D1437C37C00117748 /* VLCKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE94390C1437C37C00117748 /* VLCKit.framework */; };
 		AE9439101437C3A500117748 /* VLCKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = AE94390C1437C37C00117748 /* VLCKit.framework */; };
 		AE94391E1438C60700117748 /* QuickTimePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = AE94391D1438C60700117748 /* QuickTimePlayer.m */; };
+		AE9B995118C37571002E950D /* libpython2.7.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AE9B995018C37571002E950D /* libpython2.7.dylib */; };
 		AEBF086D13AB6D5A0010B7A4 /* beginning.png in Resources */ = {isa = PBXBuildFile; fileRef = AEBF086613AB6D5A0010B7A4 /* beginning.png */; };
 		AEBF086E13AB6D5A0010B7A4 /* end.png in Resources */ = {isa = PBXBuildFile; fileRef = AEBF086713AB6D5A0010B7A4 /* end.png */; };
 		AEBF086F13AB6D5A0010B7A4 /* forward.png in Resources */ = {isa = PBXBuildFile; fileRef = AEBF086813AB6D5A0010B7A4 /* forward.png */; };
@@ -96,6 +97,8 @@
 		AE9439151438595300117748 /* VideoPlayerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoPlayerProtocol.h; sourceTree = "<group>"; };
 		AE94391C1438C60700117748 /* QuickTimePlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuickTimePlayer.h; sourceTree = "<group>"; };
 		AE94391D1438C60700117748 /* QuickTimePlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QuickTimePlayer.m; sourceTree = "<group>"; };
+		AE9B994E18C36FFB002E950D /* Python.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Python.framework; path = ../../../../System/Library/Frameworks/Python.framework; sourceTree = "<group>"; };
+		AE9B995018C37571002E950D /* libpython2.7.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpython2.7.dylib; path = ../../../../../System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config/libpython2.7.dylib; sourceTree = "<group>"; };
 		AEBF086613AB6D5A0010B7A4 /* beginning.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = beginning.png; sourceTree = "<group>"; };
 		AEBF086713AB6D5A0010B7A4 /* end.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = end.png; sourceTree = "<group>"; };
 		AEBF086813AB6D5A0010B7A4 /* forward.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = forward.png; sourceTree = "<group>"; };
@@ -118,6 +121,7 @@
 				AE94390D1437C37C00117748 /* VLCKit.framework in Frameworks */,
 				AEDA957A13AE814800174B14 /* Security.framework in Frameworks */,
 				AE4BD08A13A4F54D0009E6E0 /* IOKit.framework in Frameworks */,
+				AE9B995118C37571002E950D /* libpython2.7.dylib in Frameworks */,
 				AE4BD04C13A4D4360009E6E0 /* WebKit.framework in Frameworks */,
 				AE4BD04A13A3AB520009E6E0 /* QTKit.framework in Frameworks */,
 				AE4BD02D13A3AB360009E6E0 /* Cocoa.framework in Frameworks */,
@@ -149,6 +153,7 @@
 		AE4BD02B13A3AB360009E6E0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AE9B994E18C36FFB002E950D /* Python.framework */,
 				AE4BD08913A4F54D0009E6E0 /* IOKit.framework */,
 				AE4BD04B13A4D4360009E6E0 /* WebKit.framework */,
 				AE4BD04913A3AB520009E6E0 /* QTKit.framework */,
@@ -191,6 +196,7 @@
 				AE08B39713ABD01F009002BF /* CMiSliderCell.m */,
 				AE92A57713AA9DC20075F32D /* VolumeView.h */,
 				AE92A57813AA9DC20075F32D /* VolumeView.m */,
+				AE9B995018C37571002E950D /* libpython2.7.dylib */,
 				AE4BD03313A3AB360009E6E0 /* Supporting Files */,
 				AEBF086513AB6D5A0010B7A4 /* images */,
 				AE1BC41C13B2875100D3EB50 /* icon.icns */,
@@ -424,7 +430,16 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CMiVideoPlayer/CMiVideoPlayer-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7,
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+				);
 				INFOPLIST_FILE = "CMiVideoPlayer/CMiVideoPlayer-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -444,7 +459,16 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "CMiVideoPlayer/CMiVideoPlayer-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7,
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+				);
 				INFOPLIST_FILE = "CMiVideoPlayer/CMiVideoPlayer-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SYSTEM_LIBRARY_DIR)/Frameworks/Python.framework/Versions/2.7/lib/python2.7/config",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

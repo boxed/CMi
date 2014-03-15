@@ -81,3 +81,10 @@ def run_sql(statements):
     cursor = connection.cursor()
     for statement in statements.split(';'):
         cursor.execute(statement)
+
+
+class StartupMiddleware(object):
+    def __init__(self):
+        print 'STARTUP!'
+        from django.core.exceptions import MiddlewareNotUsed
+        raise MiddlewareNotUsed()

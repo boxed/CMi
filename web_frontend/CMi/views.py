@@ -79,7 +79,7 @@ def code_changed(request):
 def css(request):
     delay = 40
     rules = ['.started .flip_%s {-webkit-transition-delay: %sms}\n' % (i, max(delay, i * (delay-i/2))) for i in xrange(200)]
-    return HttpResponse(''.join(rules), mimetype='text/css')
+    return HttpResponse(''.join(rules), content_type='text/css')
 
 def test(request):
     return render(request, 'test.html')

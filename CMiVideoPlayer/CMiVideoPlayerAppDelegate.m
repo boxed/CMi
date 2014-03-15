@@ -9,6 +9,7 @@
 #import "CMiVideoPlayerAppDelegate.h"
 #import "QuickTimePlayer.h"
 #import "VLCVideoPlayer.h"
+#include <Python.h>
 
 static const float ON_SCREEN_CONTROL_ALPHA = 0.6;
 
@@ -44,22 +45,17 @@ void key(int code)
     
     outputBuffer = [[NSMutableString stringWithCapacity:1000] retain];
     
+    // Catch stdout
+    self->webServerStdOut = [NSPipe pipe];
+    self->webServerStdOutFile = [self->webServerStdOut fileHandleForReading];
+    dup2([[self->webServerStdOut fileHandleForWriting] fileDescriptor], fileno(stdout)) ;
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector: @selector(webServerWroteToStdOut:) name:NSFileHandleReadCompletionNotification object:self->webServerStdOut];
+    [self->webServerStdOutFile readInBackgroundAndNotify];
+
     // Set up webserver backend
-    NSArray* arguments = @[@"-u", @"CMi/manage.py", @"runserver", @"0.0.0.0:8000"]; //, @"--noreload"];
-    webServer = [[NSTask alloc] init];
-    [webServer setLaunchPath:@"/usr/bin/python"];
-    NSString* foo = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"web_frontend"];
-    [webServer setCurrentDirectoryPath:foo];
-    [webServer setArguments:arguments];
-    webServerStdOut = [NSPipe pipe];
-    webServerStdErr = [NSPipe pipe];
-    webServerStdOutFile = [webServerStdOut fileHandleForReading];
-    webServerStdErrFile = [webServerStdErr fileHandleForReading];
-    [webServerStdOutFile readInBackgroundAndNotify];
-    [webServerStdErrFile readInBackgroundAndNotify];
-    [webServer setStandardOutput:webServerStdOut];
-    [webServer setStandardError:webServerStdErr];
-    [webServer launch];
+    self->pythonThread = [[NSThread alloc] initWithTarget:self selector:@selector(pythonWorker) object:nil];
+    [self->pythonThread start];
     
     // Set up rest of GUI
     self.window.delegate = self;
@@ -114,14 +110,22 @@ void key(int code)
 
 - (void)applicationWillTerminate:(NSNotification *)notification
 {
-    [webServer terminate];
+}
+
+- (void)pythonWorker
+{
+    NSString* bundlePath = [[NSBundle mainBundle] bundlePath];
+    Py_SetProgramName("/usr/bin/python");
+    Py_Initialize();
+    const char* argv[] = {"/usr/bin/python", [[bundlePath stringByAppendingString:@"/Contents/Resources/web_frontend/CMi/runserver.py"] cStringUsingEncoding:NSASCIIStringEncoding]};
+    int result = Py_Main(2, (char**)argv);
+    NSLog(@"%d", result);
+    Py_Finalize();
 }
 
 - (void)webServerWroteToStdOut:(NSNotification*)notification
 {
-    if ([notification object] == webServerStdErrFile)
-        [webServerStdErrFile readInBackgroundAndNotify];
-    else if ([notification object] == webServerStdOutFile)
+    if ([notification object] == webServerStdOutFile)
         [webServerStdOutFile readInBackgroundAndNotify];
     NSData* data = [[notification userInfo] valueForKey:NSFileHandleNotificationDataItem];
     NSString* newStr = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
