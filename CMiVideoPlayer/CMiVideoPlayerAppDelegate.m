@@ -119,8 +119,9 @@ void key(int code)
     Py_Initialize();
     const char* argv[] = {"/usr/bin/python", [[bundlePath stringByAppendingString:@"/Contents/Resources/web_frontend/CMi/runserver.py"] cStringUsingEncoding:NSASCIIStringEncoding]};
     int result = Py_Main(2, (char**)argv);
-    NSLog(@"%d", result);
+    NSLog(@"Python exited with result: %d", result);
     Py_Finalize();
+    [NSApp terminate:self];
 }
 
 - (void)webServerWroteToStdOut:(NSNotification*)notification

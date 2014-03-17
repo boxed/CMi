@@ -64,10 +64,10 @@ def handle_movie(data):
     if m:
         try:
             os.makedirs(movies_dir)
-        except:
+        except OSError:
             pass
         source = os.path.join(downloads_dir, filename)
-        destination = os.path.join(movies_dir, filename)
+        destination = os.path.join(movies_dir, filename.split('/')[-1])
         print 'move', source, '->', destination
         move(source, destination)
         year = imdb_info['year'] if 'year' in imdb_info else ''

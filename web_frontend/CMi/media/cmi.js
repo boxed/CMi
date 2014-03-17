@@ -1,4 +1,4 @@
-var transitionDuration = 1200;
+var transitionDuration = 700;
 var menu_history = [];
 var menu_history_position = [];
 var menu_history_scroll_position = [];

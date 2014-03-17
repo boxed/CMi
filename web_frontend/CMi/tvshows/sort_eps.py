@@ -4,7 +4,7 @@ from datetime import datetime, date
 from CMi.engine import canonical_format, splitext
 from CMi.tvshows.models import *
 from CMi.directories import *
-from send2trash import send2trash
+from send2trash.plat_osx import send2trash
 import tvdb
 
 tvdb.API_KEY = "1645288C00EAD78F"
@@ -20,14 +20,13 @@ def delete_watched_episodes():
                 pass
             episode.filepath = ''
             episode.save()
-    
+
 def clean_episode_db():
     #print 'cleaning episode db...'
     if not os.path.exists(tv_shows_dir):
         return
     for episode in Episode.objects.all():
         if not os.path.exists(episode.filepath) and episode.filepath:
-            send2trash(episode.filepath)
             episode.filepath = ''
             episode.save()
 
