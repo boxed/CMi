@@ -46,8 +46,9 @@ def get_weather(place=None):
 
         lat, lon = location.split(',')
 
-        data = urlopen('http://openweathermap.org/data/2.1/find/city?lat=%s&lon=%s&radius=10' % (lat, lon))
-        data = load(data)['list'][0]
+        url = 'http://api.openweathermap.org/data/2.5/weather/?lat=%s&lon=%s&APPID=846ecf80ab619e5cefb8cd58eb0c50ea' % (lat, lon)
+        data = urlopen(url)
+        data = load(data)
         # from pprint import pprint
         # pprint(data)
         temp = int(round(celsius_from_kelvin(data['main']['temp'])))
