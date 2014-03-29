@@ -32,42 +32,42 @@
 /**
  * Standard dictionary keys for retreiving meta data.
  */
-extern NSString * VLCMetaInformationTitle;          /* NSString */
-extern NSString * VLCMetaInformationArtist;         /* NSString */
-extern NSString * VLCMetaInformationGenre;          /* NSString */
-extern NSString * VLCMetaInformationCopyright;      /* NSString */
-extern NSString * VLCMetaInformationAlbum;          /* NSString */
-extern NSString * VLCMetaInformationTrackNumber;    /* NSString */
-extern NSString * VLCMetaInformationDescription;    /* NSString */
-extern NSString * VLCMetaInformationRating;         /* NSString */
-extern NSString * VLCMetaInformationDate;           /* NSString */
-extern NSString * VLCMetaInformationSetting;        /* NSString */
-extern NSString * VLCMetaInformationURL;            /* NSString */
-extern NSString * VLCMetaInformationLanguage;       /* NSString */
-extern NSString * VLCMetaInformationNowPlaying;     /* NSString */
-extern NSString * VLCMetaInformationPublisher;      /* NSString */
-extern NSString * VLCMetaInformationEncodedBy;      /* NSString */
-extern NSString * VLCMetaInformationArtworkURL;     /* NSString */
-extern NSString * VLCMetaInformationArtwork;        /* NSImage  */
-extern NSString * VLCMetaInformationTrackID;        /* NSString */
+extern NSString *const VLCMetaInformationTitle;          /* NSString */
+extern NSString *const VLCMetaInformationArtist;         /* NSString */
+extern NSString *const VLCMetaInformationGenre;          /* NSString */
+extern NSString *const VLCMetaInformationCopyright;      /* NSString */
+extern NSString *const VLCMetaInformationAlbum;          /* NSString */
+extern NSString *const VLCMetaInformationTrackNumber;    /* NSString */
+extern NSString *const VLCMetaInformationDescription;    /* NSString */
+extern NSString *const VLCMetaInformationRating;         /* NSString */
+extern NSString *const VLCMetaInformationDate;           /* NSString */
+extern NSString *const VLCMetaInformationSetting;        /* NSString */
+extern NSString *const VLCMetaInformationURL;            /* NSString */
+extern NSString *const VLCMetaInformationLanguage;       /* NSString */
+extern NSString *const VLCMetaInformationNowPlaying;     /* NSString */
+extern NSString *const VLCMetaInformationPublisher;      /* NSString */
+extern NSString *const VLCMetaInformationEncodedBy;      /* NSString */
+extern NSString *const VLCMetaInformationArtworkURL;     /* NSString */
+extern NSString *const VLCMetaInformationArtwork;        /* NSImage  */
+extern NSString *const VLCMetaInformationTrackID;        /* NSString */
 
 /* Notification Messages */
 /**
  * Available notification messages.
  */
-extern NSString * VLCMediaMetaChanged;  //< Notification message for when the media's meta data has changed
+extern NSString *const VLCMediaMetaChanged;  //< Notification message for when the media's meta data has changed
 
 // Forward declarations, supresses compiler error messages
 @class VLCMediaList;
 @class VLCMedia;
 
-typedef enum VLCMediaState
-{
+enum {
     VLCMediaStateNothingSpecial,        //< Nothing
     VLCMediaStateBuffering,             //< Stream is buffering
     VLCMediaStatePlaying,               //< Stream is playing
     VLCMediaStateError,                 //< Can't be played because an error occurred
-} VLCMediaState;
+};
+typedef NSInteger VLCMediaState;
 
 /**
  * Informal protocol declaration for VLCMedia delegates.  Allows data changes to be
@@ -97,7 +97,14 @@ typedef enum VLCMediaState
  * \param oldValue The old meta data value.
  * \param key The key of the value that was changed.
  */
-- (void)media:(VLCMedia *)aMedia metaValueChangedFrom:(id)oldValue forKey:(NSString *)key;
+- (void)media:(VLCMedia *)aMedia metaValueChangedFrom:(id)oldValue forKey:(NSString *)key __attribute__((deprecated));
+
+/**
+ * Delegate method called whenever the media's meta data was changed for whatever reason
+ * \note this is called more often than mediaDidFinishParsing, so it may be less efficient
+ * \param aMedia The media resource whose meta data has been changed.
+ */
+- (void)mediaMetaDataDidChange:(VLCMedia *)aMedia;
 
 /**
  * Delegate method called whenever the media was parsed.
@@ -227,6 +234,28 @@ typedef enum VLCMediaState
 @property (retain, readonly) VLCMediaList * subitems;
 
 /**
+ * get meta property for key
+ * \note for performance reasons, fetching the metaDictionary will be faster!
+ * \see metaDictionary
+ * \see dictionary keys above
+ */
+- (NSString *)metadataForKey:(NSString *)key;
+
+/**
+ * set meta property for key
+ * \param metadata to set as NSString
+ * \param metadata key
+ * \see dictionary keys above
+ */
+- (void)setMetadata:(NSString *)data forKey:(NSString *)key;
+
+/**
+ * Save the previously changed metadata
+ * \return true if saving was successful
+ */
+- (BOOL)saveMetadata;
+
+/**
  * The receiver's meta data as a NSDictionary object.
  */
 @property (retain, readonly) NSDictionary * metaDictionary;
@@ -248,12 +277,12 @@ typedef enum VLCMediaState
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationCodec;
+extern NSString *const VLCMediaTracksInformationCodec;
 
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationId;
+extern NSString *const VLCMediaTracksInformationId;
 /**
  * \returns a NSString
  * \see VLCMediaTracksInformationTypeAudio
@@ -261,80 +290,79 @@ extern NSString *VLCMediaTracksInformationId;
  * \see VLCMediaTracksInformationTypeText
  * \see VLCMediaTracksInformationTypeUnknown
  */
-extern NSString *VLCMediaTracksInformationType;
+extern NSString *const VLCMediaTracksInformationType;
 
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationCodecProfile;
+extern NSString *const VLCMediaTracksInformationCodecProfile;
 /**
  * \returns a NSNumber
  */
-extern NSString *VLCMediaTracksInformationCodecLevel;
+extern NSString *const VLCMediaTracksInformationCodecLevel;
 
 /**
  * \returns the bitrate as NSNumber
  */
-extern NSString *VLCMediaTracksInformationBitrate;
+extern NSString *const VLCMediaTracksInformationBitrate;
 /**
  * \returns the language as NSString
  */
-extern NSString *VLCMediaTracksInformationLanguage;
+extern NSString *const VLCMediaTracksInformationLanguage;
 /**
  * \returns the description as NSString
  */
-extern NSString *VLCMediaTracksInformationDescription;
+extern NSString *const VLCMediaTracksInformationDescription;
 
 /**
  * \returns the audio channel number as NSNumber
  */
-extern NSString *VLCMediaTracksInformationAudioChannelsNumber;
+extern NSString *const VLCMediaTracksInformationAudioChannelsNumber;
 /**
  * \returns the audio rate as NSNumber
  */
-extern NSString *VLCMediaTracksInformationAudioRate;
+extern NSString *const VLCMediaTracksInformationAudioRate;
 
 /**
  * \returns the height as NSNumber
  */
-extern NSString *VLCMediaTracksInformationVideoHeight;
+extern NSString *const VLCMediaTracksInformationVideoHeight;
 /**
  * \returns the width as NSNumber
  */
-extern NSString *VLCMediaTracksInformationVideoWidth;
+extern NSString *const VLCMediaTracksInformationVideoWidth;
 
 /**
  * \returns the source aspect ratio as NSNumber
  */
-extern NSString *VLCMediaTracksInformationSourceAspectRatio;
+extern NSString *const VLCMediaTracksInformationSourceAspectRatio;
 /**
  * \returns the source aspect ratio denominator as NSNumber
  */
-extern NSString *VLCMediaTracksInformationSourceAspectRatioDenominator;
+extern NSString *const VLCMediaTracksInformationSourceAspectRatioDenominator;
 
 /**
  * \returns the frame rate as NSNumber
  */
-extern NSString *VLCMediaTracksInformationFrameRate;
+extern NSString *const VLCMediaTracksInformationFrameRate;
 /**
  * \returns the frame rate denominator as NSNumber
  */
-extern NSString *VLCMediaTracksInformationFrameRateDenominator;
+extern NSString *const VLCMediaTracksInformationFrameRateDenominator;
 
 /**
  * \returns the text encoding as NSString
  */
-extern NSString *VLCMediaTracksInformationTextEncoding;
+extern NSString *const VLCMediaTracksInformationTextEncoding;
 
 /**
  * Tracks information NSDictionary values for
  * VLCMediaTracksInformationType
  */
-extern NSString *VLCMediaTracksInformationTypeAudio;
-extern NSString *VLCMediaTracksInformationTypeVideo;
-extern NSString *VLCMediaTracksInformationTypeText;
-extern NSString *VLCMediaTracksInformationTypeUnknown;
-
+extern NSString *const VLCMediaTracksInformationTypeAudio;
+extern NSString *const VLCMediaTracksInformationTypeVideo;
+extern NSString *const VLCMediaTracksInformationTypeText;
+extern NSString *const VLCMediaTracksInformationTypeUnknown;
 
 /**
  * Returns the tracks information.
@@ -380,6 +408,12 @@ extern NSString *VLCMediaTracksInformationTypeUnknown;
  * \see -[VLCMediaDelegate mediaDidFinishParsing:]
  */
 - (void)parse;
+
+/**
+ * Trigger a synchronous parsing of the media
+ * the selector won't return until parsing finished
+ */
+- (void)synchronousParse;
 
 /**
  * Add options to the media, that will be used to determine how

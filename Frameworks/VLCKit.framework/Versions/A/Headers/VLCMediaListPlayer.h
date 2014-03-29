@@ -2,8 +2,8 @@
  * VLCMediaListPlayer.h: VLCKit.framework VLCMediaListPlayer implementation
  *****************************************************************************
  * Copyright (C) 2009 Pierre d'Herbemont
- * Partial Copyright (C) 2009 Felix Paul Kühne
- * Copyright (C) 2009 VLC authors and VideoLAN
+ * Partial Copyright (C) 2009-2013 Felix Paul Kühne
+ * Copyright (C) 2009-2013 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -55,13 +55,22 @@ typedef NSInteger VLCRepeatMode;
 @property (readwrite, retain) VLCMedia *rootMedia;
 @property (readonly, retain) VLCMediaPlayer *mediaPlayer;
 
+- (id)initWithOptions:(NSArray *)options;
 
 /**
- * Basic play and stop are here. For other method, use the mediaPlayer.
- * This may change.
+ * Basic play, pause and stop are here. For other methods, use the mediaPlayer.
  */
 - (void)play;
+- (void)pause;
 - (void)stop;
+
+/**
+ * previous, next, play item at index
+ * \returns YES on success, NO if there is no such item
+ */
+- (BOOL)next;
+- (BOOL)previous;
+- (BOOL)playItemAtIndex:(int)index;
 
 /**
  * Playmode selection (don't repeat anything, repeat one, repeat all)

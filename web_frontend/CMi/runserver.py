@@ -11,8 +11,6 @@ if __name__ == "__main__":
     sys.stderr = sys.stdout
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "CMi.settings")
     
-    print 'path:', sys.path
-
     from CMi import migrate
     migrate()
 

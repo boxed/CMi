@@ -26,8 +26,8 @@
 #import "VLCMedia.h"
 
 /* Notification Messages */
-extern NSString * VLCMediaListItemAdded;
-extern NSString * VLCMediaListItemDeleted;
+extern NSString *const VLCMediaListItemAdded;
+extern NSString *const VLCMediaListItemDeleted;
 
 @class VLCMedia;
 @class VLCMediaList;
@@ -57,6 +57,8 @@ extern NSString * VLCMediaListItemDeleted;
     /* We need that private copy because of Cocoa Bindings, that need to be working on first thread */
     NSMutableArray * cachedMedia;                   //< Private copy of media objects.
 }
+
+- (id)initWithArray:(NSArray *)array;
 
 /* Operations */
 /**

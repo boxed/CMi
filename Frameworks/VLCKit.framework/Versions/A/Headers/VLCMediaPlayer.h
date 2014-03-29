@@ -2,8 +2,8 @@
  * VLCMediaPlayer.h: VLCKit.framework VLCMediaPlayer header
  *****************************************************************************
  * Copyright (C) 2007-2009 Pierre d'Herbemont
- * Copyright (C) 2007-2009 VLC authors and VideoLAN
- * Copyright (C) 2009-2013 Felix Paul Kühne
+ * Copyright (C) 2007-2014 VLC authors and VideoLAN
+ * Copyright (C) 2009-2014 Felix Paul Kühne
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -37,14 +37,16 @@
 @class VLCVideoLayer;
 #endif
 
+@class VLCLibrary;
+
 /* Notification Messages */
-extern NSString * VLCMediaPlayerTimeChanged;
-extern NSString * VLCMediaPlayerStateChanged;
+extern NSString *const VLCMediaPlayerTimeChanged;
+extern NSString *const VLCMediaPlayerStateChanged;
 
 /**
  * VLCMediaPlayerState describes the state of the media player.
  */
-typedef enum VLCMediaPlayerState
+enum
 {
     VLCMediaPlayerStateStopped,        //< Player has stopped
     VLCMediaPlayerStateOpening,        //< Stream is opening
@@ -53,7 +55,8 @@ typedef enum VLCMediaPlayerState
     VLCMediaPlayerStateError,          //< Player has generated an error
     VLCMediaPlayerStatePlaying,        //< Stream is playing
     VLCMediaPlayerStatePaused          //< Stream is paused
-} VLCMediaPlayerState;
+};
+typedef NSInteger VLCMediaPlayerState;
 
 /**
  * Returns the name of the player state as a string.
@@ -67,6 +70,15 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * to be trapped by delegated objects.
  */
 @protocol VLCMediaPlayerDelegate
+
+@optional
+/**
+ * Sent by the default notification center whenever the player's state has changed.
+ * \details Discussion The value of aNotification is always an VLCMediaPlayerStateChanged notification. You can retrieve
+ * the VLCMediaPlayer object in question by sending object to aNotification.
+ */
+- (void)mediaPlayerStateChanged:(NSNotification *)aNotification;
+
 /**
  * Sent by the default notification center whenever the player's time has changed.
  * \details Discussion The value of aNotification is always an VLCMediaPlayerTimeChanged notification. You can retrieve
@@ -74,35 +86,20 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 - (void)mediaPlayerTimeChanged:(NSNotification *)aNotification;
 
-/**
- * Sent by the default notification center whenever the player's state has changed.
- * \details Discussion The value of aNotification is always an VLCMediaPlayerStateChanged notification. You can retrieve
- * the VLCMediaPlayer object in question by sending object to aNotification.
- */
-- (void)mediaPlayerStateChanged:(NSNotification *)aNotification;
 @end
 
 
 // TODO: Should we use medialist_player or our own flavor of media player?
 @interface VLCMediaPlayer : NSObject
-{
-    id delegate;                        //< Object delegate
-    void * instance;                    //  Internal
-    VLCMedia * media;                   //< Current media being played
-    VLCTime * cachedTime;               //< Cached time of the media being played
-    VLCTime * cachedRemainingTime;      //< Cached remaining time of the media being played
-    VLCMediaPlayerState cachedState;    //< Cached state of the media being played
-    float position;                     //< The position of the media being played
-    id drawable;                        //< The drawable associated to this media player
-    VLCAudio *audio;
-    BOOL shouldResumePlaying;           //< resume playing on iOS
-}
+
+@property (readonly) VLCLibrary *libraryInstance;
 
 #if !TARGET_OS_IPHONE
 /* Initializers */
 - (id)initWithVideoView:(VLCVideoView *)aVideoView;
 - (id)initWithVideoLayer:(VLCVideoLayer *)aVideoLayer;
 #endif
+- (id)initWithOptions:(NSArray *)options;
 
 /* Properties */
 - (void)setDelegate:(id)value;
@@ -110,6 +107,9 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
 
 /* Video View Options */
 // TODO: Should be it's own object?
+
+#pragma mark -
+#pragma mark video functionality
 
 #if !TARGET_OS_IPHONE
 - (void)setVideoView:(VLCVideoView *)aVideoView;
@@ -237,6 +237,9 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 - (float)framesPerSecond;
 
+#pragma mark -
+#pragma mark time
+
 /**
  * Sets the current position (or time) of the feed.
  * \param value New time to set the current position to.  If time is [VLCTime nullTime], 0 is assumed.
@@ -257,6 +260,9 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  * \return current media's frames per second value
  */
 @property (readonly) NSUInteger fps __attribute__((deprecated));
+
+#pragma mark -
+#pragma mark ES track handling
 
 /**
  * Return the current video track index
@@ -385,6 +391,9 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 - (NSArray *)audioTracks __attribute__((deprecated));
 
+#pragma mark -
+#pragma mark audio functionality
+
 - (void)setAudioChannel:(NSInteger)value;
 - (NSInteger)audioChannel;
 
@@ -396,11 +405,68 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 @property (readwrite) NSInteger currentAudioPlaybackDelay;
 
+#pragma mark -
+#pragma mark equalizer
+
+/**
+ * Get a list of available equalizer profiles
+ * \Note Current versions do not allow the addition of further profiles
+ *       so you need to handle this in your app.
+ *
+ * \return array of equalizer profiles
+ */
+@property (readonly) NSArray *equalizerProfiles;
+
+/**
+ * Re-set the equalizer to a profile retrieved from the list
+ * \Note This doesn't enable the Equalizer automagically
+ */
+- (void)resetEqualizerFromProfile:(unsigned)profile;
+
+/**
+ * Toggle equalizer state
+ * \param bool value to enable/disable the equalizer
+ * \return current state */
+@property (readwrite) BOOL equalizerEnabled;
+
+/**
+ * Set amplification level
+ * \param The supplied amplification value will be clamped to the -20.0 to +20.0 range.
+ * \note this will create and enabled an Equalizer instance if not present
+ * \return current amplification level */
+@property (readwrite) CGFloat preAmplification;
+
+/**
+ * Number of equalizer bands
+ * \return the number of equalizer bands available in the current release */
+@property (readonly) unsigned numberOfBands;
+
+/**
+ * frequency of equalizer band
+ * \return frequency of the requested equalizer band */
+- (CGFloat)frequencyOfBandAtIndex:(unsigned)index;
+
+/**
+ * set amplification for band
+ * \param amplification value (clamped to the -20.0 to +20.0 range)
+ * \param index of the respective band */
+- (void)setAmplification:(CGFloat)amplification forBand:(unsigned)index;
+
+/**
+ * amplification of band
+ * \param index of the band
+ * \return current amplification value (clamped to the -20.0 to +20.0 range) */
+- (CGFloat)amplificationOfBand:(unsigned)index;
+
+#pragma mark -
+#pragma mark media handling
+
 /* Media Options */
 - (void)setMedia:(VLCMedia *)value;
 - (VLCMedia *)media;
 
-/* Playback Operations */
+#pragma mark -
+#pragma mark playback operations
 /**
  * Plays a media resource using the currently selected media controller (or
  * default controller.  If feed was paused then the feed resumes at the position
@@ -498,7 +564,8 @@ extern NSString * VLCMediaPlayerStateToString(VLCMediaPlayerState state);
  */
 - (void)longJumpForward;
 
-/* Playback Information */
+#pragma mark -
+#pragma mark playback information
 /**
  * Playback state flag identifying that the stream is currently playing.
  * \return TRUE if the feed is playing, FALSE if otherwise.
