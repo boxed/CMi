@@ -140,8 +140,9 @@ def add_episode(data):
 is_not_tv_show_cache = set()
 def handle_tv_show_episode(data):
     type, filename, show_name = data[0], data[1], data[2]
+    show_name = canonical_format(show_name)
     assert type == 'tv show'
-    if Show.objects.filter(canonical_name__exact=canonical_format(show_name)).count():
+    if Show.objects.filter(canonical_name__exact=show_name).count():
         add_episode(data)
         print 'added episode', data
         return True
@@ -151,13 +152,13 @@ def handle_tv_show_episode(data):
         matches = tvdb.get_series(show_name)
         match = None
         for m in matches:
-            if canonical_format(m['name']) == canonical_format(show_name):
+            if canonical_format(m['name']) == show_name:
                 match = m
                 break
         if match:
             if not SuggestedShow.objects.filter(name=match['name']).count():
                 SuggestedShow.objects.create(name=match['name'])
-                print 'found potential new show "%s"' % canonical_format(show_name)
+                print 'found potential new show "%s"' % show_name
                 return True
         else:
             print 'did not find', show_name, 'on tvdb, ignoring...'

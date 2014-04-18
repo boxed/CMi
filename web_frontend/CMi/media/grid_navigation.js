@@ -50,7 +50,7 @@ function init_navigation() {
      }*/
     // flip axis of grid so we get grid[x][y] instead of grid[y][x]
     var tmp = grid;
-    grid = new Array();
+    grid = [];
     for (var y = 0; ; y++) {
         if (!(y in tmp)) {
             break;
@@ -60,7 +60,7 @@ function init_navigation() {
                 break;
             }
             if (x >= grid.length) {
-                grid.push(new Array());
+                grid.push([]);
             }
             grid[x][y] = tmp[y][x];
         }

@@ -116,6 +116,7 @@ def canonical_format(s):
     replace_list = {
         'the daily show with jon stewart': 'the daily show',
         'marvels agents of s h i e l d': 'marvels agents of shield',
+        'cosmos a spacetime odyssey': 'cosmos a space time odyssey',
     }
     if s2 in replace_list:
         s2 = replace_list[s2]
