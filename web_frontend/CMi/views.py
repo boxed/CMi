@@ -1,13 +1,15 @@
-from math import log10
 from threading import Thread
-from CMi.utils import chunks
+from datetime import datetime, timedelta
+
 from django.conf import settings
 from django.utils import importlib
 from django.utils.safestring import mark_safe
-from CMi.movies.sort_movies import handle_movie, run_movies_cleanup
-from CMi.tvshows.sort_eps import handle_tv_show_episode, run_tv_shows_cleanup, run_tv_shows_extra
 from django.http import HttpResponse
 from django.shortcuts import render
+
+from CMi.utils import chunks
+from CMi.movies.sort_movies import handle_movie, run_movies_cleanup
+from CMi.tvshows.sort_eps import handle_tv_show_episode, run_tv_shows_cleanup, run_tv_shows_extra
 from CMi.engine import match_file, find_videos
 
 plugin_api_modules = []
@@ -18,10 +20,33 @@ for app in settings.INSTALLED_APPS:
     except ImportError:
         pass
 
-search_thread = None
+
+def search_for_new_files2(request):
+    for api in plugin_api_modules:
+        if hasattr(api, 'update') and (not hasattr(api, '_update_thread') or not api._update_thread.is_alive()):
+
+            update_delta = getattr(api, 'update_delta', {'minutes': 0})
+            last_updated = getattr(api, '_last_updated', None)
+
+            if last_updated is not None and datetime.now() - last_updated < timedelta(**update_delta):
+                return
+
+            def update_thread(api_module):
+                print 'Started %s update...' % api_module.__name__
+                api_module.update()
+                api_module._last_updated = datetime.now()
+                print 'Completed %s update...' % api_module.__name__
+            api._update_thread = Thread(target=update_thread, args=(api,))
+            api._update_thread.start()
+
+
+poll_thread = None
 _should_refresh = False
 handled_files = set()
+search_thread = None
 def search_for_new_files(request):
+    search_for_new_files2(request)
+
     def do_search():
         global handled_files
         refresh = False
@@ -45,7 +70,7 @@ def search_for_new_files(request):
         global _should_refresh
         _should_refresh = refresh
         #print 'end search thread'
-    global search_thread
+    global poll_thread, search_thread
     if not search_thread or not search_thread.is_alive():
         #print 'starting search thread...', search_thread
         search_thread = Thread(target=do_search)

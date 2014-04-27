@@ -4,6 +4,15 @@
     <h1 class="header">TV Shows</h1>
     
     <table class="list tiles">
+        {% for suggested_show in suggested_shows %}
+            <tr>
+                <td class="label">{{ suggested_show.name|title }}</td>
+                <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/erase/">Add <span class="explanation">(and remove watched)</span></td>
+                <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/keep/">Add <span class="explanation">(and keep all)</span></td>
+                <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/ignore/">Ignore</td>
+            </tr>
+        {% endfor %}
+
         {% for show in shows %}
             {% if show.unwatched_episodes.count %}
                 <tr>

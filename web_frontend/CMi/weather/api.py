@@ -20,7 +20,11 @@ def urls():
 
 _should_refresh = False
 def should_refresh():
-    return _should_refresh
+    global _should_refresh
+    r = _should_refresh
+    if _should_refresh:
+        _should_refresh = False
+    return r
 
 location = None
 weather_cache = None

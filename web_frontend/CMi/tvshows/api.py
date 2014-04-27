@@ -1,26 +1,18 @@
 from django.template.loader import render_to_string
 from django.conf.urls import patterns
-from CMi.tvshows.models import Episode, SuggestedShow
+from CMi.tvshows.models import Episode
 
 
 def tiles():
-    tiles = [
+    return [
         (10, render_to_string('tile.html', {
             'url': '/tvshows/',
             'image': '/site-media/tv.svg',
             'title': 'TV Shows',
             'content': '%s new episodes' % Episode.objects.filter(watched=False).count(),
         })),
-
-        (40, render_to_string('tile.html', {
-            'url': '/tvshows/suggested/',
-            'image': '/site-media/new_tv.svg',
-            'title': 'New TV Shows',
-            'content': '%s new shows' % SuggestedShow.objects.filter(ignored=False).count(),
-        }))
     ]
 
-    return tiles
 
 def urls():
     return patterns('CMi.tvshows.views',
