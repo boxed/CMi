@@ -603,10 +603,15 @@ void setAlpha(NSView* v)
 #pragma mark WebView delegate
 - (void)webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame
 {
-    [self showWeb];
-    [window makeFirstResponder:self.webView];
-    [window makeKeyAndOrderFront:self];
-    [window toggleFullScreen:self];
+    // We can only run this code once for the entire lifetime of the app, so use this bool to control that in case a plugin loads an iframe or something.
+    static BOOL doOnce = TRUE;
+    if (doOnce) {
+        doOnce = FALSE;
+        [self showWeb];
+        [window makeFirstResponder:self.webView];
+        [window makeKeyAndOrderFront:self];
+        [window toggleFullScreen:self];
+    }
 }
 
 #pragma mark location manager delegate
