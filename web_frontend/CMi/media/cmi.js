@@ -121,7 +121,24 @@ function handle_response(data, url) {
 
 function go() {
     var item = $(grid[current_pos_x][current_pos_y]);
-    if (item.attr('url')) {
+    item.addClass('pressed');
+    if (item.attr('command')) {
+        var command = item.attr('command');
+        var js = 'javascript:';
+        if (command.slice(0, js.length) === js) {
+            eval(command.slice(js.length));
+        }
+        else {
+            $.ajax({
+                url: command,
+                data: {ajax: 'True'},
+                success: function(data) {
+                    handle_response(data, url);
+                }
+            });
+        }
+    }
+    else if (item.attr('url')) {
         var url = item.attr('url');
         if (url == ':back') {
             back();
@@ -276,7 +293,7 @@ function update_clock() {
     var d = new Date();
     $('#clock').html(d.getHours()+':'+pad(d.getMinutes(), 2));
     setTimeout(update_clock, 500);
-    
+
     /*$.ajax({
         url: '/code_changed/',
         data: {ajax: 'True'},
@@ -299,7 +316,6 @@ function prepare_tiles(tiles) {
             var _me = $(this);
             var origin = -(_me.offset().left);
             _me.css({webkitTransformOriginX: origin + "px"});
-            console.log(''+_i+' '+origin)
         }).click(function() {
             $(".tiles .selected").removeClass("selected");
             $(this).addClass("selected");

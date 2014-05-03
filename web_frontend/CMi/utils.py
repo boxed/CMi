@@ -8,10 +8,11 @@ def title_sort_key(s):
     return foo
 
 class ListItem(object):
-    def __init__(self, url, title, extra=None):
+    def __init__(self, url=None, title=None, extra=None, command=None):
         self.url = url
         self.title = title
         self._extra = extra
+        self.command = command
 
     def extra(self):
         return self._extra or ''

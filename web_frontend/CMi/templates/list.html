@@ -8,11 +8,13 @@
             <tr>
                 {% for item in row %}
                     {% if item %}
-                        <td class="tile" url="{{ item.url }}/">
+                        <td class="tile" {% if item.url %}url="{{ item.url }}/"{% endif %} {% if item.command %}command="{{ item.command }}/"{% endif %}>
                             <span class="extra_info">{{ item.extra }}</span>
 
                             <span class="main_info">{{ item }}</span>
                         </td>
+                    {% else %}
+                        <td></td>
                     {% endif %}
                 {% endfor %}
             </tr>
@@ -20,13 +22,12 @@
 
         {% for item in items %}
             <tr>
-                <td class="tile" url="{{ item.url }}/">
+                <td class="tile" {% if item.url %}url="{{ item.url }}/"{% endif %} {% if item.command %}command="{{ item.command }}/"{% endif %}>
                     <span class="extra_info">{{ item.extra }}</span>
 
                     <span class="main_info">{{ item }}</span>
                 </td>
             </tr>
         {% endfor %}
-        <tr style="display: none"><td class="tile">workaround for webkit animation bug</td></tr>
     </table>
 {% endblock %}

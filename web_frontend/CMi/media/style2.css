@@ -30,6 +30,10 @@ td {
     background: -webkit-gradient(linear, left top, right top, from(#23B4A9), to(#188E86));
 }
 
+.tile.pressed {
+    background: -webkit-gradient(linear, left top, right top, from(#24dfd4), to(#1cbdb5));
+}
+
 .tiles {
     border-spacing: 10px;
     position: absolute;
