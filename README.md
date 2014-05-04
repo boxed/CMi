@@ -23,8 +23,8 @@ Longer version: XBMC was the closest to an acceptable system but I still had to 
 
 ## Installing
 
-1. Download the binary. 
-2. Run it.
+1. <a href="https://github.com/boxed/CMi/releases">Download the binary</a>. 
+2. Run it (you might need to right-click the file and choose "Run" since I haven't signed the binary).
 3. There is no 3!
 
 ## Building
