@@ -4,7 +4,7 @@ var menu_history_position = [];
 var menu_history_scroll_position = [];
 var current_pos_x = 0;
 var current_pos_y = 0;
-
+var prevent_refresh = false;
 
 function pad(number, length) {
     var str = '' + number;
@@ -86,18 +86,20 @@ function flip_out() {
 }
 
 function refresh() {
-    var url = menu_history[menu_history.length-1];
-    $.ajax({
-           url: url,
-           data: {ajax: 'True'},
-           success: function(data) {
-               $('.header').remove();
-               $('table').remove();
-               var d = $(data);
-               $('body').append(d);
-               flip_in(d, false);
-           }
-    });
+    if (!prevent_refresh) {
+        var url = menu_history[menu_history.length-1];
+        $.ajax({
+               url: url,
+               data: {ajax: 'True'},
+               success: function(data) {
+                   $('.header').remove();
+                   $('table').remove();
+                   var d = $(data);
+                   $('body').append(d);
+                   flip_in(d, false);
+               }
+        });
+    }
 }
 
 function handle_response(data, url) {

@@ -607,6 +607,7 @@ void setAlpha(NSView* v)
     static BOOL doOnce = TRUE;
     if (doOnce) {
         doOnce = FALSE;
+        // TODO: hide startup window
         [self showWeb];
         [window makeFirstResponder:self.webView];
         [window makeKeyAndOrderFront:self];
