@@ -15,7 +15,7 @@
     VLCMediaPlayer* player;
     NSWindow* window;
     BOOL isPaused;
-    VLCMediaPlayerState prevState;
+    BOOL hasFixedSubtitlesAndAudioTrack;
 }
 
 - (id)initWithParentWindow:(NSWindow*)window;

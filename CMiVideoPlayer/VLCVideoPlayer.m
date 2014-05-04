@@ -15,6 +15,7 @@
     self = [super init];
     if (self) {
         self->window = inWindow;
+        hasFixedSubtitlesAndAudioTrack = NO;
     }
     
     return self;
@@ -39,7 +40,6 @@
 - (void)openURL:(NSURL*)url
 {
     [self lazyInit];
-    self->prevState = VLCMediaPlayerStateOpening;
     if ([url isFileURL]) {
         [player setMedia:[VLCMedia mediaWithPath:[url path]]];
     }
@@ -107,24 +107,28 @@
     return (float)[total intValue];
 }
 
+- (void)fixSubtitlesAndAudioTrack
+{
+    player.currentVideoSubTitleIndex = -1;
+    
+    for (int i = 0; i != player.audioTrackIndexes.count; i++) {
+        if ([[player.audioTrackNames[i] lowercaseString] rangeOfString:@"english"].location != NSNotFound) {
+            player.currentAudioTrackIndex = player.audioTrackIndexes[i];
+            break;
+        }
+    }
+}
+
 #pragma mark VLCMediaPlayerDelegate
 - (void)mediaPlayerStateChanged:(NSNotification *)aNotification
 {
-    if (self->prevState != self->player.state && self->player.state == VLCMediaPlayerStatePlaying) {
-        player.currentVideoSubTitleIndex = -1;
-        
-        for (int i = 0; i != player.audioTrackIndexes.count; i++) {
-            if ([[player.audioTrackNames[i] lowercaseString] rangeOfString:@"english"].location != NSNotFound) {
-                player.currentAudioTrackIndex = player.audioTrackIndexes[i];
-                break;
-            }
-        }
-    }
-    self->prevState = self->player.state;
 }
 
 - (void)mediaPlayerTimeChanged:(NSNotification *)aNotification
 {
+    if (player.state && !hasFixedSubtitlesAndAudioTrack) {
+        [self fixSubtitlesAndAudioTrack];
+    }
 }
 
 @end
