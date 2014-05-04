@@ -2,8 +2,8 @@
 //  main.m
 //  CMiVideoPlayer
 //
-//  Created by Anders Hovmöller on 2011-06-11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//  Created by Anders Hovmöller on 2011-06-11.
+//  Copyright 2011 Hovmöller. See LICENSE file for license.
 //
 
 #import <Cocoa/Cocoa.h>

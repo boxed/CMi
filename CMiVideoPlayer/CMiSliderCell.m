@@ -2,8 +2,8 @@
 //  CMiSliderCell.m
 //  test
 //
-//  Created by Anders Hovmöller on 2011-06-17.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//  Created by Anders Hovmöller on 2011-06-17.
+//  Copyright 2011 Hovmöller. See LICENSE file for license.
 //
 
 #import "CMiSliderCell.h"

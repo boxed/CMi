@@ -2,8 +2,8 @@
 //  CMiVideoPlayerAppDelegate.h
 //  CMiVideoPlayer
 //
-//  Created by Anders Hovmöller on 2011-06-11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//  Created by Anders Hovmöller on 2011-06-11.
+//  Copyright 2011 Hovmöller. See LICENSE file for license.
 //
 
 #import <Cocoa/Cocoa.h>
@@ -68,10 +68,9 @@ typedef enum {
 @property(assign) IBOutlet BorderLessWindow *window;
 @property(assign) IBOutlet OverlayWindow *HUDWindow;
 @property(assign) IBOutlet WebView *webView;
-//@property(assign) IBOutlet QTMovieView *movieView;
-//@property(retain) IBOutlet QTMovie *movie;
 @property(retain) IBOutlet VolumeView* volumeView;
 @property(retain) IBOutlet id<VideoPlayerProtocol> movie;
+@property (assign) IBOutlet NSWindow *startupWindow;
 
 - (BOOL)readFromURL:(NSString*)s;
 - (void)progressTimer:(NSTimer*)timer;

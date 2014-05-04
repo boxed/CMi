@@ -2,8 +2,8 @@
 //  CMiVideoPlayerAppDelegate.m
 //  CMiVideoPlayer
 //
-//  Created by Anders Hovmöller on 2011-06-11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//  Created by Anders Hovmöller on 2011-06-11.
+//  Copyright 2011 Hovmöller. See LICENSE file for license.
 //
 
 #import "CMiVideoPlayerAppDelegate.h"
@@ -87,11 +87,9 @@ void key(int code)
     [[self->forwardButton cell] setHighlightsBy:0];
     [[self->endButton cell] setHighlightsBy:0];
 
-    //[self.window toggleFullScreen:self];
     [self->HUDWindow setDelegate:self];
     [self->HUDWindow setFloatingPanel:YES];
     
-    //self->movie = [[[QuickTimePlayer alloc] initWithParentWindow:self->window] retain];
     [window setFrame:[[NSScreen mainScreen] frame] display:NO];
     
     // Register delegate as scriptable object for javascript
@@ -177,7 +175,6 @@ void key(int code)
         //[self sleepSystem];
     }
     else if ([@"file://refresh" isEqualToString:s]) {
-        //key(46); // R key
         key(48); // R key
     }
     else if ([@"file://back" isEqualToString:s]) {
@@ -585,19 +582,6 @@ void setAlpha(NSView* v)
 - (void)windowDidResize:(NSNotification *)notification
 {
     [self->HUDWindow setFrame:[[notification object] frame] display:TRUE];
-    
-    
-/*    if ([self->window backingScaleFactor] > 1) {
-        CGFloat s = [self->window backingScaleFactor];
-        CGAffineTransform transform = CGAffineTransformMakeScale(1/s, 1/s);
-        [self->webView setWantsLayer:YES];
-        [[self->webView layer] setAffineTransform:transform];
-        NSRect frame = [[self->window contentView] frame];
-        frame.size.width *= s;
-        frame.size.height *= s;
-        [self->webView setFrame:frame];
-    }
-*/
 }
 
 #pragma mark WebView delegate
@@ -607,7 +591,7 @@ void setAlpha(NSView* v)
     static BOOL doOnce = TRUE;
     if (doOnce) {
         doOnce = FALSE;
-        // TODO: hide startup window
+        [self.startupWindow orderOut:self];
         [self showWeb];
         [window makeFirstResponder:self.webView];
         [window makeKeyAndOrderFront:self];
