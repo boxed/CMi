@@ -11,7 +11,7 @@ def index(request):
     shows = sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))
     shows = [ListItem('/tvshows/%s' % show.pk, show.name, show.unwatched_episodes().count()) for show in shows if show.unwatched_episodes()]
     rows = chunks(shows, 2)
-    return render(request, 'list.html', {
+    return render(request, 'tvshows/index.html', {
         'title': 'TV Shows',
         'rows': rows,
         'suggested_shows': SuggestedShow.objects.filter(ignored=False)})

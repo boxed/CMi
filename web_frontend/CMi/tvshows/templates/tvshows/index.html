@@ -2,28 +2,28 @@
 
 {% block contents %}
     <h1 class="header">TV Shows</h1>
-    
     <table class="list tiles">
-        {% for suggested_show in suggested_shows %}
+        {% if suggested_shows %}
             <tr>
-                <td class="label">{{ suggested_show.name|title }}</td>
-                <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/erase/">Add <span class="explanation">(and remove watched)</span></td>
-                <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/keep/">Add <span class="explanation">(and keep all)</span></td>
-                <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/ignore/">Ignore</td>
+                <td class="label">Found new shows:</td>
             </tr>
-        {% endfor %}
 
-        {% for show in shows %}
-            {% if show.unwatched_episodes.count %}
+            {% for suggested_show in suggested_shows %}
                 <tr>
-                    <td class="tile" url="/tvshows/{{ show.id }}/">
-                        <span class="extra_info">{{ show.unwatched_episodes.count }}</span>
-
-                        <span class="main_info">{{ show.name|title }}</span>
-                    </td>
+                    <td class="label">{{ suggested_show.name|title }}</td>
                 </tr>
-            {% endif %}
-        {% endfor %}
-        <tr style="display: none"><td class="tile">workaround for webkit animation bug</td></tr>
+                <tr>
+                    <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/erase/">Add <span class="explanation">(and remove watched)</span></td>
+                    <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/keep/">Add <span class="explanation">(and keep all)</span></td>
+                    <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/ignore/">Ignore</td>
+                </tr>
+            {% endfor %}
+
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+        {% endif %}
+
+        {% include "list_data.html" %}
     </table>
 {% endblock %}
