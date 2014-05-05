@@ -21,7 +21,9 @@ if not os.path.exists(support_folder+'cmi.db') and os.path.exists(os.getcwd()+'/
     print 'copying db file...'
     shutil.copyfile(os.getcwd()+'/CMi/cmi.db', support_folder+'cmi.db')
 
-sys.path.append(os.path.join(support_folder, 'plugins'))
+plugin_path = os.path.join(support_folder, 'plugins')
+sys.path.insert(0, plugin_path)
+print 'Added folder %s to path' % plugin_path
 
 DATABASES = {
     'default': {
