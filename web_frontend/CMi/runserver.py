@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.split(__file__)[0], '../../')))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.split(__file__)[0], '..')))
 
-args = ['CMi/manage.py', 'runserver', '0.0.0.0:8000', '--noreload']
+args = ['CMi/manage.py', 'runserver', '0.0.0.0:19817', '--noreload']
 
 if __name__ == "__main__":
     sys.stderr = sys.stdout

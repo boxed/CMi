@@ -18,10 +18,10 @@ class ListItem(object):
         return self._extra or ''
 
     def __unicode__(self):
-        return self.title or ''
+        return unicode(self.title) or ''
 
     def __repr__(self):
-        return self.title or ''
+        return unicode(self.title) or ''
 
 def chunks(l, n, pad=False):
     """ Yield successive n-sized chunks from l.

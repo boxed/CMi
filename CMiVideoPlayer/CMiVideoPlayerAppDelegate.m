@@ -142,7 +142,7 @@ void key(int code)
         if ([newStr length]) {
             if (!hasStarted && [newStr rangeOfString:@"Quit the server with CONTROL-C"].location != NSNotFound) {
                 NSLog(@"Server started");
-                NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:8000/"]];
+                NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1:19817/"]];
                 [[self.webView mainFrame] loadRequest:request];
 
                 // Ask for location
@@ -352,7 +352,7 @@ void setAlpha(NSView* v)
 - (void)progressTimer:(NSTimer*)timer
 {
     if (self->isPlaying) {
-        NSString* urlprefix = [NSString stringWithFormat:@"http://127.0.0.1:8000/%@", self->movieCallbackURL];
+        NSString* urlprefix = [NSString stringWithFormat:@"http://127.0.0.1:19817/%@", self->movieCallbackURL];
         float current = [self->movie currentTime];
         float end = [self->movie duration];
         if (end < 2) {
@@ -605,7 +605,7 @@ void setAlpha(NSView* v)
            fromLocation:(CLLocation *)oldLocation
 {
     if (oldLocation == nil || [newLocation distanceFromLocation:oldLocation] > 1000) {
-        NSString* url = [NSString stringWithFormat:@"http://127.0.0.1:8000/set_location/?location=%f,%f", [newLocation coordinate].latitude, [newLocation coordinate].longitude];
+        NSString* url = [NSString stringWithFormat:@"http://127.0.0.1:19817/set_location/?location=%f,%f", [newLocation coordinate].latitude, [newLocation coordinate].longitude];
         NSURLRequest* request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
         [NSURLConnection sendAsynchronousRequest:request queue:self->queue completionHandler:^(NSURLResponse* r, NSData* d, NSError* e){}];
         [self.webView stringByEvaluatingJavaScriptFromString:@"/* From Obj-C: refresh to update location */ refresh();"];
