@@ -9,7 +9,7 @@ def tiles():
             'url': '/tvshows/',
             'image': '/site-media/tv.svg',
             'title': 'TV Shows',
-            'content': '%s new episodes' % Episode.objects.filter(watched=False).count(),
+            'content': '%s new episodes' % Episode.objects.filter(watched=False).exclude(filepath='').count(),
         })),
     ]
 

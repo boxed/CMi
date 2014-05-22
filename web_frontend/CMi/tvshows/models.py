@@ -13,7 +13,7 @@ class Show(models.Model):
         return '%s' % self.name
 
     def unwatched_episodes(self):
-        return self.episodes.filter(watched=False)
+        return self.episodes.filter(watched=False).exclude(filepath='')
 
     def __eq__(self, other):
         if not isinstance(other, Show):

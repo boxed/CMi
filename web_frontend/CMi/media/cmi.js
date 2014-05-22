@@ -255,6 +255,7 @@ $(document).ready(function (){
         switch (e.keyCode) {
             case 27: // esc
             case 8: // backspace
+                window.prevent_refresh = false;
                 back();
                 e.preventDefault();
                 return false;
@@ -272,9 +273,11 @@ $(document).ready(function (){
                 e.preventDefault();
                 return false;
             case 107: // '+'
+            case 'K':
                 document.body.style.zoom = parseFloat(document.body.style.zoom) + 0.1;
                 return false;
             case 109: // '-'
+            case 'L':
                 document.body.style.zoom = parseFloat(document.body.style.zoom) - 0.1;
                 return false;
             case '0'.charCodeAt(0):
