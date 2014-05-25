@@ -51,8 +51,6 @@ def has_videos(directory):
     for root, dirs, files in os.walk(directory):
         count = 0
         for f in files:
-            if '.rar' in f:
-                print f, supported_extension(f), os.path.split(directory)[-1]
             if supported_extension(f):
                 # Used to have an extra check that the filename of the video file and the name of the directory had to match:
                 #   and os.path.split(directory)[-1] in f:
@@ -69,12 +67,13 @@ def find_videos():
             if d.lower() in ('movies', 'tv shows', 'incomplete'):
                 dirs.remove(d)
                 continue
-            full_path = os.path.join(root, d)
-            if has_videos(full_path):
-                # print 'handle %s as dir' % full_path
-                videos.append(full_path[len(downloads_dir)+1:])
-                dirs.remove(d)
-                continue
+        ## This code is for supporting directories with a good name with a badly named file in them. Disabled for now since this doesn't seem to be common anymore
+        #     full_path = os.path.join(root, d)
+        #     if has_videos(full_path):
+        #         # print 'handle %s as dir' % full_path
+        #         videos.append(full_path[len(downloads_dir)+1:])
+        #         dirs.remove(d)
+        #         continue
         for f in files:
             if supported_extension(f):
                 full_path = os.path.join(root, f)
@@ -117,6 +116,8 @@ def canonical_format(s):
         'the daily show with jon stewart': 'the daily show',
         'marvels agents of s h i e l d': 'marvels agents of shield',
         'cosmos a spacetime odyssey': 'cosmos a space time odyssey',
+        'stargate sg1': 'stargate sg-1',
+        'stargate sg 1': 'stargate sg-1',
     }
     if s2 in replace_list:
         s2 = replace_list[s2]

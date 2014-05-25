@@ -100,6 +100,7 @@ def test_classification():
     9.2009.720p.BluRay.x264-METiS [PublicHD].mkv|movie|9|2009
     Lovestruck.The.Musical.2013.720p.WEB-DL.DD5.1.H.264-BS.mkv|movie|lovestruck the musical|2013
     Groundhog Day [1993] 720p BRRip H264 AC3 - CODY.mp4|movie|groundhog day|1993
+    Stargate.SG1.S02E10.AC3.DivX.DVDRip-AMC.avi|tv show|stargate sg-1|(2, 10)
     """
 
     def classify(s):
