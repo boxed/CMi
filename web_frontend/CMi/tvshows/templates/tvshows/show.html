@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block contents %}
-    <h1 class="header">{{ show.name|title }}</h1>
+    <h1 class="header">{{ show.name }}</h1>
     
     <table class="list tiles">
         {% for episode in show.unwatched_episodes %}

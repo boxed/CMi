@@ -64,7 +64,7 @@ def find_videos():
     videos = []
     for root, dirs, files in os.walk(downloads_dir):
         for d in dirs[:]:
-            if d.lower() in ('movies', 'tv shows', 'incomplete'):
+            if d.lower() in ('movies', 'tv shows', 'incomplete', 'sample'):
                 dirs.remove(d)
                 continue
         ## This code is for supporting directories with a good name with a badly named file in them. Disabled for now since this doesn't seem to be common anymore

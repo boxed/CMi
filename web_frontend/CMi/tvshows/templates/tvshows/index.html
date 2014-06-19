@@ -10,7 +10,7 @@
 
             {% for suggested_show in suggested_shows %}
                 <tr>
-                    <td class="label">{{ suggested_show.name|title }}</td>
+                    <td class="label">{{ suggested_show.name }}</td>
                 </tr>
                 <tr>
                     <td class="tile" url="/tvshows/suggested/{{ suggested_show.id }}/add/erase/">Add <span class="explanation">(and remove watched)</span></td>
