@@ -19,9 +19,11 @@
                     {% else %}
                         {{ episode.episode }}{% if episode.name %}. {{ episode.name|safe }}{% endif %}
                     {% endif %}
+                    {% if episode.watched %}
+                        <div class="watched_marker">{% for i in episode.watched_range %}<div>&nbsp;</div>{% endfor %}</div>
+                    {% endif %}
                 </td>
             </tr>
         {% endfor %}
-        <tr style="display: none"><td class="tile">workaround for webkit animation bug</td></tr>
     </table>
 {% endblock %}

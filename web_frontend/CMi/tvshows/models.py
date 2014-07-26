@@ -13,7 +13,10 @@ class Show(models.Model):
         return '%s' % self.name
 
     def unwatched_episodes(self):
-        return self.episodes.filter(watched=False).exclude(filepath='')
+        if self.auto_erase:
+            return self.episodes.filter(watched=False).exclude(filepath='')
+        else:
+            return self.episodes.exclude(filepath='')
 
     def __eq__(self, other):
         if not isinstance(other, Show):
@@ -46,7 +49,8 @@ class Episode(models.Model):
     watched = models.BooleanField(default=False)
     position = models.FloatField(default=0)
     filepath = models.TextField(blank=True)
-    
+    watched_count = models.IntegerField(default=False)
+
     def __unicode__(self):
         if self.aired:
             return '%s %s' % (self.show, self.aired)
@@ -55,3 +59,6 @@ class Episode(models.Model):
 
     class Meta:
         ordering = ['show__name', 'season', 'episode', 'aired']
+
+    def watched_range(self):  # used by template
+        return xrange(self.watched_count)

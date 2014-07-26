@@ -86,7 +86,7 @@ def get_series_data(series_name):
     return series_data[series_name]
 
 def fetch_description():
-    for episode in Episode.objects.filter(name=''):
+    for episode in Episode.objects.filter(name='').exclude(filepath=''):
         #print 'fetching data for', episode
         try:
             if episode.episode:
