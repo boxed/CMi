@@ -4,25 +4,31 @@
     <h1 class="header">{{ show.name }}</h1>
     
     <table class="list tiles">
-        {% for episode in show.unwatched_episodes %}
-            {% ifchanged episode.season %}
-                <tr>
-                    <td class="label">
-                        Season {{ episode.season }}
-                    </td>
-                </tr>
-            {% endifchanged %}
-            <tr>
-                <td class="tile" url="/tvshows/{{ show.id }}/{{ episode.id }}/">
-                    {% if not episode.episode %}
-                        {{ episode.aired }}{% if episode.name %} - {{ episode.name|safe }}{% endif %}
-                    {% else %}
-                        {{ episode.episode }}{% if episode.name %}. {{ episode.name|safe }}{% endif %}
-                    {% endif %}
-                    {% if episode.watched %}
-                        <div class="watched_marker">{% for i in episode.watched_range %}<div>&nbsp;</div>{% endfor %}</div>
-                    {% endif %}
+        <tr>
+            {% for season in seasons %}
+                <td class="label">
+                    Season {{ season }}
                 </td>
+            {% endfor %}
+        </tr>
+        {% for row in rows %}
+            <tr>
+                {% for episode in row %}
+                    {% if not episode %}
+                        <td></td>
+                    {% else %}
+                        <td class="tile" url="/tvshows/{{ show.id }}/{{ episode.id }}/">
+                            {% if not episode.episode %}
+                                {{ episode.aired }}{% if episode.name %} - {{ episode.name|safe }}{% endif %}
+                            {% else %}
+                                {{ episode.episode }}{% if episode.name %}. {{ episode.name|safe }}{% endif %}
+                            {% endif %}
+                            {% if episode.watched %}
+                                <div class="watched_marker">{% for i in episode.watched_range %}<div>&nbsp;</div>{% endfor %}</div>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                {% endfor %}
             </tr>
         {% endfor %}
     </table>

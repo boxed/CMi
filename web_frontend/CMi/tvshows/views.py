@@ -1,23 +1,50 @@
 import subprocess
-from CMi.utils import ListItem, chunks
+from CMi.utils import ListItem
 from django.db import IntegrityError
 from CMi.engine import playable_path, canonical_format
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from CMi.tvshows.models import *
 import tvdb
+from math import ceil
 
 def index(request):
     shows = sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))
     shows = [ListItem('/tvshows/%s' % show.pk, show.name, show.unwatched_episodes().count()) for show in shows if show.unwatched_episodes()]
-    rows = chunks(shows, 2)
+    height = 10
+    width = int(ceil(len(shows) / float(height)))
+    rows = [[None for _ in range(width)] for _ in range(10)]
+    for i, show in enumerate(shows):
+        x = i % 10
+        rows[x][i / height] = show
     return render(request, 'tvshows/index.html', {
         'title': 'TV Shows',
         'rows': rows,
         'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
 
 def episode_list(request, show_id):
-    return render(request, 'tvshows/show.html', {'show': get_object_or_404(Show, pk=show_id)})
+    def episodes_to_rows(eps):
+        season_to_column = {x: [] for i, x in enumerate(sorted({x.season for x in eps}))}
+        for ep in eps:
+            season_to_column[ep.season].append(ep)
+
+        width = len(season_to_column.keys())
+        height = max([len(column) for column in season_to_column.values()])
+        rows = [
+            [None for _ in xrange(width)] for _ in xrange(height)
+        ]
+        for column_i, (_, column) in enumerate(season_to_column.items()):
+            for row_i, e in enumerate(column):
+                rows[row_i][column_i] = e
+        return rows
+
+    show = get_object_or_404(Show, pk=show_id)
+    rows = episodes_to_rows(show.unwatched_episodes())
+    return render(request, 'tvshows/show.html', {
+        'show': show,
+        'rows': rows,
+        'seasons': [e.season for e in rows[0]],
+    })
 
 def play_episode(request, show_id, episode_id):
     episode = get_object_or_404(Episode, pk=episode_id)

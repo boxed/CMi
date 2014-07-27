@@ -132,7 +132,8 @@ def add_episode(data):
                 os.makedirs(os.path.split(destination)[0])
             except:
                 pass
-            move(os.path.join(downloads_dir, filename), destination)
+            if not os.path.exists(destination):
+                move(os.path.join(downloads_dir, filename), destination)
         Episode.objects.create(season=season, episode=episode, aired=aired, filepath=destination, show=show)
         return True
     return False
