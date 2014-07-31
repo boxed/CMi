@@ -209,6 +209,7 @@ void key(int code)
 
 - (BOOL)readFromURL:(NSString*)s
 {
+    self->_hasSentEnd = TRUE;
     NSURL* url = [NSURL URLWithString:s];
     NSString* query = [url query];
     NSDictionary* params = [NSDictionary dictionary];
@@ -361,7 +362,10 @@ void setAlpha(NSView* v)
         }
         NSURL* url = nil;
         if (fabs(current - end) / end  < 0.05) {
-            url = [NSURL URLWithString:[urlprefix stringByAppendingString:@"/ended"]];
+            if (self->_hasSentEnd == FALSE) {
+                url = [NSURL URLWithString:[urlprefix stringByAppendingString:@"/ended"]];
+                self->_hasSentEnd = TRUE;
+            }
             if (fabs(current - end) < 3000) {
                 [self stop:self];
             }

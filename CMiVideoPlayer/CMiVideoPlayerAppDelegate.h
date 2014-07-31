@@ -36,6 +36,7 @@ typedef enum {
     
     // VideoPlayer
     id<VideoPlayerProtocol> movie;
+    BOOL _hasSentEnd;
 
     // movie player
     VolumeView* volumeView;

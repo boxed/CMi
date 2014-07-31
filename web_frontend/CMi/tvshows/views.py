@@ -57,6 +57,7 @@ def episode_ended(request, show_id, episode_id):
     episode = get_object_or_404(Episode, pk=episode_id)
     episode.watched = True
     episode.watched_count += 1
+    episode.position = 0
     episode.save()
     return HttpResponse(':nothing')
 
