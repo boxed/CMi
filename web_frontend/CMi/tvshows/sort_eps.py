@@ -126,7 +126,7 @@ def add_episode(data):
         season, episode = data[3]
         destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), '%s S%02dE%02d.%s' % (show_name, season, episode, extension))
     if destination:
-        print 'move %s -> %s' % (os.path.join(downloads_dir, filename), destination)
+        print (u'move %s -> %s' % (os.path.join(downloads_dir, filename).decode('utf8', 'ignore'), destination.decode('utf8', 'ignore'))).encode('ascii', 'ignore')
         if not DEBUG:
             try:
                 os.makedirs(os.path.split(destination)[0])

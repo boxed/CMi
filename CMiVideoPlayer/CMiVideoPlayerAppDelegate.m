@@ -209,7 +209,7 @@ void key(int code)
 
 - (BOOL)readFromURL:(NSString*)s
 {
-    self->_hasSentEnd = TRUE;
+    self->_hasSentEnd = FALSE;
     NSURL* url = [NSURL URLWithString:s];
     NSString* query = [url query];
     NSDictionary* params = [NSDictionary dictionary];

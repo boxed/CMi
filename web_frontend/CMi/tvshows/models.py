@@ -26,6 +26,9 @@ class Show(models.Model):
     def __lt__(self, other):
         return title_sort_key(self.name) == title_sort_key(other.name)
 
+    class Meta:
+        ordering = ['name']
+
 class SuggestedShow(models.Model):
     name = models.CharField(max_length=200, unique=True)
     ignored = models.BooleanField(default=False)

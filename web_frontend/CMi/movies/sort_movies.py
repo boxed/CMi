@@ -68,7 +68,7 @@ def handle_movie(data):
             pass
         source = os.path.join(downloads_dir, filename)
         destination = os.path.join(movies_dir, filename.split('/')[-1])
-        print 'move', source, '->', destination
+        print (u'move %s -> %s' % (source, destination)).encode('ascii', errors='ignore')
         move(source, destination)
         year = imdb_info['year'] if 'year' in imdb_info else ''
         Movie.objects.create(name=imdb_info['title'], filepath=destination, aired=year)
