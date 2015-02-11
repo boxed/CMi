@@ -134,7 +134,9 @@ def add_episode(data):
                 pass
             if not os.path.exists(destination):
                 move(os.path.join(downloads_dir, filename), destination)
-        Episode.objects.create(season=season, episode=episode, aired=aired, filepath=destination, show=show)
+        ep = Episode.objects.get_or_create(season=season, episode=episode, aired=aired, show=show)[0]
+        ep.filepath = destination
+        ep.save()
         return True
     return False
 
