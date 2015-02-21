@@ -23,7 +23,7 @@ td {
     padding: 10px 16px;
 }
 
-.tiles th, .tiles .label {
+.tiles th, .tiles .label, input {
     font-size: 18px;
 }
 

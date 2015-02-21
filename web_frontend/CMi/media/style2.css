@@ -175,6 +175,13 @@ h1, h2, h3, h4, h5, h6 {
     float: right;
 }
 
+input {
+    font-family: century gothic, segoe ui, verdana, arial, sans-serif;
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+}
+
 /*
  Colors:
  bg: #360a3f -> #431963

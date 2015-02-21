@@ -53,6 +53,10 @@ function flip_in(selector, new_page) { // new_page defaults to true
         current_pos_x = 0;
         current_pos_y = 0;
     }
+    var inputs = $(tiles).find('input');
+    if (inputs.length) {
+        $(inputs[0]).focus();
+    }
     init_navigation();
 }
 
@@ -240,7 +244,7 @@ function search_for_new_files() {
            data: {ajax: 'True'},
            success: function(data) {
                 handle_response(data);
-            }
+           }
     });
 }
 
@@ -252,6 +256,26 @@ $(document).ready(function (){
 
     $(document).keyup(function(e) {e.preventDefault(); return false;});
     $(document).keydown(function(e) {
+        var focused = $(':focus');
+        if (focused.length) {
+            if (e.keyCode == 27) {
+                focused.blur();
+            }
+            else if (e.keyCode == 13) {
+                $.ajax({
+                    type: 'post',
+                    url: $(focused).closest('td').attr('url'),
+                    data: {
+                        ajax: 'True',
+                        input: focused.val()
+                    },
+                    success: function(data) {
+                         handle_response(data);
+                    }
+                });
+            }
+            return true;
+        }
         switch (e.keyCode) {
             case 27: // esc
             case 8: // backspace
