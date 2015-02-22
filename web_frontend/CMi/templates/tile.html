@@ -6,6 +6,6 @@
         {% if title %}
             <h1>{{ title }}</h1>
         {% endif %}
-        {{ content }}
+        {{ content }}{% if not content %}&nbsp;{% endif %}
     </div>
 </td>
