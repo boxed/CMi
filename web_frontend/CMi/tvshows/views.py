@@ -33,7 +33,7 @@ def episode_list(request, show_id):
         rows = [
             [None for _ in xrange(width)] for _ in xrange(height)
         ]
-        for column_i, (_, column) in enumerate(season_to_column.items()):
+        for column_i, (_, column) in enumerate(sorted(season_to_column.items())):
             for row_i, e in enumerate(column):
                 rows[row_i][column_i] = e
         return rows
