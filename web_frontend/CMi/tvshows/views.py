@@ -11,11 +11,11 @@ from math import ceil
 def index(request):
     shows = sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))
     shows = [ListItem('/tvshows/%s' % show.pk, show.name, show.unwatched_episodes().count()) for show in shows if show.unwatched_episodes()]
-    height = 10
+    height = 11
     width = int(ceil(len(shows) / float(height)))
-    rows = [[None for _ in range(width)] for _ in range(10)]
+    rows = [[None for _ in range(width)] for _ in xrange(height)]
     for i, show in enumerate(shows):
-        x = i % 10
+        x = i % height
         rows[x][i / height] = show
     return render(request, 'tvshows/index.html', {
         'title': 'TV Shows',
