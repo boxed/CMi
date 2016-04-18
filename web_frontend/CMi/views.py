@@ -18,7 +18,8 @@ for app in settings.INSTALLED_APPS:
         plugin_api_modules.append(importlib.import_module(app+'.api'))
         print app
     except ImportError:
-        pass
+        import traceback
+        traceback.print_exc()
 
 
 def search_for_new_files2(request):

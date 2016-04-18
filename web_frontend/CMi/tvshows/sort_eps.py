@@ -111,7 +111,7 @@ def fetch_description():
 def add_episode(data):
     type, filename, show_name = data[0], data[1], data[2]
     assert type == 'tv show'
-    print data
+    print 'add episode:', data
 
     destination_dir = tv_shows_dir
     aired = None

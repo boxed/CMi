@@ -8,6 +8,8 @@ class Show(models.Model):
     description = models.TextField(blank=True)
     canonical_name = models.CharField(max_length=200)
     auto_erase = models.BooleanField(default=True)
+    source = models.CharField(max_length=255, blank=True)
+    ended = models.BooleanField(default=False)
 
     def __unicode__(self):
         return '%s' % self.name

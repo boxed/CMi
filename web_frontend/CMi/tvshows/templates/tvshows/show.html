@@ -23,9 +23,12 @@
                             {% else %}
                                 {{ episode.episode }}{% if episode.name %}. {{ episode.name|safe }}{% endif %}
                             {% endif %}
-                            {% if episode.watched %}
-                                <div class="watched_marker">{% for i in episode.watched_range %}<div>&nbsp;</div>{% endfor %}</div>
+                            {% if not show.auto_erase and episode.watched == 0 %}
+                                <div class="watched_marker"><div>&nbsp;</div></div>
                             {% endif %}
+                            <!--{% if episode.watched %}-->
+                                <!--<div class="watched_marker">{% for i in episode.watched_range %}<div>&nbsp;</div>{% endfor %}</div>-->
+                            <!--{% endif %}-->
                         </td>
                     {% endif %}
                 {% endfor %}

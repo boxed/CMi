@@ -98,5 +98,5 @@ def get_weather(place=None):
         _should_refresh = True
         return weather
     except Exception, e:
-        print e
+        print 'weather', e
         return None
