@@ -70,11 +70,11 @@ def get_series_data(series_name):
     series_name = series_name.lower()
     global series_data
     if series_name not in series_data:
-        #print 'getting data for', series_name
-        if series_name == 'the daily show':
-            series = tvdb.get_series('The Daily Show with Jon Stewart')[0]
-        else:
-            series = tvdb.get_series(series_name)[0]
+        matches = tvdb.get_series(series_name)
+        if not matches:
+            series_data[series_name] = None
+            return None
+        series = matches[0]
         raw_data = tvdb.get_series_all(series['id'])
         series_data[series_name] = {'season_episode': {}, 'aired': {}}
         for data in raw_data['episodes']:
@@ -83,7 +83,7 @@ def get_series_data(series_name):
             if 'first_aired' in data and data['first_aired']:
                 dt = data['first_aired']
                 series_data[series_name]['aired'][date(dt.year, dt.month, dt.day)] = data
-    return series_data[series_name]
+    return series_data.get(series_name)
 
 def fetch_description():
     for episode in Episode.objects.filter(name='').exclude(filepath=''):
@@ -93,9 +93,10 @@ def fetch_description():
                 data = get_series_data(episode.show.name)['season_episode']['%s %s' % (episode.season, episode.episode)]
             else:
                 data = get_series_data(episode.show.name)['aired'][episode.aired]
-            episode.name = data['name']
-            episode.description = data['overview']
-            episode.save()
+            if data:
+                episode.name = data['name']
+                episode.description = data['overview']
+                episode.save()
         except KeyError:
             pass
         except:
@@ -126,7 +127,7 @@ def add_episode(data):
         season, episode = data[3]
         destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), '%s S%02dE%02d.%s' % (show_name, season, episode, extension))
     if destination:
-        print (u'move %s -> %s' % (os.path.join(downloads_dir, filename).decode('utf8', 'ignore'), destination.decode('utf8', 'ignore'))).encode('ascii', 'ignore')
+        print (u'move %s -> %s' % (os.path.join(downloads_dir, filename), destination)).encode('ascii', 'ignore')
         if not DEBUG:
             try:
                 os.makedirs(os.path.split(destination)[0])

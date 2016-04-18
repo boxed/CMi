@@ -2,6 +2,7 @@ import os
 import re
 from CMi.directories import downloads_dir
 import datetime
+import unicodedata
 
 def splitext(s):
     from os.path import splitext as splitext2
@@ -78,6 +79,7 @@ def find_videos():
             if supported_extension(f):
                 full_path = os.path.join(root, f)
                 if playable_path(full_path):
+                    full_path = unicodedata.normalize('NFC', full_path.decode('utf8'))
                     videos.append(full_path[len(downloads_dir)+1:])
                 # print 'handle %s as file' % full_path
     return videos
