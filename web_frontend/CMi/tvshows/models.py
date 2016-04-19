@@ -15,10 +15,15 @@ class Show(models.Model):
         return '%s' % self.name
 
     def unwatched_episodes(self):
+        return self.episodes.exclude(filepath='').filter(watched=False)
+
+    def watchable_episodes(self):
+        eps = self.episodes.exclude(filepath='')
         if self.auto_erase:
-            return self.episodes.filter(watched=False).exclude(filepath='')
+            return eps.filter(watched=False)
         else:
-            return self.episodes.exclude(filepath='')
+            return eps
+
 
     def __eq__(self, other):
         if not isinstance(other, Show):

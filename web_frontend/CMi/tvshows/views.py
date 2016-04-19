@@ -10,7 +10,13 @@ from math import ceil
 
 def index(request):
     shows = sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))
-    shows = [ListItem('/tvshows/%s' % show.pk, show.name, show.unwatched_episodes().count()) for show in shows if show.unwatched_episodes()]
+    shows = [
+        ListItem(
+            '/tvshows/%s' % show.pk,
+            show.name,
+            show.unwatched_episodes().count(),
+        )
+        for show in shows if show.watchable_episodes()]
     height = 11
     width = int(ceil(len(shows) / float(height)))
     rows = [[None for _ in range(width)] for _ in xrange(height)]
@@ -39,7 +45,7 @@ def episode_list(request, show_id):
         return rows
 
     show = get_object_or_404(Show, pk=show_id)
-    rows = episodes_to_rows(show.unwatched_episodes())
+    rows = episodes_to_rows(show.watchable_episodes())
     return render(request, 'tvshows/show.html', {
         'show': show,
         'rows': rows,
