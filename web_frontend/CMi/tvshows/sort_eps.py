@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding=utf-8
 from shutil import move
 from datetime import datetime, date
 from CMi.engine import canonical_format, splitext
@@ -65,14 +66,23 @@ def run_tv_shows_cleanup():
 def run_tv_shows_extra():
     fetch_description()
 
+
+def get_tvdb_name(series_name):
+    return {
+        'hej jycke': 'hey duggee',
+        u'stadens hjältar': 'heroes of the city',
+    }.get(series_name, series_name)
+
+
 series_data = {}
 def get_series_data(series_name):
     series_name = series_name.lower()
     global series_data
     if series_name not in series_data:
-        matches = tvdb.get_series(series_name)
+        tvdb_series_name = get_tvdb_name(series_name)
+        matches = tvdb.get_series(tvdb_series_name)
         if not matches:
-            series_data[series_name] = None
+            series_data[tvdb_series_name] = None
             return None
         series = matches[0]
         raw_data = tvdb.get_series_all(series['id'])
@@ -153,7 +163,7 @@ def handle_tv_show_episode(data):
     else:
         if show_name in is_not_tv_show_cache:
             return False
-        matches = tvdb.get_series(show_name)
+        matches = tvdb.get_series(get_tvdb_name(series_name))
         match = None
         for m in matches:
             if canonical_format(m['name']) == show_name:
