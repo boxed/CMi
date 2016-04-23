@@ -2,6 +2,14 @@ from functools import total_ordering
 from CMi.utils import title_sort_key
 from django.db import models
 
+
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return '%s' % self.name
+
+
 @total_ordering
 class Show(models.Model):
     name = models.CharField(max_length=200, unique=True)
@@ -10,6 +18,7 @@ class Show(models.Model):
     auto_erase = models.BooleanField(default=True)
     source = models.CharField(max_length=255, blank=True)
     ended = models.BooleanField(default=False)
+    category = models.ForeignKey(Category, null=True)
 
     def __unicode__(self):
         return '%s' % self.name

@@ -12,3 +12,6 @@ def upgrade_3():
 
 def upgrade_4():
     run_sql('ALTER TABLE tvshows_show ADD COLUMN "ended" bool NOT NULL DEFAULT 0')
+
+def upgrade_5():
+    run_sql('ALTER TABLE "tvshows_show" ADD COLUMN "category_id" integer REFERENCES "tvshows_category" ("id")')

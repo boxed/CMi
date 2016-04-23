@@ -163,7 +163,7 @@ def handle_tv_show_episode(data):
     else:
         if show_name in is_not_tv_show_cache:
             return False
-        matches = tvdb.get_series(get_tvdb_name(series_name))
+        matches = tvdb.get_series(get_tvdb_name(show_name))
         match = None
         for m in matches:
             if canonical_format(m['name']) == show_name:

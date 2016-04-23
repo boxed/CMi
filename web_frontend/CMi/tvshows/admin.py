@@ -11,4 +11,5 @@ class EpisodeAdmin(admin.ModelAdmin):
 
 admin.site.register(Episode, EpisodeAdmin)
 admin.site.register(SuggestedShow)
+admin.site.register(Category)
 
