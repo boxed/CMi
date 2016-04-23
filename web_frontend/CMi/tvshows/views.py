@@ -8,8 +8,9 @@ from CMi.tvshows.models import *
 import tvdb
 from math import ceil
 
-def index(request):
-    shows = sorted(Show.objects.all(), key=lambda x: title_sort_key(x.name))
+def index(request, category_id=None):
+    category = Category.objects.get(pk=category_id) if category_id else None
+    shows = sorted(Show.objects.filter(category=category), key=lambda x: title_sort_key(x.name))
     shows = [
         ListItem(
             '/tvshows/%s' % show.pk,
@@ -24,7 +25,7 @@ def index(request):
         x = i % height
         rows[x][i / height] = show
     return render(request, 'tvshows/index.html', {
-        'title': 'TV Shows',
+        'title': 'TV Shows' if category is None else category.name,
         'rows': rows,
         'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
 
