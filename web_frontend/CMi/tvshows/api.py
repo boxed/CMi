@@ -8,11 +8,11 @@ def tv_show_tile(title, episodes, category=None):
             'url': '/tvshows/' + (('category/%s/' % category.pk) if category else ''),
             'image': '/site-media/tv.svg',
             'title': title,
-            'content': '%s new episodes' % episodes.count(),
+            'content': '%s new / %s total' % (episodes.filter(watched=False).count(), episodes.count()),
         }))
 
 def tiles():
-    return [tv_show_tile(title='TV Shows', episodes=Episode.objects.filter(watched=False, show__category=None).exclude(filepath=''))] + [tv_show_tile(category=category, title=category.name, episodes=Episode.objects.filter(watched=False, show__category=category).exclude(filepath='')) for category in Category.objects.order_by('name')]
+    return [tv_show_tile(title='TV Shows', episodes=Episode.objects.filter(show__category=None).exclude(filepath=''))] + [tv_show_tile(category=category, title=category.name, episodes=Episode.objects.filter(show__category=category).exclude(filepath='')) for category in Category.objects.order_by('name')]
 
 
 def urls():

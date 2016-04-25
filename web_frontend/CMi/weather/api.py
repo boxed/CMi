@@ -4,13 +4,14 @@ from django.conf.urls import patterns
 from datetime import datetime, timedelta
 
 def tiles():
-    weather = get_weather()
-    return [(30, render_to_string('tile.html', {
-            'url': '',
-            'image': weather['icon'] if weather else '',
-            'title': 'Weather',
-            'content': mark_safe('%s&deg;, %s%%' % (weather['temp'], weather['humidity'])) if weather else '',
-        }))]
+    return []
+    # weather = get_weather()
+    # return [(30, render_to_string('tile.html', {
+    #         'url': '',
+    #         'image': weather['icon'] if weather else '',
+    #         'title': 'Weather',
+    #         'content': mark_safe('%s&deg;, %s%%' % (weather['temp'], weather['humidity'])) if weather else '',
+    #     }))]
 
 def urls():
     return patterns('CMi.weather.views',
