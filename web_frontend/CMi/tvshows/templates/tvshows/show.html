@@ -11,25 +11,20 @@
                 </td>
             {% endfor %}
         </tr>
+
+        {% if next_episode %}
+            <tr class="next_episode">
+                {% include "tvshows/episode_row.html" with episode=next_episode show=show %}
+            </tr>
+        {% endif %}
+
         {% for row in rows %}
             <tr>
                 {% for episode in row %}
                     {% if not episode %}
                         <td></td>
                     {% else %}
-                        <td class="tile" url="/tvshows/{{ show.id }}/{{ episode.id }}/">
-                            {% if not episode.episode %}
-                                {{ episode.aired }}{% if episode.name %} - {{ episode.name|safe }}{% endif %}
-                            {% else %}
-                                {{ episode.episode }}{% if episode.name %}. {{ episode.name|safe }}{% endif %}
-                            {% endif %}
-                            {% if not show.auto_erase and episode.watched == 0 %}
-                                <div class="watched_marker"><div>&nbsp;</div></div>
-                            {% endif %}
-                            <!--{% if episode.watched %}-->
-                                <!--<div class="watched_marker">{% for i in episode.watched_range %}<div>&nbsp;</div>{% endfor %}</div>-->
-                            <!--{% endif %}-->
-                        </td>
+                        {% include "tvshows/episode_row.html" %}
                     {% endif %}
                 {% endfor %}
             </tr>

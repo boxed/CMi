@@ -15,3 +15,6 @@ def upgrade_4():
 
 def upgrade_5():
     run_sql('ALTER TABLE "tvshows_show" ADD COLUMN "category_id" integer REFERENCES "tvshows_category" ("id")')
+
+def upgrade_6():
+    run_sql('ALTER TABLE "tvshows_episode" ADD COLUMN "watched_at" DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00"')

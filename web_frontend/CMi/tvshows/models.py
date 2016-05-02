@@ -1,4 +1,5 @@
 from functools import total_ordering
+from datetime import datetime
 from CMi.utils import title_sort_key
 from django.db import models
 
@@ -69,6 +70,7 @@ class Episode(models.Model):
     position = models.FloatField(default=0)
     filepath = models.TextField(blank=True)
     watched_count = models.IntegerField(default=False)
+    watched_at = models.DateTimeField(default=datetime(1970, 1, 1))
 
     def __unicode__(self):
         if self.aired:

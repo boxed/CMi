@@ -46,10 +46,17 @@ def episode_list(request, show_id):
         return rows
 
     show = get_object_or_404(Show, pk=show_id)
+    next_episode = show.watchable_episodes().order_by('watched_at', 'season', 'episode')[0]
+    if next_episode == show.watchable_episodes()[0]:
+        next_episode = None
+    else:
+        next_episode.episode = 'Next: %s' % next_episode.episode
+
     rows = episodes_to_rows(show.watchable_episodes())
     return render(request, 'tvshows/show.html', {
         'show': show,
         'rows': rows,
+        'next_episode': next_episode,
         'seasons': [e.season for e in rows[0]],
     })
 
@@ -65,6 +72,7 @@ def episode_ended(request, show_id, episode_id):
     episode.watched = True
     episode.watched_count += 1
     episode.position = 0
+    episode.watched_at = datetime.now()
     episode.save()
     return HttpResponse(':nothing')
 
