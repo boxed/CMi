@@ -21,10 +21,11 @@ typedef enum {
     movieMode
 } Mode;
 
-@interface CMiVideoPlayerAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate, CLLocationManagerDelegate> {
+@interface CMiVideoPlayerAppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate, CLLocationManagerDelegate, WebFrameLoadDelegate> {
 @private
     BorderLessWindow *window;
     OverlayWindow *HUDWindow;
+    OverlayWindow *pauseWindow;
  
     // web backend
     NSPipe* webServerStdOut;
@@ -68,6 +69,7 @@ typedef enum {
 
 @property(assign) IBOutlet BorderLessWindow *window;
 @property(assign) IBOutlet OverlayWindow *HUDWindow;
+@property(assign) IBOutlet OverlayWindow *pauseWindow;
 @property(assign) IBOutlet WebView *webView;
 @property(retain) IBOutlet VolumeView* volumeView;
 @property(retain) IBOutlet id<VideoPlayerProtocol> movie;

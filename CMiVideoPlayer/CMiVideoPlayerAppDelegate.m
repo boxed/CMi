@@ -27,6 +27,7 @@ void key(int code)
 
 @synthesize window;
 @synthesize HUDWindow;
+@synthesize pauseWindow;
 @synthesize webView;
 @synthesize volumeView;
 @synthesize movie;
@@ -89,6 +90,7 @@ void key(int code)
 
     [self->HUDWindow setDelegate:self];
     [self->HUDWindow setFloatingPanel:YES];
+    [self->pauseWindow setFloatingPanel:YES];
     
     [window setFrame:[[NSScreen mainScreen] frame] display:NO];
     
@@ -146,9 +148,9 @@ void key(int code)
                 [[self.webView mainFrame] loadRequest:request];
 
                 // Ask for location
-                locationManager = [[CLLocationManager alloc] init];
-                locationManager.delegate = self;
-                [locationManager startUpdatingLocation];
+//                locationManager = [[CLLocationManager alloc] init];
+//                locationManager.delegate = self;
+//                [locationManager startUpdatingLocation];
                 hasStarted = YES;
             }
             else if ([newStr rangeOfString:@"code_changed"].location != NSNotFound ||
@@ -264,9 +266,11 @@ void key(int code)
     self->isPlaying = !self->isPlaying;
     if (self->isPlaying) {
         [self->playPauseButton setImage:[NSImage imageNamed:@"pause"]];
+        [self->pauseWindow orderOut:self];
     }
     else {
         [self->playPauseButton setImage:[NSImage imageNamed:@"play"]];
+        [self->pauseWindow orderFront:self];
     }
 }
 

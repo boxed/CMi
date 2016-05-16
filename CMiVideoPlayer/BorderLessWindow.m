@@ -46,13 +46,13 @@
     // silence beeps
 }
 
-- (void)mouseMoved:(NSEvent *)theEvent
-{
-    hideCount = 0;
-    CGDisplayShowCursor(kCGDirectMainDisplay);
-    [super mouseMoved:theEvent];
-    [(CMiVideoPlayerAppDelegate*)self.delegate showOnScreenControls];
-}
+//- (void)mouseMoved:(NSEvent *)theEvent
+//{
+//    hideCount = 0;
+//    CGDisplayShowCursor(kCGDirectMainDisplay);
+//    [super mouseMoved:theEvent];
+//    [(CMiVideoPlayerAppDelegate*)self.delegate showOnScreenControls];
+//}
 
 - (void)keyDown:(NSEvent *)theEvent
 {
