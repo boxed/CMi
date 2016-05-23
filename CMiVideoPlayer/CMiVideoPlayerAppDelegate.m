@@ -409,6 +409,7 @@ void setAlpha(NSView* v)
     [self.window makeFirstResponder:self.webView];
     self->mode = webMode;
     [self forceHideOnScreenControls];
+    [self->pauseWindow orderOut:self];
 }
 
 - (void)showMovie
