@@ -46,13 +46,20 @@ def episode_list(request, show_id):
         return rows
 
     show = get_object_or_404(Show, pk=show_id)
-    next_episode = show.watchable_episodes().order_by('watched_at', 'season', 'episode')[0]
-    if next_episode == show.watchable_episodes()[0]:
-        next_episode = None
-    else:
-        next_episode.episode = 'Next: %s' % next_episode.episode
+    next_episode = None
+    try:
+        next_episode = show.watchable_episodes().order_by('watched_at', 'season', 'episode')[0]
+        if next_episode == show.watchable_episodes()[0]:
+            next_episode = None
+        else:
+            next_episode.episode = 'Next: %s' % next_episode.episode
+    except IndexError:
+        pass
 
-    rows = episodes_to_rows(show.watchable_episodes())
+    eps = list(show.watchable_episodes())
+    if not eps:
+        return HttpResponse(':back')
+    rows = episodes_to_rows(eps)
     return render(request, 'tvshows/show.html', {
         'show': show,
         'rows': rows,
