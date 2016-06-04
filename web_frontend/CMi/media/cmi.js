@@ -1,4 +1,4 @@
-var transitionDuration = 700;
+var transitionDuration = 300;
 var menu_history = [];
 var menu_history_position = [];
 var menu_history_scroll_position = [];
@@ -75,7 +75,7 @@ function flip_out() {
     });
     tiles.each(function() {
         $(this).css({
-            webkitTransitionDelay: Math.min(_i, 10) * 80 + "ms"
+            webkitTransitionDelay: Math.min(_i, 10) * 50 + "ms"
         });
         _i++;
     });
