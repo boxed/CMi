@@ -11,26 +11,6 @@
 
 @implementation BorderLessWindow
 
-- (void)hideCursor:(id)sender
-{
-    if (hideCount == 4)
-    {
-        CGDisplayHideCursor(kCGDirectMainDisplay);
-        [(CMiVideoPlayerAppDelegate*)self.delegate hideOnScreenControls];
-
-    }
-    else if (hideCount < 4)
-    {
-        hideCount++;
-    }
-}
-
-- (void)initTimer
-{
-    hideCount = 4; // show the button a little while but fade it away almost directly
-    [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(hideCursor:) userInfo:nil repeats:YES];
-}
-
 - (BOOL)canBecomeKeyWindow
 {
     return YES;
@@ -46,13 +26,6 @@
     // silence beeps
 }
 
-//- (void)mouseMoved:(NSEvent *)theEvent
-//{
-//    hideCount = 0;
-//    CGDisplayShowCursor(kCGDirectMainDisplay);
-//    [super mouseMoved:theEvent];
-//    [(CMiVideoPlayerAppDelegate*)self.delegate showOnScreenControls];
-//}
 
 - (void)keyDown:(NSEvent *)theEvent
 {

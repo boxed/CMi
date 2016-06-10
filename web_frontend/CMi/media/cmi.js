@@ -98,15 +98,14 @@ function refresh() {
                success: function(data) {
                    $('.header').remove();
                    $('table').remove();
-                   var d = $(data);
-                   $('body').append(d);
-                   flip_in(d, false);
+                   handle_response(data, false);
                }
         });
     }
 }
 
-function handle_response(data, url) {
+function handle_response(data, animate) {
+    animate = typeof animate !== 'undefined' ? animate : true;
     if (data == ':nothing') {
     }
     else if (data == ':refresh') {
@@ -121,7 +120,7 @@ function handle_response(data, url) {
     else {
         var d = $(data);
         $('body').append(d);
-        flip_in(d);
+        flip_in(d, animate);
     }
 }
 
@@ -139,7 +138,7 @@ function go() {
                 url: command,
                 data: {ajax: 'True'},
                 success: function(data) {
-                    handle_response(data, url);
+                    handle_response(data);
                 }
             });
         }
@@ -161,7 +160,7 @@ function go() {
                 url: url,
                 data: {ajax: 'True'},
                 success: function(data) {
-                    handle_response(data, url);
+                    handle_response(data);
                 }
             });
         }
@@ -176,7 +175,7 @@ function skip() {
             url: url+'ended',
             data: {ajax: 'True'},
             success: function(data) {
-                handle_response(data, url);
+                handle_response(data);
             }
         });
     }
@@ -197,6 +196,15 @@ function do_hover() {
 
 function setup_menu() {
     $('.tile').click(function() {
+        if (!$(this).hasClass('focus')) {
+            var xy = get_x_y_of(this);
+            if (xy) {
+                $('.focus').removeClass('focus');
+                current_pos_x = xy[0];
+                current_pos_y = xy[1];
+                $(grid[current_pos_x][current_pos_y]).addClass('focus');
+            }
+        }
         if ($(this).attr('url')) {
             go();
         }
@@ -219,7 +227,7 @@ function back(steps) {
                 success: function(data) {
                     // pop history a second time because handle_response will fill it in again
                     var pos = menu_history_position.pop();
-                    handle_response(data, url);
+                    handle_response(data);
                     set_focus(pos[0], pos[1]);
                     $('body').scrollTop(menu_history_scroll_position.pop())
                 }

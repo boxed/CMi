@@ -11,9 +11,7 @@
 
 @interface BorderLessWindow : NSWindow {
 @private
-    int hideCount;
 }
 
-- (void)initTimer;
 
 @end

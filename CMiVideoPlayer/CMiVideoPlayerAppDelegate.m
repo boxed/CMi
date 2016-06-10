@@ -78,8 +78,6 @@ void key(int code)
     self->progressTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(progressTimer:) userInfo:nil repeats:YES];
     self->GUITimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(GUITimer:) userInfo:nil repeats:YES];
     self->searchForFilesTimer = [NSTimer scheduledTimerWithTimeInterval:15 target:self selector:@selector(searchForFilesTimer:) userInfo:nil repeats:YES];
-    CGDisplayHideCursor(kCGDirectMainDisplay);
-    [self->window initTimer];
     
     [[self->beginningButton cell] setHighlightsBy:0];
     [[self->rewindButton cell] setHighlightsBy:0];
@@ -410,6 +408,7 @@ void setAlpha(NSView* v)
     self->mode = webMode;
     [self forceHideOnScreenControls];
     [self->pauseWindow orderOut:self];
+    CGDisplayShowCursor(kCGDirectMainDisplay);
 }
 
 - (void)showMovie
@@ -417,6 +416,7 @@ void setAlpha(NSView* v)
     [self->movie setHidden:NO];
     [self.webView setHidden:YES];
     self->mode = movieMode;
+    CGDisplayHideCursor(kCGDirectMainDisplay);
 }
 
 - (void)setVolume:(float)volume
