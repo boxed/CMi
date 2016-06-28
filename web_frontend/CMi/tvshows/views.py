@@ -48,7 +48,7 @@ def episode_list(request, show_id):
     show = get_object_or_404(Show, pk=show_id)
     next_episode = None
     try:
-        next_episode = show.watchable_episodes().order_by('watched_at', 'season', 'episode')[0]
+        next_episode = show.watchable_episodes().order_by('watched_at', 'season', 'episode', 'aired')[0]
         if next_episode == show.watchable_episodes()[0]:
             next_episode = None
         else:
