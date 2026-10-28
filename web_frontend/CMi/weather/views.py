@@ -7,6 +7,6 @@ def index(request):
     return render(request, 'weather/weather.html', {'weather': weather})
 
 def set_location(request):
-    get_weather(request.REQUEST['location'])
+    get_weather(request.GET['location'])
     return HttpResponse(':nothing')
 

@@ -29,6 +29,12 @@ Longer version: XBMC was the closest to an acceptable system but I still had to 
 
 ## Building
 
-1. After cloning the repository, run "git submodule update --init" to get the dependencies.
-2. Open up CMi.xcodeproject and hit build.
-3. There is no 3!
+1. Create a Python 3 virtualenv and install the dependencies: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
+2. Run the web frontend: `cd web_frontend && ../.venv/bin/python CMi/runserver.py`
+3. Open up CMi.xcodeproject and hit build.
+
+## Plex
+
+To browse and play from a Plex Media Server, create `~/Library/Application Support/CMi/plex.json`:
+
+    {"url": "http://192.168.1.10:32400", "token": "YOUR_PLEX_TOKEN"}

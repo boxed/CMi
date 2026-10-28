@@ -1,5 +1,5 @@
 from django.template.loader import render_to_string
-from django.conf.urls import patterns
+from django.urls import re_path
 from CMi.tvshows.models import Episode, Category
 
 def tv_show_tile(title, episodes, category=None):
@@ -16,14 +16,15 @@ def tiles():
 
 
 def urls():
-    return patterns('CMi.tvshows.views',
-        (r'^tvshows/$', 'index'),
-        (r'^tvshows/category/(?P<category_id>\d+)/$', 'index'),
-        (r'^tvshows/(?P<show_id>\d+)/$', 'episode_list'),
-        (r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/$', 'play_episode'),
-        (r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/ended$', 'episode_ended'),
-        (r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/position/(?P<position>\d+)$', 'episode_position'),
-        (r'^tvshows/suggested/$', 'suggested_shows'),
-        (r'^tvshows/suggested/(?P<suggested_show_id>\d+)/add/(?P<option>.*)/$', 'add_suggested_show'),
-        (r'^tvshows/suggested/(?P<suggested_show_id>\d+)/ignore/$', 'ignore_suggested_show'),
-    )
+    from CMi.tvshows import views
+    return [
+        re_path(r'^tvshows/$', views.index),
+        re_path(r'^tvshows/category/(?P<category_id>\d+)/$', views.index),
+        re_path(r'^tvshows/(?P<show_id>\d+)/$', views.episode_list),
+        re_path(r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/$', views.play_episode),
+        re_path(r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/ended$', views.episode_ended),
+        re_path(r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/position/(?P<position>\d+)$', views.episode_position),
+        re_path(r'^tvshows/suggested/$', views.suggested_shows),
+        re_path(r'^tvshows/suggested/(?P<suggested_show_id>\d+)/add/(?P<option>.*)/$', views.add_suggested_show),
+        re_path(r'^tvshows/suggested/(?P<suggested_show_id>\d+)/ignore/$', views.ignore_suggested_show),
+    ]

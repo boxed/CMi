@@ -20,10 +20,10 @@ def index(request, category_id=None):
         for show in shows if show.watchable_episodes()]
     height = 11
     width = int(ceil(len(shows) / float(height)))
-    rows = [[None for _ in range(width)] for _ in xrange(height)]
+    rows = [[None for _ in range(width)] for _ in range(height)]
     for i, show in enumerate(shows):
         x = i % height
-        rows[x][i / height] = show
+        rows[x][i // height] = show
     return render(request, 'tvshows/index.html', {
         'title': 'TV Shows' if category is None else category.name,
         'rows': rows,
@@ -38,7 +38,7 @@ def episode_list(request, show_id):
         width = len(season_to_column.keys())
         height = max([len(column) for column in season_to_column.values()])
         rows = [
-            [None for _ in xrange(width)] for _ in xrange(height)
+            [None for _ in range(width)] for _ in range(height)
         ]
         for column_i, (_, column) in enumerate(sorted(season_to_column.items())):
             for row_i, e in enumerate(column):
@@ -70,7 +70,7 @@ def episode_list(request, show_id):
 def play_episode(request, show_id, episode_id):
     episode = get_object_or_404(Episode, pk=episode_id)
     path = playable_path(episode.filepath)
-    print 'playing ', episode, 'at', path
+    print('playing ', episode, 'at', path)
     subprocess.call(['open', 'CMiVideoPlayer://%s?seconds=%s&callback=tvshows/%s/%s' % (path, episode.position, episode.show.pk, episode.pk)])
     return HttpResponse(':back')
 

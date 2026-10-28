@@ -1,6 +1,6 @@
 def title_sort_key(s):
     """
-    @type s: str or unicode
+    @type s: str
     """
     foo = s.lower()
     if foo.startswith('the '):
@@ -17,17 +17,17 @@ class ListItem(object):
     def extra(self):
         return self._extra or ''
 
-    def __unicode__(self):
-        return unicode(self.title) or ''
+    def __str__(self):
+        return str(self.title or '')
 
     def __repr__(self):
-        return unicode(self.title) or ''
+        return str(self.title or '')
 
 def chunks(l, n, pad=False):
     """ Yield successive n-sized chunks from l.
     """
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         foo = l[i:i+n]
         if pad:
-            foo += [None for x in xrange(n-len(foo))]
+            foo += [None for x in range(n-len(foo))]
         yield foo

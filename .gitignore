@@ -2,3 +2,7 @@
 .idea
 xcuserdata
 .DS_Store
+.venv
+__pycache__
+tmp
+cinemagoer.db

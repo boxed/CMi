@@ -7,7 +7,7 @@ from django.db import models
 class Category(models.Model):
     name = models.CharField(max_length=255)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % self.name
 
 
@@ -19,9 +19,9 @@ class Show(models.Model):
     auto_erase = models.BooleanField(default=True)
     source = models.CharField(max_length=255, blank=True)
     ended = models.BooleanField(default=False)
-    category = models.ForeignKey(Category, null=True)
+    category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % self.name
 
     def unwatched_episodes(self):
@@ -50,7 +50,7 @@ class SuggestedShow(models.Model):
     name = models.CharField(max_length=200, unique=True)
     ignored = models.BooleanField(default=False)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.ignored:
             return 'ignored: %s' % self.name
         else:
@@ -60,7 +60,7 @@ class SuggestedShow(models.Model):
         ordering = ['name']
 
 class Episode(models.Model):
-    show = models.ForeignKey(Show, related_name='episodes')
+    show = models.ForeignKey(Show, related_name='episodes', on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     season = models.IntegerField()
     episode = models.IntegerField(default=0)
@@ -72,7 +72,7 @@ class Episode(models.Model):
     watched_count = models.IntegerField(default=False)
     watched_at = models.DateTimeField(default=datetime(1970, 1, 1))
 
-    def __unicode__(self):
+    def __str__(self):
         if self.aired:
             return '%s %s' % (self.show, self.aired)
         else:
@@ -82,4 +82,4 @@ class Episode(models.Model):
         ordering = ['show__name', 'season', 'episode', 'aired']
 
     def watched_range(self):  # used by template
-        return xrange(self.watched_count)
+        return range(self.watched_count)

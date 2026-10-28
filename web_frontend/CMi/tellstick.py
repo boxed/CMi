@@ -99,7 +99,7 @@ class TellStick:
 	
 	def Dim(self,id,level):
 		#level is in percentage from 0% to 100%. Actual values to the TelldusCore API use 0 - 255:
-		level_int = (level/100) * 255
+		level_int = int(level / 100 * 255)
 		
 		if (level < 0 or level > 255):
 			return 0
@@ -188,10 +188,10 @@ import sys
 t = TellStick('/Library/Frameworks/TelldusCore.framework/TelldusCore')
 t.LoadLibrary()
 if len(sys.argv) < 3:
-    print 'need two argument: <on/off> <device_id>'
-    print 'devices:'
+    print('need two argument: <on/off> <device_id>')
+    print('devices:')
     for d in t.GetDevices():
-        print '\t', d
+        print('\t', d)
 else:
     if sys.argv[1] == 'on':
         t.TurnOn(int(sys.argv[2]))

@@ -1,5 +1,5 @@
 from django.template.loader import render_to_string
-from django.conf.urls import patterns
+from django.urls import re_path
 
 
 def tiles():
@@ -13,6 +13,7 @@ def tiles():
     # ]
 
 def urls():
-    return patterns('CMi.filesystem.views',
-        (r'^browse/$', 'browse'),
-    )
+    from CMi.filesystem import views
+    return [
+        re_path(r'^browse/$', views.browse),
+    ]

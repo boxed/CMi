@@ -1,5 +1,5 @@
 from django.template.loader import render_to_string
-from django.conf.urls import patterns
+from django.urls import re_path
 from CMi.plex import client
 
 
@@ -15,12 +15,13 @@ def tiles():
     ]
 
 def urls():
-    return patterns('CMi.plex.views',
-        (r'^plex/$', 'index'),
-        (r'^plex/section/(?P<section_id>\d+)/$', 'section'),
-        (r'^plex/show/(?P<show_id>\d+)/$', 'show'),
-        (r'^plex/(?P<rating_key>\d+)/$', 'play'),
-        (r'^plex/(?P<rating_key>\d+)/stream$', 'stream'),
-        (r'^plex/(?P<rating_key>\d+)/ended$', 'ended'),
-        (r'^plex/(?P<rating_key>\d+)/position/(?P<position>\d+)$', 'position'),
-    )
+    from CMi.plex import views
+    return [
+        re_path(r'^plex/$', views.index),
+        re_path(r'^plex/section/(?P<section_id>\d+)/$', views.section),
+        re_path(r'^plex/show/(?P<show_id>\d+)/$', views.show),
+        re_path(r'^plex/(?P<rating_key>\d+)/$', views.play),
+        re_path(r'^plex/(?P<rating_key>\d+)/stream$', views.stream),
+        re_path(r'^plex/(?P<rating_key>\d+)/ended$', views.ended),
+        re_path(r'^plex/(?P<rating_key>\d+)/position/(?P<position>\d+)$', views.position),
+    ]

@@ -1,10 +1,9 @@
 import os
 import json
-import urllib
-import urllib2
+import urllib.parse
+import urllib.request
 from xml.etree import ElementTree
-
-CONFIG_PATH = os.path.expanduser('~/Library/Application Support/CMi/plex.json')
+from django.conf import settings
 
 HEADERS = {
     'X-Plex-Product': 'CMi',
@@ -18,20 +17,21 @@ def config():
         {"url": "http://192.168.1.10:32400", "token": "abc123"}
     Returns None if Plex isn't configured.
     """
-    if not os.path.exists(CONFIG_PATH):
+    config_path = os.path.join(settings.SUPPORT_FOLDER, 'plex.json')
+    if not os.path.exists(config_path):
         return None
-    with open(CONFIG_PATH) as f:
+    with open(config_path) as f:
         return json.load(f)
 
 
 def url(path, **params):
     c = config()
     params['X-Plex-Token'] = c['token']
-    return '%s%s?%s' % (c['url'].rstrip('/'), path, urllib.urlencode(params))
+    return '%s%s?%s' % (c['url'].rstrip('/'), path, urllib.parse.urlencode(params))
 
 
 def _open(path, **params):
-    return urllib2.urlopen(urllib2.Request(url(path, **params), headers=HEADERS), timeout=10)
+    return urllib.request.urlopen(urllib.request.Request(url(path, **params), headers=HEADERS), timeout=10)
 
 
 def get(path, **params):

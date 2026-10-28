@@ -43,10 +43,10 @@ def is_movie(c):
         if c2 in result:
             return True, result[c2]
         # We should also check x['akas'] if available for alternative titles. Example: 'A Separation::International (English title) (imdb display title)'
-        print c, 'was not found on IMDB'
+        print(c, 'was not found on IMDB')
         is_not_movie_cache.add(c)
-    except IMDbDataAccessError, e:
-        print 'IMDbDataAccessError:', e
+    except IMDbDataAccessError as e:
+        print('IMDbDataAccessError:', e)
     return False, None
 
 def run_movies_cleanup():
@@ -68,7 +68,7 @@ def handle_movie(data):
             pass
         source = os.path.join(downloads_dir, filename)
         destination = os.path.join(movies_dir, filename.split('/')[-1])
-        print (u'move %s -> %s' % (source, destination)).encode('ascii', errors='ignore')
+        print('move %s -> %s' % (source, destination))
         move(source, destination)
         year = imdb_info['year'] if 'year' in imdb_info else ''
         Movie.objects.create(name=imdb_info['title'], filepath=destination, aired=year)

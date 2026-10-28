@@ -2,7 +2,7 @@ from threading import Thread
 from datetime import datetime, timedelta
 
 from django.conf import settings
-from django.utils import importlib
+import importlib
 from django.utils.safestring import mark_safe
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -16,9 +16,9 @@ plugin_api_modules = []
 for app in settings.INSTALLED_APPS:
     try:
         plugin_api_modules.append(importlib.import_module(app+'.api'))
-        print app
+        print(app)
     except ImportError:
-        print 'failed to load app: ', app
+        print('failed to load app: ', app)
         import traceback
         traceback.print_exc()
 
@@ -34,10 +34,10 @@ def search_for_new_files2(request):
                 return
 
             def update_thread(api_module):
-                print 'Started %s update...' % api_module.__name__
+                print('Started %s update...' % api_module.__name__)
                 api_module.update()
                 api_module._last_updated = datetime.now()
-                print 'Completed %s update...' % api_module.__name__
+                print('Completed %s update...' % api_module.__name__)
             api._update_thread = Thread(target=update_thread, args=(api,))
             api._update_thread.start()
 
@@ -60,11 +60,11 @@ def search_for_new_files(request):
                 if m[0] == 'movie':
                     if handle_movie(m):
                         refresh = True
-                        print 'found movie', m
+                        print('found movie', m)
                 elif m[0] == 'tv show':
                     if handle_tv_show_episode(m):
                         refresh = True
-                        print 'found tv show', m
+                        print('found tv show', m)
             handled_files.add(video)
         run_tv_shows_cleanup()
         run_tv_shows_extra()
@@ -105,7 +105,7 @@ def code_changed(request):
 
 def css(request):
     delay = 40
-    rules = ['.started .flip_%s {-webkit-transition-delay: %sms}\n' % (i, max(delay, i * (delay-i/2))) for i in xrange(200)]
+    rules = ['.started .flip_%s {-webkit-transition-delay: %sms}\n' % (i, max(delay, i * (delay-i//2))) for i in range(200)]
     return HttpResponse(''.join(rules), content_type='text/css')
 
 def test(request):

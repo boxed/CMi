@@ -16,32 +16,32 @@ MINIMUM_FILE_SIZE = 1024 * 1024 * 50 # 50 megabytes
 
 # TV Shows
 season_ep_regexs = [
-    '(?P<name>.*?) season (?P<season>\d\d?) s? ?(\\2)?ep? ?(?P<episode>\d\d?)',
-    '(?P<name>.*?) season (?P<season>\d\d?) episode (?P<episode>\d\d?)',
-    '(?P<name>.*[^0-9]) season (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
+    r'(?P<name>.*?) season (?P<season>\d\d?) s? ?(\2)?ep? ?(?P<episode>\d\d?)',
+    r'(?P<name>.*?) season (?P<season>\d\d?) episode (?P<episode>\d\d?)',
+    r'(?P<name>.*[^0-9]) season (?P<season>\d\d?) (\2)x(?P<episode>\d\d?)',
 
-    '(?P<name>.*?) series (?P<season>\d\d?) s? ?(\\2)?ep? ?(?P<episode>\d\d?)',
-    '(?P<name>.*?) series (?P<season>\d\d?) episode (?P<episode>\d\d?)',
-    '(?P<name>.*[^0-9]) series (?P<season>\d\d?) (\\2)x(?P<episode>\d\d?)',
+    r'(?P<name>.*?) series (?P<season>\d\d?) s? ?(\2)?ep? ?(?P<episode>\d\d?)',
+    r'(?P<name>.*?) series (?P<season>\d\d?) episode (?P<episode>\d\d?)',
+    r'(?P<name>.*[^0-9]) series (?P<season>\d\d?) (\2)x(?P<episode>\d\d?)',
 
-    '(?P<name>.*)\s?s ?(?P<season>\d\d?)\s?ep? ?(?P<episode>\d\d?)',
-    '(?P<name>.*[^0-9])\s?(?P<season>\d\d?)x(?P<episode>\d\d?)',
+    r'(?P<name>.*)\s?s ?(?P<season>\d\d?)\s?ep? ?(?P<episode>\d\d?)',
+    r'(?P<name>.*[^0-9])\s?(?P<season>\d\d?)x(?P<episode>\d\d?)',
 ]
 
 date_regexs = [
-    '(?P<name>.*)(?P<year>\d\d\d\d) (?P<month>\d\d) (?P<day>\d\d)'
+    r'(?P<name>.*)(?P<year>\d\d\d\d) (?P<month>\d\d) (?P<day>\d\d)'
 ]
 
 # Movies
 year_regexs = [
-    '(?P<name>.*) (?P<year>19\d\d)',
-    '(?P<name>.*) (?P<year>20\d\d)',
-    '(?P<name>.*) (?P<year>21\d\d)', # Handle stuff until I'm dead at least :P
+    r'(?P<name>.*) (?P<year>19\d\d)',
+    r'(?P<name>.*) (?P<year>20\d\d)',
+    r'(?P<name>.*) (?P<year>21\d\d)', # Handle stuff until I'm dead at least :P
 
      # Some pseudo-matches to handle common suffixes
-    '(?P<name>.*) dvdrip(?P<year>)',
-    '(?P<name>.*) bluray(?P<year>)',
-    '(?P<name>.*) xvid(?P<year>)',
+    r'(?P<name>.*) dvdrip(?P<year>)',
+    r'(?P<name>.*) bluray(?P<year>)',
+    r'(?P<name>.*) xvid(?P<year>)',
 ]
 
 def supported_extension(s):
@@ -79,7 +79,7 @@ def find_videos():
             if supported_extension(f):
                 full_path = os.path.join(root, f)
                 if playable_path(full_path):
-                    full_path = unicodedata.normalize('NFC', full_path.decode('utf8'))
+                    full_path = unicodedata.normalize('NFC', full_path)
                     videos.append(full_path[len(downloads_dir)+1:])
                 # print 'handle %s as file' % full_path
     return videos
@@ -131,7 +131,7 @@ def match_file(filename):
     global date_regexs
     global year_regexs
     if '/' in filename:
-        for part in xrange(filename.count('/')):
+        for part in range(filename.count('/')):
             x = filename.rsplit('/', part+1)[-1]
             result = match_video(x, canonical_format(splitext(x)[0]))
             if result[0] != 'movie_fallback':

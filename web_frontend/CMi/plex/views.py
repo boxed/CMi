@@ -8,9 +8,9 @@ from CMi.plex import client
 
 def to_columns(items, height=11):
     width = int(ceil(len(items) / float(height)))
-    rows = [[None for _ in xrange(width)] for _ in xrange(height)]
+    rows = [[None for _ in range(width)] for _ in range(height)]
     for i, item in enumerate(items):
-        rows[i % height][i / height] = item
+        rows[i % height][i // height] = item
     return rows
 
 
@@ -56,7 +56,7 @@ def show(request, show_id):
     seasons = sorted({e.season for e in eps})
     columns = [[e for e in eps if e.season == season] for season in seasons]
     height = max(len(c) for c in columns)
-    rows = [[c[i] if i < len(c) else None for c in columns] for i in xrange(height)]
+    rows = [[c[i] if i < len(c) else None for c in columns] for i in range(height)]
     return render(request, 'plex/show.html', {
         'title': videos[0].get('grandparentTitle'),
         'rows': rows,
@@ -66,7 +66,7 @@ def show(request, show_id):
 
 
 def play(request, rating_key):
-    seconds = int(client.metadata(rating_key).get('viewOffset', 0)) / 1000
+    seconds = int(client.metadata(rating_key).get('viewOffset', 0)) // 1000
     # Plex needs the token as a query parameter, but CMiVideoPlayer treats the query string as its own
     # parameters, so we give it a local URL that redirects to the real stream instead.
     subprocess.call(['open', 'CMiVideoPlayer://http://127.0.0.1:19817/plex/%s/stream?seconds=%s&callback=plex/%s' % (rating_key, seconds, rating_key)])

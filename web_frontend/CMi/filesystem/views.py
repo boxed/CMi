@@ -12,6 +12,6 @@ def browse(request):
         title = path.split('/')[-2]
 
     columns = [x for x in chunks(objects, 10, pad=True)]
-    rows = zip(*columns)
+    rows = list(zip(*columns))
 
     return render(request, 'list.html', {'rows': rows, 'title': title})

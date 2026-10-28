@@ -1,3 +1,0 @@
-[submodule "django"]
-	path = django
-	url = git://github.com/django/django.git

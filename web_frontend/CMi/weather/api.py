@@ -1,6 +1,6 @@
 from django.utils.safestring import mark_safe
 from django.template.loader import render_to_string
-from django.conf.urls import patterns
+from django.urls import re_path
 from datetime import datetime, timedelta
 
 def tiles():
@@ -14,10 +14,11 @@ def tiles():
     #     }))]
 
 def urls():
-    return patterns('CMi.weather.views',
-        (r'^weather/$', 'index'),
-        (r'^set_location/$', 'set_location'),
-    )
+    from CMi.weather import views
+    return [
+        re_path(r'^weather/$', views.index),
+        re_path(r'^set_location/$', views.set_location),
+    ]
 
 _should_refresh = False
 def should_refresh():
@@ -44,7 +45,7 @@ def get_weather(place=None):
 
         # Weather data from openweathermap
         from json import load
-        from urllib2 import urlopen
+        from urllib.request import urlopen
 
         def celsius_from_kelvin(k):
             return k - 273.15
@@ -95,9 +96,9 @@ def get_weather(place=None):
         weather_cache = weather
         weather_cache['cache_time'] = datetime.now()
         global _should_refresh
-        print 'should refresh GUI because weather data changed'
+        print('should refresh GUI because weather data changed')
         _should_refresh = True
         return weather
-    except Exception, e:
-        print 'weather', e
+    except Exception as e:
+        print('weather', e)
         return None

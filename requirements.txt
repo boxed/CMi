@@ -1,0 +1,4 @@
+django
+send2trash
+cinemagoer
+pytest

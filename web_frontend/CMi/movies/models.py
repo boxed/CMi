@@ -11,7 +11,7 @@ class Movie(models.Model):
     position = models.FloatField(default=0)
     filepath = models.TextField()
     
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def description(self):

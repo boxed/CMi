@@ -5,7 +5,7 @@ from datetime import datetime, date
 from CMi.engine import canonical_format, splitext
 from CMi.tvshows.models import *
 from CMi.directories import *
-from send2trash.plat_osx import send2trash
+from send2trash import send2trash
 import tvdb
 
 tvdb.API_KEY = "1645288C00EAD78F"
@@ -111,10 +111,10 @@ def fetch_description():
             pass
         except:
             import traceback
-            print '---'
-            print 'Failed to fetch data for episode', episode
+            print('---')
+            print('Failed to fetch data for episode', episode)
             traceback.print_exc()
-            print '---'
+            print('---')
     global series_data
     series_data.clear()
     #print 'cleared cache'
@@ -122,7 +122,7 @@ def fetch_description():
 def add_episode(data):
     type, filename, show_name = data[0], data[1], data[2]
     assert type == 'tv show'
-    print 'add episode:', data
+    print('add episode:', data)
 
     destination_dir = tv_shows_dir
     aired = None
@@ -137,7 +137,7 @@ def add_episode(data):
         season, episode = data[3]
         destination = os.path.join(destination_dir, show.name, 'Season %s' % int(season), '%s S%02dE%02d.%s' % (show_name, season, episode, extension))
     if destination:
-        print (u'move %s -> %s' % (os.path.join(downloads_dir, filename), destination)).encode('ascii', 'ignore')
+        print('move %s -> %s' % (os.path.join(downloads_dir, filename), destination))
         if not DEBUG:
             try:
                 os.makedirs(os.path.split(destination)[0])
@@ -158,7 +158,7 @@ def handle_tv_show_episode(data):
     assert type == 'tv show'
     if Show.objects.filter(canonical_name__exact=show_name).count():
         add_episode(data)
-        print 'added episode', data
+        print('added episode', data)
         return True
     else:
         if show_name in is_not_tv_show_cache:
@@ -172,9 +172,9 @@ def handle_tv_show_episode(data):
         if match:
             if not SuggestedShow.objects.filter(name=match['name']).count():
                 SuggestedShow.objects.create(name=match['name'])
-                print 'found potential new show "%s"' % show_name
+                print('found potential new show "%s"' % show_name)
                 return True
         else:
-            print 'did not find', show_name, 'on tvdb, ignoring...'
+            print('did not find', show_name, 'on tvdb, ignoring...')
             is_not_tv_show_cache.add(show_name)
     return False
