@@ -29,9 +29,10 @@ Longer version: XBMC was the closest to an acceptable system but I still had to 
 
 ## Building
 
-1. Create a Python 3 virtualenv and install the dependencies: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`
-2. Run the web frontend: `cd web_frontend && ../.venv/bin/python CMi/runserver.py`
-3. Open up CMi.xcodeproject and hit build.
+1. Make sure Python 3 is installed (Homebrew, pyenv, or python.org).
+2. Open up CMi.xcodeproject and hit build. On first launch the app creates a Python virtualenv with the dependencies in `~/Library/Application Support/CMi/venv`.
+
+To work on the web frontend without the app: `python3 -m venv .venv && .venv/bin/pip install -r web_frontend/requirements.txt`, then `cd web_frontend && ../.venv/bin/python CMi/runserver.py`
 
 ## Plex
 

@@ -52,6 +52,11 @@ STATIC_URL = '/static/'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '@wb(e#@u4vdu*9!+0%0&zimpzud)-x)-+71)*vrgo+jak2&k1n'
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'CMi.hashers.LegacySHA1PasswordHasher',
+]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

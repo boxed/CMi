@@ -24,7 +24,6 @@ def urls():
         re_path(r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/$', views.play_episode),
         re_path(r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/ended$', views.episode_ended),
         re_path(r'^tvshows/(?P<show_id>\d+)/(?P<episode_id>\d+)/position/(?P<position>\d+)$', views.episode_position),
-        re_path(r'^tvshows/suggested/$', views.suggested_shows),
         re_path(r'^tvshows/suggested/(?P<suggested_show_id>\d+)/add/(?P<option>.*)/$', views.add_suggested_show),
         re_path(r'^tvshows/suggested/(?P<suggested_show_id>\d+)/ignore/$', views.ignore_suggested_show),
     ]

@@ -89,9 +89,6 @@ def episode_position(request, show_id, episode_id, position):
     episode.save()
     return HttpResponse(':nothing')
 
-def suggested_shows(request):
-    return render(request, 'tvshows/suggested_shows.html', {'suggested_shows': SuggestedShow.objects.filter(ignored=False)})
-
 def add_suggested_show(request, suggested_show_id, option):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
     tvmaze_result = tvmaze.get_series(s.name)

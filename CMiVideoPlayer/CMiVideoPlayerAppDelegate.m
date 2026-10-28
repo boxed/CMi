@@ -7,9 +7,7 @@
 //
 
 #import "CMiVideoPlayerAppDelegate.h"
-#import "QuickTimePlayer.h"
 #import "VLCVideoPlayer.h"
-#include <Python.h>
 
 static const float ON_SCREEN_CONTROL_ALPHA = 0.6;
 
@@ -108,18 +106,25 @@ void key(int code)
 
 - (void)applicationWillTerminate:(NSNotification *)notification
 {
+    if ([self->webServerTask isRunning]) {
+        [self->webServerTask terminate];
+    }
 }
 
 - (void)pythonWorker
 {
-    NSString* bundlePath = [[NSBundle mainBundle] bundlePath];
-    Py_SetProgramName("/usr/bin/python");
-    Py_Initialize();
-    const char* argv[] = {"/usr/bin/python", [[bundlePath stringByAppendingString:@"/Contents/Resources/web_frontend/CMi/runserver.py"] cStringUsingEncoding:NSASCIIStringEncoding]};
-    int result = Py_Main(2, (char**)argv);
-    NSLog(@"Python exited with result: %d", result);
-    Py_Finalize();
-    [NSApp terminate:self];
+    // start.sh sets up the Python 3 virtualenv if needed and runs the Django server. It inherits our stdout,
+    // which is redirected to webServerStdOut so we can see when the server has started.
+    NSString* webFrontendPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"web_frontend"];
+    self->webServerTask = [[NSTask alloc] init];
+    [self->webServerTask setLaunchPath:@"/bin/sh"];
+    [self->webServerTask setArguments:[NSArray arrayWithObject:[webFrontendPath stringByAppendingPathComponent:@"start.sh"]]];
+    [self->webServerTask setCurrentDirectoryPath:webFrontendPath];
+    [self->webServerTask setStandardError:[self->webServerTask standardOutput]];
+    [self->webServerTask launch];
+    [self->webServerTask waitUntilExit];
+    NSLog(@"Python exited with result: %d", [self->webServerTask terminationStatus]);
+    [NSApp performSelectorOnMainThread:@selector(terminate:) withObject:self waitUntilDone:NO];
 }
 
 - (void)webServerWroteToStdOut:(NSNotification*)notification

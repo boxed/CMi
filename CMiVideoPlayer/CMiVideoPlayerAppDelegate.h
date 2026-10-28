@@ -64,6 +64,7 @@ typedef enum {
     NSOperationQueue* queue;
     NSTimer* searchForFilesTimer;
     NSThread* pythonThread;
+    NSTask* webServerTask;
     
 }
 

@@ -17,7 +17,9 @@ for app in settings.INSTALLED_APPS:
     try:
         plugin_api_modules.append(importlib.import_module(app+'.api'))
         print(app)
-    except ImportError:
+    except ImportError as e:
+        if getattr(e, 'name', None) == app+'.api':
+            continue  # apps without a plugin api are fine
         print('failed to load app: ', app)
         import traceback
         traceback.print_exc()

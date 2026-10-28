@@ -1,9 +1,9 @@
 from shutil import move
 from CMi.engine import canonical_format
-from imdb import IMDb, IMDbDataAccessError
+from urllib.error import URLError
+import imdb_search
 from CMi.movies.models import *
 from CMi.directories import *
-ia = IMDb()
 
 def clean(s):
     def first(s, split):
@@ -35,18 +35,19 @@ def is_movie(c):
         c = canonical_format(c)
         if c in is_not_movie_cache:
             return False, c
-        result = dict([(canonical_format(x['title']), x) for x in ia.search_movie(c) if c])
+        # reversed so the best match wins when several titles are the same
+        result = dict([(canonical_format(x['title']), x) for x in reversed(imdb_search.search_movie(c)) if c])
         if c in result:
             return True, result[c]
         c2 = canonical_format(c.rsplit(' ', 1)[0])
-        result = dict([(canonical_format(x['title']), x) for x in ia.search_movie(c2) if c2])
+        result = dict([(canonical_format(x['title']), x) for x in reversed(imdb_search.search_movie(c2)) if c2])
         if c2 in result:
             return True, result[c2]
         # We should also check x['akas'] if available for alternative titles. Example: 'A Separation::International (English title) (imdb display title)'
         print(c, 'was not found on IMDB')
         is_not_movie_cache.add(c)
-    except IMDbDataAccessError as e:
-        print('IMDbDataAccessError:', e)
+    except (URLError, ValueError) as e:
+        print('IMDb search failed:', e)
     return False, None
 
 def run_movies_cleanup():
