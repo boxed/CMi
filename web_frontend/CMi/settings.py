@@ -125,6 +125,7 @@ INSTALLED_APPS = (
     'CMi.cal',
     'CMi.filesystem',
     'CMi.weather',
+    'CMi.plex',
 )+tuple(plugins)
 
 CODE_CHANGED = 1

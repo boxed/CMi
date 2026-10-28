@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <h1 class="header">{{ title }}</h1>
+
+    <table class="list tiles">
+        <tr>
+            {% for season in seasons %}
+                <td class="label">
+                    Season {{ season }}
+                </td>
+            {% endfor %}
+        </tr>
+
+        {% if next_episode %}
+            <tr class="next_episode">
+                {% include "plex/episode_row.html" with episode=next_episode next=True %}
+            </tr>
+        {% endif %}
+
+        {% for row in rows %}
+            <tr>
+                {% for episode in row %}
+                    {% if not episode %}
+                        <td></td>
+                    {% else %}
+                        {% include "plex/episode_row.html" %}
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
