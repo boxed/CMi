@@ -6,9 +6,8 @@ from CMi.engine import canonical_format, splitext
 from CMi.tvshows.models import *
 from CMi.directories import *
 from send2trash import send2trash
-import tvdb
+import tvmaze
 
-tvdb.API_KEY = "1645288C00EAD78F"
 
 DEBUG = False
 
@@ -67,7 +66,7 @@ def run_tv_shows_extra():
     fetch_description()
 
 
-def get_tvdb_name(series_name):
+def get_tvmaze_name(series_name):
     return {
         'hej jycke': 'hey duggee',
         u'stadens hjältar': 'heroes of the city',
@@ -79,13 +78,13 @@ def get_series_data(series_name):
     series_name = series_name.lower()
     global series_data
     if series_name not in series_data:
-        tvdb_series_name = get_tvdb_name(series_name)
-        matches = tvdb.get_series(tvdb_series_name)
+        tvmaze_series_name = get_tvmaze_name(series_name)
+        matches = tvmaze.get_series(tvmaze_series_name)
         if not matches:
-            series_data[tvdb_series_name] = None
+            series_data[tvmaze_series_name] = None
             return None
         series = matches[0]
-        raw_data = tvdb.get_series_all(series['id'])
+        raw_data = tvmaze.get_series_all(series['id'])
         series_data[series_name] = {'season_episode': {}, 'aired': {}}
         for data in raw_data['episodes']:
             if 'season_number' in data and 'episode_number' in data:
@@ -163,7 +162,7 @@ def handle_tv_show_episode(data):
     else:
         if show_name in is_not_tv_show_cache:
             return False
-        matches = tvdb.get_series(get_tvdb_name(show_name))
+        matches = tvmaze.get_series(get_tvmaze_name(show_name))
         match = None
         for m in matches:
             if canonical_format(m['name']) == show_name:
@@ -175,6 +174,6 @@ def handle_tv_show_episode(data):
                 print('found potential new show "%s"' % show_name)
                 return True
         else:
-            print('did not find', show_name, 'on tvdb, ignoring...')
+            print('did not find', show_name, 'on tvmaze, ignoring...')
             is_not_tv_show_cache.add(show_name)
     return False

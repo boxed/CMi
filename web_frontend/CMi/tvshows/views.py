@@ -5,7 +5,7 @@ from CMi.engine import playable_path, canonical_format
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from CMi.tvshows.models import *
-import tvdb
+import tvmaze
 from math import ceil
 
 def index(request, category_id=None):
@@ -94,8 +94,8 @@ def suggested_shows(request):
 
 def add_suggested_show(request, suggested_show_id, option):
     s = SuggestedShow.objects.get(pk=suggested_show_id)
-    tvdb_result = tvdb.get_series(s.name)
-    description = tvdb_result[0]['overview'] if len(tvdb_result) else ''
+    tvmaze_result = tvmaze.get_series(s.name)
+    description = tvmaze_result[0]['overview'] if len(tvmaze_result) else ''
     try:
         Show.objects.create(name=s.name, description=description, canonical_name=canonical_format(s.name), auto_erase=(option=='erase'))
     except IntegrityError:
