@@ -2,7 +2,7 @@
  * VLCAudio.h: VLCKit.framework VLCAudio header
  *****************************************************************************
  * Copyright (C) 2007 Faustino E. Osuna
- * Copyright (C) 2007 VLC authors and VideoLAN
+ * Copyright (C) 2007, 2014 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Faustino E. Osuna <enrique.osuna # gmail.com>
@@ -24,28 +24,47 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 /* Notification Messages */
 /**
  * Standard notification messages that are emitted by VLCAudio object.
  */
 extern NSString *const VLCMediaPlayerVolumeChanged;
 
-@class VLCMediaPlayer;
-
 /**
- * TODO: Documentation VLCAudio
+ * basic class to control audio output
  */
 @interface VLCAudio : NSObject
-{
-    void *instance;
-}
 
-/* Properties */
-- (void)setMute:(BOOL)value;
+/**
+ * Property to mute the current audio output
+ * \note decoding continues when muted, so consider disabling the audio track if you don't want audio for a long time
+ */
+@property (getter=isMuted) BOOL muted;
 
-@property (setter=setMute:) BOOL isMuted;
-@property (assign) NSUInteger volume;
+/**
+ * control the current audio output volume */
+@property (assign) int volume;
 
+/**
+ * enable passthrough mode for the current audio device
+ * \note There is no warrenty that it succeeds as it depends on the capabilities of the hardware audio decoder / receiver attached by the user */
+@property (readwrite) BOOL passthrough;
+
+/**
+ * Mute the current audio output.
+ * \deprecated This selector will be removed in the next release */
+- (void)setMute:(BOOL)value __attribute__((deprecated));
+
+/**
+ * lower the current audio output volume */
 - (void)volumeDown;
+
+/**
+ * higher the current audio output volume */
 - (void)volumeUp;
+
 @end
+
+NS_ASSUME_NONNULL_END

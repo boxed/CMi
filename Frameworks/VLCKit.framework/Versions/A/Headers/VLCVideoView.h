@@ -22,20 +22,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
+#import <Cocoa/Cocoa.h>
 #import <QuartzCore/QuartzCore.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
+/**
+ * a custom view suitable for video rendering in AppKit environments
+ */
 @interface VLCVideoView : NSView
-{
-    id delegate;
-    NSColor * backColor;
-    BOOL stretchesVideo;
-    id layoutManager;
-    BOOL hasVideo;
-}
 
 /* Properties */
-@property (assign) id delegate;
-@property (copy) NSColor *backColor;
-@property BOOL fillScreen;
-@property (readonly) BOOL hasVideo;
+/**
+* NSColor to set as the view background if no video is being rendered
+*/
+@property (nonatomic, copy) NSColor *backColor;
+
+/**
+ * Is a video being rendered in this layer?
+ * \return the BOOL value
+ */
+@property (nonatomic, readonly) BOOL hasVideo;
+/**
+ * Should the video fill the screen by adding letterboxing or stretching?
+ * \return the BOOL value
+ */
+@property (nonatomic) BOOL fillScreen;
+
 @end
+
+NS_ASSUME_NONNULL_END

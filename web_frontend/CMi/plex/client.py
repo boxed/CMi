@@ -58,8 +58,8 @@ def part_url(rating_key):
     return url(metadata(rating_key).find('Media/Part').get('key'))
 
 
-def report_progress(rating_key, seconds):
-    _open('/:/progress', key=rating_key, identifier='com.plexapp.plugins.library', time=int(seconds) * 1000, state='playing')
+def report_progress(rating_key, milliseconds):
+    _open('/:/progress', key=rating_key, identifier='com.plexapp.plugins.library', time=int(milliseconds), state='playing')
 
 
 def scrobble(rating_key):

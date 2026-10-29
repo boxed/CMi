@@ -2,10 +2,12 @@
  * VLCMediaDiscoverer.h: VLCKit.framework VLCMediaDiscoverer header
  *****************************************************************************
  * Copyright (C) 2007 Pierre d'Herbemont
- * Copyright (C) 2007 VLC authors and VideoLAN
+ * Copyright (C) 2015 Felix Paul Kühne
+ * Copyright (C) 2007, 2015 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
+ *          Felix Paul Kühne <fkuehne # videolan.org>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -23,48 +25,92 @@
  *****************************************************************************/
 
 #import <Foundation/Foundation.h>
-#import "VLCMediaList.h"
 
-@class VLCMediaList;
+@class VLCLibrary, VLCMediaList;
 
-/**
- * TODO: Documentation VLCMediaDiscoverer
- */
-@interface VLCMediaDiscoverer : NSObject
+NS_ASSUME_NONNULL_BEGIN
+
+
+typedef NS_ENUM(unsigned, VLCMediaDiscovererCategoryType)
 {
-    NSString * localizedName;       //< TODO: Documentation VLCMediaDiscoverer.localizedName
-    VLCMediaList * discoveredMedia; //< TODO: Documentation VLCMediaDiscoverer.discoveredMedia
-    void * mdis;                    //< TODO: Documentation VLCMediaDiscoverer.mdis
-    BOOL running;                   //< TODO: Documentation VLCMediaDiscoverer.running
-}
+    VLCMediaDiscovererCategoryTypeDevices = 0,
+    VLCMediaDiscovererCategoryTypeLAN,
+    VLCMediaDiscovererCategoryTypePodcasts,
+    VLCMediaDiscovererCategoryTypeLocalDirectories
+};
+
+/* discoverer keys */
+extern NSString *const VLCMediaDiscovererName;
+extern NSString *const VLCMediaDiscovererLongName;
+extern NSString *const VLCMediaDiscovererCategory;
 
 /**
- * Maintains a list of available media discoverers.  This list is populated as new media
- * discoverers are created.
- * \return A list of available media discoverers.
+ * VLCMediaDiscoverer
  */
-+ (NSArray *)availableMediaDiscoverer;
+
+@interface VLCMediaDiscoverer : NSObject
+
+/**
+ * The library instance used by the discoverers
+ * \note unless for debug, you are wrong if you want to use this selector
+ */
+@property (nonatomic, readonly) VLCLibrary *libraryInstance;
+
+/**
+ * The full list of available media discoverers
+ * \return returns an empty array for binary compatibility, will be removed in subsequent releases
+ * \deprecated use availableMediaDiscovererForCategoryType instead
+ */
++ (NSArray *)availableMediaDiscoverer __attribute__((deprecated));
+
+/**
+ * \param categoryType VLCMediaDiscovererCategory you are looking for
+ * \return an array of dictionaries describing the available discoverers for the requested type
+ */
++ (NSArray *)availableMediaDiscovererForCategoryType:(VLCMediaDiscovererCategoryType)categoryType;
 
 /* Initializers */
 /**
  * Initializes new object with specified name.
- * \param aSerchName Name of the service for this VLCMediaDiscoverer object.
+ * \param aServiceName Name of the service for this VLCMediaDiscoverer object.
  * \returns Newly created media discoverer.
+ * \note with VLCKit 3.0 and above, you need to start the discoverer explicitly after creation
  */
-- (id)initWithName:(NSString *)aServiceName;
+- (instancetype)initWithName:(NSString *)aServiceName;
 
 /**
- * TODO: Documentation VLCMediaDiscoverer.discoveredMedia
+ * same as above but with a custom VLCLibrary instance
+ * \note Using this mode can lead to a significant performance impact - use only if you know what you are doing
  */
-@property (readonly) VLCMediaList * discoveredMedia;
+- (instancetype)initWithName:(NSString *)aServiceName libraryInstance:(VLCLibrary *)libraryInstance;
 
 /**
- * TODO: Documentation VLCMediaDiscoverer.localizedName
+ * start media discovery
+ * \returns -1 if start failed, otherwise 0
  */
-@property (readonly) NSString * localizedName;
+- (int)startDiscoverer;
 
 /**
- * TODO: Documentation VLCMediaDiscoverer.isRunning
+ * stop media discovery
+ */
+- (void)stopDiscoverer;
+
+/**
+ * a read-only property to retrieve the list of discovered media items
+ */
+@property (weak, readonly, nullable) VLCMediaList *discoveredMedia;
+
+/**
+ * localized name of the discovery module if available, otherwise in US English
+ * \deprecated Will be removed in the next major release, may return an empty string for binary compatibility
+ */
+@property (readonly, copy) NSString *localizedName __attribute__((deprecated));
+
+/**
+ * read-only property to check if the discovery service is active
+ * \return boolean value
  */
 @property (readonly) BOOL isRunning;
 @end
+
+NS_ASSUME_NONNULL_END

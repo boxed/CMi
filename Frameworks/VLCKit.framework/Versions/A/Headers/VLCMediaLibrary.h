@@ -2,7 +2,7 @@
  * VLCMediaLibrary.h: VLCKit.framework VLCMediaDiscoverer header
  *****************************************************************************
  * Copyright (C) 2007 Pierre d'Herbemont
- * Copyright (C) 2007 VLC authors and VideoLAN
+ * Copyright (C) 2007, 2014 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -27,16 +27,20 @@
 @class VLCMediaList;
 
 /**
- * TODO: Documentation
+ * media library stub
  */
 @interface VLCMediaLibrary : NSObject
-{
-    void * mlib;
-    VLCMediaList * allMedia;
-}
-/* Factories */
-+ (id)sharedMediaLibrary;
 
-/* Properties */
-@property (readonly) VLCMediaList * allMedia;
+/**
+ * library singleton
+ * \deprecated will be removed in the next release
+*/
++ (VLCMediaLibrary*)sharedMediaLibrary __attribute__((deprecated));
+
+/**
+ * list of all media
+ * \deprecated will be removed in the next release
+ */
+@property (nonatomic, readonly, strong) VLCMediaList * allMedia __attribute__((deprecated));
+
 @end

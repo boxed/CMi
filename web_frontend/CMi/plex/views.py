@@ -66,10 +66,11 @@ def show(request, show_id):
 
 
 def play(request, rating_key):
-    seconds = int(client.metadata(rating_key).get('viewOffset', 0)) // 1000
+    # CMiVideoPlayer's "seconds" parameter and position callbacks are really in milliseconds, same as Plex
+    offset = int(client.metadata(rating_key).get('viewOffset', 0))
     # Plex needs the token as a query parameter, but CMiVideoPlayer treats the query string as its own
     # parameters, so we give it a local URL that redirects to the real stream instead.
-    subprocess.call(['open', 'CMiVideoPlayer://http://127.0.0.1:19817/plex/%s/stream?seconds=%s&callback=plex/%s' % (rating_key, seconds, rating_key)])
+    subprocess.call(['open', 'CMiVideoPlayer://http://127.0.0.1:19817/plex/%s/stream?seconds=%s&callback=plex/%s' % (rating_key, offset, rating_key)])
     return HttpResponse(':back')
 
 

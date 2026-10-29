@@ -2,7 +2,7 @@
  * VLCTime.h: VLCKit.framework VLCTime header
  *****************************************************************************
  * Copyright (C) 2007 Pierre d'Herbemont
- * Copyright (C) 2007 VLC authors and VideoLAN
+ * Copyright (C) 2007-2016 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -24,30 +24,97 @@
 
 #import <Foundation/Foundation.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 /**
  * Provides an object to define VLCMedia's time.
  */
-@interface VLCTime : NSObject <NSCopying>
-{
-    NSNumber * value;       //< Holds, in milliseconds, the VLCTime value
-}
+@interface VLCTime : NSObject
 
-/* Factories */
+/**
+ * factorize an empty time object
+ * \return the VLCTime object
+ */
 + (VLCTime *)nullTime;
-+ (VLCTime *)timeWithNumber:(NSNumber *)aNumber;
-+ (VLCTime *)timeWithInt:(NSInteger)aInt;
+/**
+ * factorize a time object with a given number object
+ * \param aNumber the NSNumber object with a time in milliseconds
+ * \return the VLCTime object
+ */
++ (VLCTime *)timeWithNumber:(nullable NSNumber *)aNumber;
+/**
+ * factorize a time object with a given integer
+ * \param aInt the int with a time in milliseconds
+ * \return the VLCTime object
+ */
++ (VLCTime *)timeWithInt:(int)aInt;
 
-/* Initializers */
-- (id)initWithNumber:(NSNumber *)aNumber;
-- (id)initWithInt:(int)aInt;
+/**
+ * init a time object with a given number object
+ * \param aNumber the NSNumber object with a time in milliseconds
+ * \return the VLCTime object
+ */
+- (instancetype)initWithNumber:(nullable NSNumber *)aNumber;
+/**
+ * init a time object with a given integer
+ * \param aInt the int with a time in milliseconds
+ * \return the VLCTime object
+ */
+- (instancetype)initWithInt:(int)aInt;
 
 /* Properties */
-@property (readonly) NSNumber * numberValue;
+/**
+ * the current time value as NSNumber
+ * \return the NSNumber object
+ */
+@property (nonatomic, readonly, nullable) NSNumber * value;    ///< Holds, in milliseconds, the VLCTime value
+/**
+ * the current time value as NSNumber
+ * \return the NSNumber object
+ * \deprecated use value instead
+ */
+@property (readonly) NSNumber * numberValue __attribute__((deprecated));	    // here for backwards compatibility
+
+/**
+ * the current time value as string value localized for the current environment
+ * \return the NSString object
+ */
 @property (readonly) NSString * stringValue;
+/**
+ * the current time value as verbose string value localized for the current environment
+ * \return the NSString object
+ */
 @property (readonly) NSString * verboseStringValue;
+/**
+ * the current time value as string value localized for the current environment representing the time in minutes
+ * \return the NSString object
+ */
 @property (readonly) NSString * minuteStringValue;
+/**
+ * the current time value as int value
+ * \return the int
+ */
 @property (readonly) int intValue;
 
-/* Comparitors */
+/* Comparators */
+/**
+ * compare the current VLCTime instance against another instance
+ * \param aTime the VLCTime instance to compare against
+ * \return a NSComparisonResult
+ */
 - (NSComparisonResult)compare:(VLCTime *)aTime;
+/**
+ * compare the current VLCTime instance against another instance
+ * \param object the VLCTime instance to compare against
+ * \return a BOOL whether the instances are equal or not
+ */
+- (BOOL)isEqual:(nullable id)object;
+/**
+ * Calculcate a unique hash for the current time instance
+ * \return a hash value
+ */
+- (NSUInteger)hash;
+
 @end
+
+NS_ASSUME_NONNULL_END

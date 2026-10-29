@@ -26,20 +26,36 @@
 #import <VLCKit/VLCMediaPlayer.h>
 #import <VLCKit/VLCMedia.h>
 
+/**
+ * control class for streaming sessions
+ */
+@interface VLCStreamSession : VLCMediaPlayer
 
-@interface VLCStreamSession : VLCMediaPlayer {
-    VLCStreamOutput * streamOutput;
-    VLCMedia * originalMedia;
-    NSUInteger reattemptedConnections;
-    BOOL isComplete;
-}
+/**
+ * \deprecated will be removed in the next release
+ */
++ (instancetype)streamSession __attribute__((deprecated));
 
-+ (id)streamSession;
+/**
+ * \deprecated will be removed in the next release
+ */
+@property (nonatomic, strong) VLCStreamOutput * streamOutput __attribute__((deprecated));
+/**
+ * \deprecated will be removed in the next release
+ */
+@property (nonatomic, readonly) BOOL isComplete __attribute__((deprecated));
+/**
+ * \deprecated will be removed in the next release
+ */
+@property (nonatomic, readonly) NSUInteger reattemptedConnections __attribute__((deprecated));
 
-@property (retain) VLCMedia * media;
-@property (retain) VLCStreamOutput * streamOutput;
-@property (readonly) BOOL isComplete;
+/**
+ * \deprecated will be removed in the next release
+ */
+- (void)startStreaming __attribute__((deprecated));
+/**
+ * \deprecated will be removed in the next release
+ */
+- (void)stopStreaming __attribute__((deprecated));
 
-- (void)startStreaming;
-- (void)stopStreaming;
 @end

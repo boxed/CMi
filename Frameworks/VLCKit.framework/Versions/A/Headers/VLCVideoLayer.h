@@ -24,12 +24,24 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-@interface VLCVideoLayer : CALayer
-{
-    BOOL hasVideo;
-}
+NS_ASSUME_NONNULL_BEGIN
 
-/* Properties */
-@property (readonly) BOOL hasVideo;
-@property BOOL fillScreen;
+/**
+ * a custom layer for rendering video in a CoreAnimation environment
+ */
+@interface VLCVideoLayer : CALayer
+
+/**
+ * Is a video being rendered in this layer?
+ * \return the BOOL value
+ */
+@property (nonatomic, readonly) BOOL hasVideo;
+/**
+ * Should the video fill the screen by adding letterboxing or stretching?
+ * \return the BOOL value
+ */
+@property (nonatomic) BOOL fillScreen;
+
 @end
+
+NS_ASSUME_NONNULL_END

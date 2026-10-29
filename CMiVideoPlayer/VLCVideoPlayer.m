@@ -67,7 +67,7 @@
 
 - (void)setVolume:(float)volume
 {
-    [[player audio] setVolume:(NSUInteger)(volume*100.0)];
+    [[player audio] setVolume:(int)(volume*100.0)];
 }
      
 - (void)setCurrentTime:(float)time

@@ -1,7 +1,7 @@
 /*****************************************************************************
  * VLCKit: VLCMediaThumbnailer
  *****************************************************************************
- * Copyright (C) 2010-2012 Pierre d'Herbemont and VideoLAN
+ * Copyright (C) 2010-2012, 2021 Pierre d'Herbemont and VideoLAN
  *
  * Authors: Pierre d'Herbemont
  *
@@ -21,38 +21,52 @@
  *****************************************************************************/
 
 #import <Foundation/Foundation.h>
-#if TARGET_OS_IPHONE
-# import <CoreGraphics/CoreGraphics.h>
-#endif
+#import <CoreGraphics/CoreGraphics.h>
 
-@class VLCMedia;
-@class VLCLibrary;
+@class VLCMedia, VLCLibrary;
 @protocol VLCMediaThumbnailerDelegate;
 
-@interface VLCMediaThumbnailer : NSObject {
-    id<VLCMediaThumbnailerDelegate> _delegate;
-    VLCMedia *_media;
-    void *_mp;
-    CGImageRef _thumbnail;
-    void *_data;
-    NSTimer *_parsingTimeoutTimer;
-    NSTimer *_thumbnailingTimeoutTimer;
+NS_ASSUME_NONNULL_BEGIN
 
-    CGFloat _thumbnailHeight,_thumbnailWidth;
-    float _snapshotPosition;
-    CGFloat _effectiveThumbnailHeight,_effectiveThumbnailWidth;
-    int _numberOfReceivedFrames;
-    BOOL _shouldRejectFrames;
-}
+/**
+ * a facility allowing you to do thumbnails in an efficient manner
+ */
+@interface VLCMediaThumbnailer : NSObject
 
+/**
+ * initializer
+ * \param media the media item to thumbnail
+ * \param delegate the delegate implementing the required protocol
+ * \return the thumbnailer instance
+ * \note This will use the default shared library instance
+ */
 + (VLCMediaThumbnailer *)thumbnailerWithMedia:(VLCMedia *)media andDelegate:(id<VLCMediaThumbnailerDelegate>)delegate;
-+ (VLCMediaThumbnailer *)thumbnailerWithMedia:(VLCMedia *)media delegate:(id<VLCMediaThumbnailerDelegate>)delegate andVLCLibrary:(VLCLibrary *)library;
+/**
+ * initializer
+ * \param media the media item to thumbnail
+ * \param delegate the delegate implementing the required protocol
+ * \param library a library instance, potentially configured by you in a special way
+ * \return the thumbnailer instance
+ */
++ (VLCMediaThumbnailer *)thumbnailerWithMedia:(VLCMedia *)media delegate:(id<VLCMediaThumbnailerDelegate>)delegate andVLCLibrary:(nullable VLCLibrary *)library;
+
+/**
+ * Starts the thumbnailing process
+ */
 - (void)fetchThumbnail;
 
-@property (readwrite, assign) id<VLCMediaThumbnailerDelegate> delegate;
-@property (readwrite, retain) VLCMedia *media;
-@property (readwrite, assign) CGImageRef thumbnail;
-@property (readwrite) void * libVLCinstance;
+/**
+ * delegate object associated with the thumbnailer instance implementing the required protocol
+ */
+@property (readwrite, weak, nonatomic, nullable) id<VLCMediaThumbnailerDelegate> delegate;
+/**
+ * the media object that is being thumbnailed
+ */
+@property (readwrite, nonatomic) VLCMedia *media;
+/**
+ * The thumbnail created for the media object
+ */
+@property (readwrite, assign, nonatomic, nullable) CGImageRef thumbnail;
 
 /**
  * Thumbnail Height
@@ -60,7 +74,7 @@
  * has been called.
  * @return thumbnail height. Default value 240.
  */
-@property (readwrite, assign) CGFloat thumbnailHeight;
+@property (readwrite, assign, nonatomic) CGFloat thumbnailHeight;
 
 /**
  * Thumbnail Width
@@ -68,19 +82,34 @@
  * has been called.
  * @return thumbnail height. Default value 320
  */
-@property (readwrite, assign) CGFloat thumbnailWidth;
+@property (readwrite, assign, nonatomic) CGFloat thumbnailWidth;
 
 /**
  * Snapshot Position
  * You shouldn't change this after -fetchThumbnail
  * has been called.
- * @return snapshot position. Default value 0.5
+ * @return snapshot position. Default value 0.3
  */
-@property (readwrite, assign) float snapshotPosition;
+@property (readwrite, assign, nonatomic) float snapshotPosition;
 @end
 
+/**
+ * the required delegate protocol for VLCMediaThumbnailer
+ */
 @protocol VLCMediaThumbnailerDelegate
 @required
+/**
+ * called when the thumbnailing process timed-out
+ * \param mediaThumbnailer the thumbnailer instance that timed out
+ * \note The time-out duration depends on various factors outside your control and will not be the same for different media
+ */
 - (void)mediaThumbnailerDidTimeOut:(VLCMediaThumbnailer *)mediaThumbnailer;
+/**
+ * called when the thumbnailer did successfully created a thumbnail
+ * \param mediaThumbnailer the thumbnailer instance that was successful
+ * \param thumbnail the thumbnail that was created
+ */
 - (void)mediaThumbnailer:(VLCMediaThumbnailer *)mediaThumbnailer didFinishThumbnail:(CGImageRef)thumbnail;
 @end
+
+NS_ASSUME_NONNULL_END

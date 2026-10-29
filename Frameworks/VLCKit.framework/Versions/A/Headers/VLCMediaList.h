@@ -2,7 +2,8 @@
  * VLCMediaList.h: VLCKit.framework VLCMediaList header
  *****************************************************************************
  * Copyright (C) 2007 Pierre d'Herbemont
- * Copyright (C) 2007 VLC authors and VideoLAN
+ * Copyright (C) 2015 Felix Paul Kühne
+ * Copyright (C) 2007, 2015 VLC authors and VideoLAN
  * $Id$
  *
  * Authors: Pierre d'Herbemont <pdherbemont # videolan.org>
@@ -23,93 +24,131 @@
  *****************************************************************************/
 
 #import <Foundation/Foundation.h>
-#import "VLCMedia.h"
 
-/* Notification Messages */
+NS_ASSUME_NONNULL_BEGIN
+
+/**
+ * notification name if a list item was added
+ */
 extern NSString *const VLCMediaListItemAdded;
+/**
+ * notification name if a list item was deleted
+ */
 extern NSString *const VLCMediaListItemDeleted;
 
 @class VLCMedia;
 @class VLCMediaList;
 
 /**
- * TODO: Documentation VLCMediaListDelegate
+ * VLCMediaListDelegate
  */
-@protocol VLCMediaListDelegate
+@protocol VLCMediaListDelegate <NSObject>
+@optional
 /**
- * TODO: Documentation - [VLCMediaListDelegate mediaList:mediaAdded:atIndex:]
+ * delegate method triggered when a media was added to the list
+ *
+ * \param aMediaList the media list
+ * \param media the media object that was added
+ * \param index the index the media object was added at
  */
-- (void)mediaList:(VLCMediaList *)aMediaList mediaAdded:(VLCMedia *)media atIndex:(NSInteger)index;
+- (void)mediaList:(VLCMediaList *)aMediaList mediaAdded:(VLCMedia *)media atIndex:(NSUInteger)index;
 
 /**
- * TODO: Documentation - [VLCMediaListDelegate mediaList:mediaRemovedAtIndex:]
+ * delegate method triggered when a media was removed from the list
+ *
+ * \param aMediaList the media list
+ * \param index the index a media item was deleted at
  */
-- (void)mediaList:(VLCMediaList *)aMediaList mediaRemovedAtIndex:(NSInteger)index;
+- (void)mediaList:(VLCMediaList *)aMediaList mediaRemovedAtIndex:(NSUInteger)index;
 @end
 
 /**
- * TODO: Documentation VLCMediaList
+ * VLCMediaList
  */
 @interface VLCMediaList : NSObject
-{
-    void * p_mlist;                                 //< Internal instance of media list
-    id <VLCMediaListDelegate,NSObject> delegate;    //< Delegate object
-    /* We need that private copy because of Cocoa Bindings, that need to be working on first thread */
-    NSMutableArray * cachedMedia;                   //< Private copy of media objects.
-}
 
-- (id)initWithArray:(NSArray *)array;
+/**
+ * initializer with a set of VLCMedia instances
+ * \param array the NSArray of VLCMedia instances
+ * \return instance of VLCMediaList equipped with the VLCMedia instances
+ * \see VLCMedia
+ */
+- (instancetype)initWithArray:(NSArray<VLCMedia *> *)array;
 
 /* Operations */
 /**
- * TODO: Documentation - [VLCMediaList lock]
+ * lock the media list from being edited by another thread
  */
 - (void)lock;
 
 /**
- * TODO: Documentation - [VLCMediaList unlock]
+ * unlock the media list from being edited by another thread
  */
 - (void)unlock;
 
 /**
- * TODO: Documentation - [VLCMediaList addMedia:]
+ * add a media to a read-write list
+ *
+ * \param media the media object to add
+ * \return the index of the newly added media
+ * \note this function silently fails if the list is read-only
  */
-- (NSInteger)addMedia:(VLCMedia *)media;
+- (NSUInteger)addMedia:(VLCMedia *)media;
 
 /**
- * TODO: Documentation - [VLCMediaList insertMedia:atIndex:]
+ * add a media to a read-write list at a given position
+ *
+ * \param media the media object to add
+ * \param index the index where to add the given media
+ * \note this function silently fails if the list is read-only
  */
-- (void)insertMedia:(VLCMedia *)media atIndex:(NSInteger)index;
+- (void)insertMedia:(VLCMedia *)media atIndex:(NSUInteger)index;
 
 /**
- * TODO: Documentation - [VLCMediaList removeMediaAtIndex:]
+ * remove media at position index and return true if the operation was successful.
+ * An unsuccessful operation occurs when the index is greater than the medialists count
+ *
+ * \param index the index of the media to remove
+ * \return boolean result of the removal operation
+ * \note this function silently fails if the list is read-only
  */
-- (void)removeMediaAtIndex:(NSInteger)index;
+- (BOOL)removeMediaAtIndex:(NSUInteger)index;
 
 /**
- * TODO: Documentation - [VLCMediaList mediaAtIndex:]
+ * retrieve a media from a given position
+ *
+ * \param index the index of the media you want
+ * \return the media object
  */
-- (VLCMedia *)mediaAtIndex:(NSInteger)index;
+- (nullable VLCMedia *)mediaAtIndex:(NSUInteger)index;
 
 /**
- * TODO: Documentation - [VLCMediaList indexOfMedia:]
+ * retrieve the position of a media item
+ *
+ * \param media the media object to search for
+ * \return The lowest index of the provided media in the list
+ * If media does not exist in the list, returns NSNotFound.
  */
-- (NSInteger)indexOfMedia:(VLCMedia *)media;
+- (NSUInteger)indexOfMedia:(VLCMedia *)media;
 
 /* Properties */
 /**
- * TODO: Documentation VLCMediaList.count
+ * count number of media items in the list
+ * \return the number of media objects
  */
 @property (readonly) NSInteger count;
 
 /**
- * TODO: Documentation VLCMediaList.delegate
+ * delegate property to listen to addition/removal events
  */
-@property (assign) id delegate;
+@property (weak, nonatomic, nullable) id<VLCMediaListDelegate> delegate;
 
 /**
- * TODO: Documentation VLCMediaList.isReadOnly
+ * read-only property to check if the media list is writable or not
+ * \return boolean value if the list is read-only
  */
 @property (readonly) BOOL isReadOnly;
 
 @end
+
+NS_ASSUME_NONNULL_END
