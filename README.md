@@ -36,6 +36,8 @@ To work on the web frontend without the app: `python3 -m venv .venv && .venv/bin
 
 ## Plex
 
-To browse and play from a Plex Media Server, create `~/Library/Application Support/CMi/plex.json`:
+To browse and play from a Plex Media Server, open the Plex tile and enter the code it shows at plex.tv/link. CMi finds your servers and connects to the first address that answers.
+
+You can also skip the sign in by creating `~/Library/Application Support/CMi/plex.json` yourself:
 
     {"url": "http://192.168.1.10:32400", "token": "YOUR_PLEX_TOKEN"}

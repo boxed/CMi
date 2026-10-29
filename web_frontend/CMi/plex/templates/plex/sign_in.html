@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block contents %}
+    <h1 class="header">Sign in to Plex</h1>
+
+    <table class="list tiles" id="plex_sign_in">
+        <tr>
+            <td class="tile label">On your phone or computer, go to <b>plex.tv/link</b> and enter:</td>
+        </tr>
+        <tr>
+            <td class="tile label" style="font-size: 140px; letter-spacing: 30px; padding-top: 40px;">{{ code }}</td>
+        </tr>
+    </table>
+
+    <script>
+        (function poll() {
+            setTimeout(function() {
+                if (!$('#plex_sign_in').length) {
+                    return; // navigated away
+                }
+                $.ajax({
+                    url: '/plex/sign_in/check/',
+                    data: {ajax: 'True'},
+                    success: function(data) {
+                        if (data == ':refresh') {
+                            refresh(); // shows the libraries, the server list, or a new code
+                        }
+                        else {
+                            poll();
+                        }
+                    },
+                    error: poll
+                });
+            }, 2000);
+        })();
+    </script>
+{% endblock %}

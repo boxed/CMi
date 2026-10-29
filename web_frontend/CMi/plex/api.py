@@ -4,13 +4,13 @@ from CMi.plex import client
 
 
 def tiles():
-    if not client.config():
-        return []
+    c = client.config()
     return [
         (25, render_to_string('tile.html', {
             'url': '/plex/',
             'image': '/site-media/folders.svg',
             'title': 'Plex',
+            'content': c.get('server_name', '') if c else 'Sign in',
         })),
     ]
 
@@ -18,6 +18,9 @@ def urls():
     from CMi.plex import views
     return [
         re_path(r'^plex/$', views.index),
+        re_path(r'^plex/sign_in/check/$', views.sign_in_check),
+        re_path(r'^plex/server/(?P<client_identifier>[\w-]+)/$', views.choose_server),
+        re_path(r'^plex/sign_out/$', views.sign_out),
         re_path(r'^plex/section/(?P<section_id>\d+)/$', views.section),
         re_path(r'^plex/show/(?P<show_id>\d+)/$', views.show),
         re_path(r'^plex/(?P<rating_key>\d+)/$', views.play),

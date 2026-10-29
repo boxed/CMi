@@ -1,27 +1,104 @@
 import os
 import json
+import uuid
+import urllib.error
 import urllib.parse
 import urllib.request
 from xml.etree import ElementTree
 from django.conf import settings
 
-HEADERS = {
-    'X-Plex-Product': 'CMi',
-    'X-Plex-Client-Identifier': 'cmi-media-center',
-}
+PLEX_TV = 'https://plex.tv'
+
+
+def _config_path():
+    return os.path.join(settings.SUPPORT_FOLDER, 'plex.json')
+
+
+def _load():
+    if not os.path.exists(_config_path()):
+        return {}
+    with open(_config_path()) as f:
+        return json.load(f)
+
+
+def _save(c):
+    with open(_config_path(), 'w') as f:
+        json.dump(c, f, indent=4)
 
 
 def config():
     """
     Reads plex.json from the CMi support folder, e.g.:
         {"url": "http://192.168.1.10:32400", "token": "abc123"}
+    It's written when you sign in from the GUI, but you can also write it by hand.
     Returns None if Plex isn't configured.
     """
-    config_path = os.path.join(settings.SUPPORT_FOLDER, 'plex.json')
-    if not os.path.exists(config_path):
-        return None
-    with open(config_path) as f:
-        return json.load(f)
+    c = _load()
+    return c if c.get('url') and c.get('token') else None
+
+
+def headers():
+    c = _load()
+    if 'client_id' not in c:
+        # Plex identifies devices by this, so it needs to be unique per install and stay the same
+        c['client_id'] = str(uuid.uuid4())
+        _save(c)
+    return {
+        'X-Plex-Product': 'CMi',
+        'X-Plex-Device-Name': 'CMi',
+        'X-Plex-Client-Identifier': c['client_id'],
+        'Accept': 'application/json',
+    }
+
+
+def _plex_tv(path, token=None, data=None):
+    h = headers()
+    if token:
+        h['X-Plex-Token'] = token
+    body = urllib.parse.urlencode(data).encode() if data is not None else None
+    return json.load(urllib.request.urlopen(urllib.request.Request(PLEX_TV + path, data=body, headers=h), timeout=10))
+
+
+def create_pin():
+    """Start a sign in. The user enters the returned code at plex.tv/link"""
+    return _plex_tv('/api/v2/pins', data={'strong': 'false'})
+
+
+def pin_token(pin_id):
+    """The account token once the user has entered the code, otherwise None"""
+    return _plex_tv('/api/v2/pins/%s' % pin_id).get('authToken')
+
+
+def servers(account_token):
+    return [x for x in _plex_tv('/api/v2/resources?includeHttps=1&includeRelay=1', token=account_token) if 'server' in x['provides'].split(',')]
+
+
+def reachable_url(server):
+    """The first connection to the server that answers: local first, then remote, then Plex's relay"""
+    for connection in sorted(server['connections'], key=lambda x: (x['relay'], not x['local'])):
+        try:
+            urllib.request.urlopen(urllib.request.Request(connection['uri'] + '/identity', headers={'X-Plex-Token': server['accessToken']}), timeout=3)
+            return connection['uri']
+        except (urllib.error.URLError, OSError):
+            pass
+    return None
+
+
+def sign_in(server):
+    server_url = reachable_url(server)
+    if server_url is None:
+        return False
+    c = _load()
+    c.update(url=server_url, token=server['accessToken'], server_name=server['name'])
+    _save(c)
+    return True
+
+
+def sign_out():
+    c = _load()
+    for key in ('url', 'token', 'server_name'):
+        c.pop(key, None)
+    _save(c)
 
 
 def url(path, **params):
@@ -31,7 +108,9 @@ def url(path, **params):
 
 
 def _open(path, **params):
-    return urllib.request.urlopen(urllib.request.Request(url(path, **params), headers=HEADERS), timeout=10)
+    h = headers()
+    del h['Accept']  # the library endpoints are parsed as XML
+    return urllib.request.urlopen(urllib.request.Request(url(path, **params), headers=h), timeout=10)
 
 
 def get(path, **params):

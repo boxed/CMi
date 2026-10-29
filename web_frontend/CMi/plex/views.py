@@ -1,4 +1,6 @@
 import subprocess
+import time
+import urllib.error
 from math import ceil
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -14,9 +16,67 @@ def to_columns(items, height=11):
     return rows
 
 
+# Sign in state. There is only one CMi user, so keeping it in the process is fine.
+_pin = None  # the code currently shown on screen
+_account_token = None  # signed in to plex.tv, but not yet chosen a server
+PIN_LIFETIME = 14 * 60  # plex.tv expires them after 15 minutes
+
+
 def index(request):
-    items = [ListItem('/plex/section/%s' % x.get('key'), x.get('title')) for x in client.sections()]
-    return render(request, 'list.html', {'title': 'Plex', 'items': items})
+    global _pin
+    c = client.config()
+    if c:
+        items = [ListItem('/plex/section/%s' % x.get('key'), x.get('title')) for x in client.sections()]
+        items.append(ListItem('/plex/sign_out', 'Sign out', c.get('server_name')))
+        return render(request, 'list.html', {'title': 'Plex', 'items': items})
+
+    if _account_token:
+        items = [ListItem('/plex/server/%s' % x['clientIdentifier'], x['name'], '' if x['owned'] else 'shared') for x in client.servers(_account_token)]
+        return render(request, 'list.html', {'title': 'Choose Plex server' if items else 'No Plex servers found', 'items': items})
+
+    if _pin is None or time.time() - _pin['created'] > PIN_LIFETIME:
+        _pin = client.create_pin()
+        _pin['created'] = time.time()
+    return render(request, 'plex/sign_in.html', {'code': _pin['code']})
+
+
+def sign_in_check(request):
+    """Polled by the sign in page. :refresh makes it reload, showing the libraries or the server list"""
+    global _pin, _account_token
+    if _pin is None:
+        return HttpResponse(':refresh')
+    if time.time() - _pin['created'] > PIN_LIFETIME:
+        return HttpResponse(':refresh')  # index makes a new code
+    try:
+        token = client.pin_token(_pin['id'])
+    except urllib.error.HTTPError:
+        _pin = None  # expired or unknown
+        return HttpResponse(':refresh')
+    if not token:
+        return HttpResponse(':nothing')
+    _pin = None
+    servers = client.servers(token)
+    if len(servers) != 1 or not client.sign_in(servers[0]):
+        _account_token = token
+    return HttpResponse(':refresh')
+
+
+def choose_server(request, client_identifier):
+    global _account_token
+    if _account_token is None:
+        return HttpResponse(':back')
+    for server in client.servers(_account_token):
+        if server['clientIdentifier'] == client_identifier:
+            if client.sign_in(server):
+                _account_token = None
+            else:
+                print('Could not connect to Plex server', server['name'])
+    return HttpResponse(':back')
+
+
+def sign_out(request):
+    client.sign_out()
+    return HttpResponse(':back')
 
 
 def section(request, section_id):
