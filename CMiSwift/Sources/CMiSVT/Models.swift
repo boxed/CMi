@@ -36,6 +36,14 @@ public struct SVTTeaser: Sendable, Hashable, Identifiable {
         if case .video(let id) = kind { return id }
         return nil
     }
+
+    /// The page of the program an episode belongs to: "/agenda" for "/video/jz7vN6E/agenda/missnojet-mot-s".
+    /// Nil for films ("/video/emyqarV/gift"), clips and programs.
+    public var programPath: String? {
+        let parts = path.split(separator: "/")
+        guard parts.count >= 4, parts[0] == "video" else { return nil }
+        return "/" + parts[2]
+    }
 }
 
 /// A named list of teasers: a row on the start page, a season, or a letter of the A–Ö list.

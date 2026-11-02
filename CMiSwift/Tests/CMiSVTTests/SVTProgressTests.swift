@@ -54,4 +54,24 @@ import Testing
         #expect(await progress.nextEpisode(in: eps) == nil)
         try FileManager.default.removeItem(at: folder)
     }
+
+    @Test func programPathOfEpisodes() {
+        #expect(SVTTeaser(path: "/video/jz7vN6E/agenda/missnojet-mot-s", title: "").programPath == "/agenda")
+        #expect(SVTTeaser(path: "/video/emyqarV/gift", title: "").programPath == nil)
+        #expect(SVTTeaser(path: "/klipp/abc/agenda/klippet", title: "").programPath == nil)
+        #expect(SVTTeaser(path: "/agenda", title: "").programPath == nil)
+    }
+
+    @Test func recentProgramsMostRecentFirst() async throws {
+        let progress = SVTProgress(supportFolder: folder)
+        await progress.markWatched("a1", title: "A – 1", programPath: "/a")
+        await progress.markWatched("b1", title: "B – 1", programPath: "/b")
+        await progress.setPosition(of: "film", title: "Film", milliseconds: 1000)
+        await progress.setPosition(of: "a2", title: "A – 2", programPath: "/a", milliseconds: 1000)
+        #expect(await progress.recentPrograms().map(\.path) == ["/a", "/b"])
+        // Remembered, and kept when a later report doesn't know the program
+        await progress.markWatched("a2", title: "A – 2")
+        #expect(await SVTProgress(supportFolder: folder).entry(for: "a2")?.programPath == "/a")
+        try FileManager.default.removeItem(at: folder)
+    }
 }

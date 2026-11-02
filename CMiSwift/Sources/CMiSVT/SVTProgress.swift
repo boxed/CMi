@@ -10,6 +10,8 @@ public actor SVTProgress {
         public var milliseconds: Int
         public var watched: Bool
         public var updated: Date
+        /// The page of the program it's an episode of, e.g. "/agenda", so its next episode can be found.
+        public var programPath: String?
     }
 
     private let file: URL
@@ -24,17 +26,19 @@ public actor SVTProgress {
 
     public func entry(for videoID: String) -> Entry? { entries[videoID] }
 
-    public func setPosition(of videoID: String, title: String, milliseconds: Int) {
+    public func setPosition(of videoID: String, title: String, programPath: String? = nil, milliseconds: Int) {
         var entry = entries[videoID] ?? Entry(videoID: videoID, title: title, milliseconds: 0, watched: false, updated: .now)
         entry.title = title
+        entry.programPath = programPath ?? entry.programPath
         entry.milliseconds = milliseconds
         entry.updated = .now
         entries[videoID] = entry
         save()
     }
 
-    public func markWatched(_ videoID: String, title: String) {
+    public func markWatched(_ videoID: String, title: String, programPath: String? = nil) {
         var entry = entries[videoID] ?? Entry(videoID: videoID, title: title, milliseconds: 0, watched: false, updated: .now)
+        entry.programPath = programPath ?? entry.programPath
         entry.watched = true
         entry.milliseconds = 0
         entry.updated = .now
@@ -45,6 +49,16 @@ public actor SVTProgress {
     /// Started but not finished, most recent first.
     public func inProgress(limit: Int = 10) -> [Entry] {
         Array(entries.values.filter { !$0.watched && $0.milliseconds > 0 }.sorted { $0.updated > $1.updated }.prefix(limit))
+    }
+
+    /// The programs something has been watched in, most recently watched first, with when that was.
+    public func recentPrograms(limit: Int = 10) -> [(path: String, updated: Date)] {
+        var latest: [String: Date] = [:]
+        for entry in entries.values {
+            guard let path = entry.programPath else { continue }
+            latest[path] = max(latest[path] ?? .distantPast, entry.updated)
+        }
+        return Array(latest.sorted { $0.value > $1.value }.prefix(limit).map { (path: $0.key, updated: $0.value) })
     }
 
     /// The episode to continue with: the first one in progress, else the first unwatched one after the last
