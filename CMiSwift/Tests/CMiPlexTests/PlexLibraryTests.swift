@@ -108,6 +108,7 @@ import Testing
         let playback = try await fake.makePlex().playback(of: "102")
         #expect(playback.streamURL.absoluteString == "\(server)/library/parts/9/1600000000/file.mkv?X-Plex-Token=server-token")
         #expect(playback.offset == 600_000)
+        #expect(playback.size == 123)
     }
 
     @Test func playbackWithoutMedia() async throws {

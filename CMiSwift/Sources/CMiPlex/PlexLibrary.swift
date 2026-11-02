@@ -100,7 +100,7 @@ extension Plex {
               let partKey = metadata.partKey
         else { throw PlexError.noMedia }
         let streamURL = url(base: server.url, path: partKey, query: [URLQueryItem(name: "X-Plex-Token", value: server.token)])
-        return PlexPlayback(streamURL: streamURL, offset: metadata.viewOffset)
+        return PlexPlayback(streamURL: streamURL, offset: metadata.viewOffset, size: metadata.partSize)
     }
 
     /// Reports the playback position. Failures are ignored, the next report will catch up.

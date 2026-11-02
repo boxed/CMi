@@ -153,6 +153,7 @@ struct MetadataDTO: Decodable {
     var originallyAvailableAt: String?
     var grandparentTitle: String?
     var partKey: String?
+    var partSize: Int?
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: AnyKey.self)
@@ -168,23 +169,28 @@ struct MetadataDTO: Decodable {
         index = c.lenientInt(AnyKey("index"))
         originallyAvailableAt = c.lenientString(AnyKey("originallyAvailableAt"))
         grandparentTitle = c.lenientString(AnyKey("grandparentTitle"))
-        partKey = c.lenientArray(MediaDTO.self, AnyKey("Media")).first?.partKeys.first
+        let part = c.lenientArray(MediaDTO.self, AnyKey("Media")).first?.parts.first { $0.key != nil }
+        partKey = part?.key
+        partSize = part?.size
     }
 }
 
 struct MediaDTO: Decodable {
-    var partKeys: [String]
+    var parts: [PartDTO]
 
     init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: AnyKey.self)
-        partKeys = c.lenientArray(PartDTO.self, AnyKey("Part")).compactMap(\.key)
+        parts = try decoder.container(keyedBy: AnyKey.self).lenientArray(PartDTO.self, AnyKey("Part"))
     }
 }
 
 struct PartDTO: Decodable {
     var key: String?
+    /// In bytes.
+    var size: Int?
 
     init(from decoder: Decoder) throws {
-        key = try decoder.container(keyedBy: AnyKey.self).lenientString(AnyKey("key"))
+        let c = try decoder.container(keyedBy: AnyKey.self)
+        key = c.lenientString(AnyKey("key"))
+        size = c.lenientInt(AnyKey("size"))
     }
 }

@@ -191,8 +191,12 @@ final class ControlsOverlay: FrameSource {
             // Progress bar and time, above the buttons.
             let bar = progressBarFrame(viewSize: viewSize)
             let progress = player.duration > 0 ? CGFloat(player.currentTime) / CGFloat(player.duration) : 0
+            let buffered = player.bufferedUntil.map { CGFloat($0) / CGFloat(player.duration) } ?? 0
             batches.append(DrawBatch(texture: textTexture, instances: [
                 Instance(rect: bar, uv: nil, colors: Palette.tile, opacity: Self.opacity),
+                // What's downloaded ahead, dimmer than what's been played
+                Instance(rect: CGRect(x: bar.minX, y: bar.minY, width: bar.width * min(1, buffered), height: bar.height),
+                         uv: nil, colors: Palette.focus, opacity: Self.opacity * 0.35),
                 Instance(rect: CGRect(x: bar.minX, y: bar.minY, width: bar.width * min(1, progress), height: bar.height),
                          uv: nil, colors: Palette.focus, opacity: Self.opacity),
                 Instance(rect: CGRect(x: row.minX, y: bar.minY - 10 - textSize.height, width: textSize.width, height: textSize.height),

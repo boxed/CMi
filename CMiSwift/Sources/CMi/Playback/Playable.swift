@@ -12,4 +12,6 @@ struct Playable {
     /// Downloads come with whatever subtitles happen to be in the file, so they're turned off. Streams like
     /// SVT Play mark the ones to show (Swedish for foreign language programs), so those are kept.
     var keepsSubtitles = false
+    /// The file's size in bytes, to show how much is buffered. Unknown for streams like SVT Play's.
+    var byteSize: Int?
 }

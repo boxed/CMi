@@ -130,6 +130,8 @@ public struct PlexPlayback: Sendable {
     public var streamURL: URL
     /// Resume position in milliseconds.
     public var offset: Int
+    /// The file's size in bytes, if Plex knows it.
+    public var size: Int?
 }
 
 public enum PlexError: Error, Sendable, Equatable {

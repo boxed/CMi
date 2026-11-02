@@ -12,6 +12,9 @@ final class Player: NSObject {
     private var hasReportedEnd = false
     private var hasFixedTracks = false
     private var progressTimer: Timer?
+    /// For estimating how far ahead is downloaded: a time in the video, and VLC's count of bytes read then.
+    private var bufferAnchor = (milliseconds: 0, readBytes: Int32(0))
+    private var byteSize: Int?
 
     /// Called after playback stops, for whatever reason.
     var onStop: (() -> Void)?
@@ -48,6 +51,8 @@ final class Player: NSObject {
         hasReportedEnd = false
         hasFixedTracks = false
         isPaused = false
+        byteSize = playable.byteSize ?? (playable.url.isFileURL ? Self.fileSize(playable.url) : nil)
+        bufferAnchor = (playable.startMilliseconds, 0)
         let media = VLCMedia(url: playable.url)
         media.addOptions(["network-caching": Self.networkCaching, "file-caching": Self.fileCaching,
                           "prefetch-buffer-size": Self.readAheadMegabytes * 1024])   // in KiB
@@ -55,7 +60,7 @@ final class Player: NSObject {
         mediaPlayer.play()
         mediaPlayer.audio?.volume = Int32(volume * 100)
         if playable.startMilliseconds > 0 {
-            mediaPlayer.time = VLCTime(int: Int32(playable.startMilliseconds))
+            mediaPlayer.time = VLCTime(int: Int32(playable.startMilliseconds))   // not seek(to:): the duration isn't known yet
         }
         progressTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.reportProgress() }
@@ -94,15 +99,37 @@ final class Player: NSObject {
         if !isPaused { onResume?() }
     }
 
-    func jumpForward() { mediaPlayer.jumpForward(Self.jumpSeconds) }
-    func jumpBackward() { mediaPlayer.jumpBackward(Self.jumpSeconds) }
-    func toBeginning() { mediaPlayer.time = VLCTime(int: 0) }
-    func seek(to milliseconds: Int) { mediaPlayer.time = VLCTime(int: Int32(min(max(0, milliseconds), duration))) }
+    func jumpForward() { seek(to: currentTime + Int(Self.jumpSeconds) * 1000) }
+    func jumpBackward() { seek(to: currentTime - Int(Self.jumpSeconds) * 1000) }
+    func toBeginning() { seek(to: 0) }
+
+    func seek(to milliseconds: Int) {
+        let target = min(max(0, milliseconds), duration)
+        // VLC keeps what it has read ahead when jumping into it; anywhere else it starts reading from there.
+        if !(currentTime...max(currentTime, bufferedUntil ?? 0)).contains(target) {
+            bufferAnchor = (target, mediaPlayer.media?.statistics.readBytes ?? 0)
+        }
+        mediaPlayer.time = VLCTime(int: Int32(target))
+    }
 
     /// Pauses just before the end, so the viewer can decide whether it's done.
     func toEnd() {
         if !isPaused { playPause() }
-        mediaPlayer.time = VLCTime(int: Int32(max(0, duration - 1000)))
+        seek(to: duration - 1000)
+    }
+
+    /// How far into the video is downloaded, estimated from the bytes VLC has read since the last seek and the
+    /// file's average bitrate. Nil when the file's size is unknown (streams).
+    var bufferedUntil: Int? {
+        guard let byteSize, byteSize > 0, duration > 0, let read = mediaPlayer.media?.statistics.readBytes else { return nil }
+        // VLC counts in 32 bits, so this wraps every 4 GB
+        let bytes = Double(UInt32(bitPattern: read &- bufferAnchor.readBytes))
+        let milliseconds = bufferAnchor.milliseconds + Int(bytes / Double(byteSize) * Double(duration))
+        return min(duration, max(currentTime, milliseconds))
+    }
+
+    private static func fileSize(_ url: URL) -> Int? {
+        (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue
     }
 
     /// Writes the current video frame as a PNG (VLC renders it, so this checks decoding works).

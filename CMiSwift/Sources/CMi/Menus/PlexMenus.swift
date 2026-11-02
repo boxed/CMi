@@ -134,7 +134,7 @@ struct PlexMenus {
         let playback = try await plex.playback(of: ratingKey)
         return Playable(title: title, url: playback.streamURL, startMilliseconds: playback.offset,
                         reportPosition: { await plex.reportProgress(of: ratingKey, milliseconds: $0) },
-                        reportEnded: { await plex.scrobble(ratingKey) })
+                        reportEnded: { await plex.scrobble(ratingKey) }, byteSize: playback.size)
     }
 }
 
