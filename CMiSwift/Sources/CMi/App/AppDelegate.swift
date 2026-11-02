@@ -109,6 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         overlay.hide(force: true)
         player.videoView.isHidden = false
         player.play(playable)
+        NSCursor.setHiddenUntilMouseMoves(true)
         updateNowPlaying()
     }
 
@@ -220,6 +221,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 navigator.open(search.source())
                 return
             }
+            if modifiers == .command && character == "r" {
+                navigator.refresh()
+                return
+            }
             if navigator.acceptsText && modifiers.isEmpty {
                 if event.keyCode == 51 {   // backspace deletes, and goes back once there's nothing left
                     if !navigator.deleteBackward() { navigator.back() }
@@ -229,6 +234,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     navigator.insertText(text)
                     return
                 }
+            } else if modifiers.isEmpty, let text = event.characters, Self.isTypable(text), navigator.typeToJump(text) {
+                return
             }
         }
         guard modifiers.isEmpty, let key = Key(event) else { return }
@@ -247,7 +254,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         navigator.insertText(text)
     }
 
-    /// In menus: arrows move, return opens, escape/backspace go back, R refreshes.
+    /// In menus: arrows move, return opens, escape/backspace go back, typing jumps to a title, ⌘R refreshes.
     /// While playing (the old player's keys, plus left/right to skip like the remote had): space plays/pauses
     /// (or presses the focused control), return/escape/M show or hide the controls, left/right skip 30 seconds
     /// (or move between controls), up/down change the volume, backspace stops.
@@ -260,8 +267,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case .up: navigator.moveFocus(dx: 0, dy: -1)
             case .enter: navigator.go()
             case .escape, .backspace: navigator.back()
-            case .r: navigator.refresh()
-            case .space, .m: break
+            case .space, .m, .r: break
             }
             return
         }
@@ -289,6 +295,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if let button = overlay.button(at: p, viewSize: viewSize) {
                 overlay.focus = button
                 overlay.activate(button)
+            } else if let fraction = overlay.progressFraction(at: p, viewSize: viewSize) {
+                player.seek(to: Int(fraction * Double(player.duration)))
+                overlay.show(sticky: false)
             } else {
                 overlay.show(sticky: false)
             }

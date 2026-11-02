@@ -242,6 +242,15 @@ final class Level {
         }
     }
 
+    /// Focuses the first tile whose title starts with `prefix`, ignoring case and accents. False if there's none.
+    func focusFirst(withPrefix prefix: String) -> Bool {
+        let options: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive, .anchored]
+        guard let i = tiles.firstIndex(where: { $0.item.map { $0.title.range(of: prefix, options: options) != nil } ?? false })
+        else { return false }
+        focus = i
+        return true
+    }
+
     /// grid_navigation.js: step in a direction to the next tile, skipping empty cells and labels.
     func moveFocus(dx: Int, dy: Int) {
         guard let focus else { return }

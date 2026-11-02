@@ -32,12 +32,12 @@ bundle, which is why the app is run from `build/CMi.app` rather than with `swift
 
 ## Keys
 
-In menus: arrows move, Return opens, Escape or Backspace goes back, R refreshes. `/` or ⌘F searches
+In menus: arrows move, Return opens, Escape or Backspace goes back, typing jumps to the first title starting with what you typed, ⌘R refreshes. `/` or ⌘F searches
 local TV shows and movies, Plex and SVT Play from anywhere; type to search, Backspace deletes.
 
 While playing: Space plays/pauses, Left/Right skip 30 seconds, Up/Down change the volume, Return, Escape
 or M show the on-screen controls (then Left/Right pick one and Space/Return presses it), Backspace stops.
-Media keys work too.
+Media keys work too. Clicking the progress bar jumps to that point.
 
 ## Settings
 

@@ -93,6 +93,7 @@ final class Player: NSObject {
     func jumpForward() { mediaPlayer.jumpForward(Self.jumpSeconds) }
     func jumpBackward() { mediaPlayer.jumpBackward(Self.jumpSeconds) }
     func toBeginning() { mediaPlayer.time = VLCTime(int: 0) }
+    func seek(to milliseconds: Int) { mediaPlayer.time = VLCTime(int: Int32(min(max(0, milliseconds), duration))) }
 
     /// Pauses just before the end, so the viewer can decide whether it's done.
     func toEnd() {

@@ -124,6 +124,26 @@ final class Navigator: FrameSource {
         return true
     }
 
+    // MARK: Type to jump
+
+    /// What's been typed to jump to a tile, like in Finder lists. Forgotten after a pause in typing.
+    private var typeAhead = ""
+    private var typeAheadAt: CFTimeInterval = 0
+
+    /// Returns false when the key wasn't used, so a space that doesn't continue a prefix can do its usual thing.
+    func typeToJump(_ text: String) -> Bool {
+        guard let level = current else { return false }
+        let now = CACurrentMediaTime()
+        if now - typeAheadAt > 1 { typeAhead = "" }
+        if typeAhead.isEmpty && text.allSatisfy(\.isWhitespace) { return false }
+        typeAheadAt = now
+        typeAhead += text
+        if level.focusFirst(withPrefix: typeAhead) {
+            prefetchSoon()
+        }
+        return true
+    }
+
     // MARK: Loading
 
     /// `loaded` is the menu if it's already loaded (or loading).

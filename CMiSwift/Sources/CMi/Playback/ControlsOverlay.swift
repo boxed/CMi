@@ -101,6 +101,7 @@ final class ControlsOverlay: FrameSource {
         hideTask?.cancel()
         isShowing = false
         isSticky = false
+        if player.isPlaying { NSCursor.setHiddenUntilMouseMoves(true) }   // moving the mouse shows both again
     }
 
     func moveFocus(by delta: Int) {
@@ -123,7 +124,20 @@ final class ControlsOverlay: FrameSource {
         return Button.allCases.first { frame(of: $0, viewSize: viewSize).contains(p) }
     }
 
+    /// The fraction of the video at `p`, if it's on the progress bar (the hit area is taller than the bar).
+    func progressFraction(at p: CGPoint, viewSize: CGSize) -> Double? {
+        guard isShowing else { return nil }
+        let bar = progressBarFrame(viewSize: viewSize)
+        guard bar.insetBy(dx: 0, dy: -10).contains(p) else { return nil }
+        return Double((p.x - bar.minX) / bar.width)
+    }
+
     // MARK: Layout
+
+    private func progressBarFrame(viewSize: CGSize) -> CGRect {
+        let row = rowFrame(viewSize: viewSize)
+        return CGRect(x: row.minX, y: row.minY - 20, width: row.width, height: 6)
+    }
 
     private func rowFrame(viewSize: CGSize) -> CGRect {
         let s = Layout.borderSpacing
@@ -175,7 +189,7 @@ final class ControlsOverlay: FrameSource {
         if isShowing {
             updateText()
             // Progress bar and time, above the buttons.
-            let bar = CGRect(x: row.minX, y: row.minY - 20, width: row.width, height: 6)
+            let bar = progressBarFrame(viewSize: viewSize)
             let progress = player.duration > 0 ? CGFloat(player.currentTime) / CGFloat(player.duration) : 0
             batches.append(DrawBatch(texture: textTexture, instances: [
                 Instance(rect: bar, uv: nil, colors: Palette.tile, opacity: Self.opacity),
