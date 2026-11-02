@@ -7,7 +7,7 @@ enum Motion {
     enum Direction { case forward, back }
 
     static let inDuration = 0.35
-    static let outDuration = 0.25
+    static let outDuration = 0.2
 
     /// Nearly edge-on, so tiles only swing a short way into place and never show their back.
     static let enterAngle: Float = 70 * .pi / 180
@@ -34,6 +34,10 @@ enum Motion {
     static let pressedScale: Float = 0.96
     static let pressDuration = 0.1
 
+    /// How long focus rests on a tile before what it opens is loaded ahead, and how long that stays fresh.
+    static let prefetchDelay = 0.15
+    static let prefetchLifetime = 60.0
+
     /// `$('#back_link').animate({opacity: ...}, {duration: 300})`
     static let backButtonFade = 0.3
 }
@@ -46,7 +50,7 @@ enum Curve {
         let t = max(0, min(1, t))
         switch self {
         case .easeOut: return (1 - exp(-6 * t)) / (1 - exp(-6))
-        case .easeIn: return (exp(4 * t) - 1) / (exp(4) - 1)
+        case .easeIn: return (exp(2 * t) - 1) / (exp(2) - 1)
         }
     }
 }

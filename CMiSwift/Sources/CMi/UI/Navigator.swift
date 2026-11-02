@@ -13,11 +13,15 @@ final class Navigator: FrameSource {
     private var current: Level?
     private var currentSource: MenuSource
     private var leaving: [Level] = []
-    /// menu_history + menu_history_position: the levels below this one and their focus.
-    private var history: [(source: MenuSource, focus: Level.FocusMemory?)] = []
+    /// menu_history + menu_history_position: the levels below this one, their focus, and what they showed,
+    /// so going back is instant.
+    private var history: [(source: MenuSource, focus: Level.FocusMemory?, menu: Menu?)] = []
     /// Bumped on every navigation, so a slow load can't replace a newer screen.
     private var generation = 0
     private var pollTask: Task<Void, Never>?
+    /// The menu behind the focused tile, loaded while the user decides, so opening it doesn't wait on the network.
+    private var prefetch: (level: Level, tile: Int, started: CFTimeInterval, task: Task<Menu?, Error>)?
+    private var prefetchDelay: Task<Void, Never>?
 
     private var chrome: Chrome
 
@@ -33,6 +37,7 @@ final class Navigator: FrameSource {
 
     func moveFocus(dx: Int, dy: Int) {
         current?.moveFocus(dx: dx, dy: dy)
+        prefetchSoon()
     }
 
     func click(at p: CGPoint) {
@@ -48,8 +53,8 @@ final class Navigator: FrameSource {
         level.setPressed(true, at: i)
         switch action {
         case .open(let source):
-            history.append((currentSource, level.focusMemory))
-            navigate(to: source, focus: nil, direction: .forward, pressed: i)
+            history.append((currentSource, level.focusMemory, level.menu))
+            navigate(to: source, focus: nil, direction: .forward, pressed: i, loaded: prefetched(level, i))
         case .play(let makePlayable):
             Task {
                 defer { level.setPressed(false, at: i) }
@@ -79,7 +84,12 @@ final class Navigator: FrameSource {
         for _ in 1..<max(1, levels) where !history.isEmpty {
             previous = history.removeLast()
         }
-        navigate(to: previous.source, focus: previous.focus, direction: .back)
+        let loaded = previous.menu.map { menu in Task<Menu?, Error> { menu } }
+        navigate(to: previous.source, focus: previous.focus, direction: .back, loaded: loaded)
+        // What it showed might be out of date by now
+        if loaded != nil {
+            refreshAfterAnimation = true
+        }
     }
 
     /// Rebuilds the current menu in place, without animation (cmi.js refresh()).
@@ -92,7 +102,7 @@ final class Navigator: FrameSource {
     /// Opens a menu on top of the current one, like pressing a tile that opens it.
     func open(_ source: @escaping MenuSource) {
         if current != nil {
-            history.append((currentSource, current?.focusMemory))
+            history.append((currentSource, current?.focusMemory, current?.menu))
         }
         navigate(to: source, focus: nil, direction: .forward)
     }
@@ -116,26 +126,33 @@ final class Navigator: FrameSource {
 
     // MARK: Loading
 
+    /// `loaded` is the menu if it's already loaded (or loading).
     private func navigate(to source: @escaping MenuSource, focus: Level.FocusMemory?, direction: Motion.Direction,
-                          pressed: Int? = nil) {
+                          pressed: Int? = nil, loaded: Task<Menu?, Error>? = nil) {
         if let level = current {
             level.flipOut(now: CACurrentMediaTime(), direction: direction, pressed: pressed)
             leaving.append(level)
             current = nil
         }
         currentSource = source
-        load(source, focus: focus, direction: direction)
+        load(source, focus: focus, direction: direction, loaded: loaded)
     }
 
     /// A nil direction (a refresh) shows the menu without animation.
-    private func load(_ source: @escaping MenuSource, focus: Level.FocusMemory?, direction: Motion.Direction?) {
+    private func load(_ source: @escaping MenuSource, focus: Level.FocusMemory?, direction: Motion.Direction?,
+                      loaded: Task<Menu?, Error>? = nil) {
         generation += 1
         let generation = generation
         pollTask?.cancel()
+        prefetchDelay?.cancel()
+        if let unused = prefetch?.task, unused != loaded {
+            unused.cancel()
+        }
+        prefetch = nil
         Task {
             let menu: Menu?
             do {
-                menu = try await source()
+                menu = try await (loaded ?? Task { try await source() }).value
             } catch {
                 menu = .message("Something went wrong", error.localizedDescription)
             }
@@ -160,6 +177,38 @@ final class Navigator: FrameSource {
         current = level
         chrome.setBackButtonVisible(!history.isEmpty)
         startPolling(menu.poll)
+        if refreshAfterAnimation {
+            refreshAfterAnimation = false
+            let generation = generation
+            Task {
+                try? await Task.sleep(for: .seconds(max(0, level.animationEnd - CACurrentMediaTime())))
+                if generation == self.generation { refresh() }
+            }
+        }
+        prefetchSoon()
+    }
+
+    /// Set when going back to a remembered menu, to reload it once it has swung in.
+    private var refreshAfterAnimation = false
+
+    /// Starts loading what the focused tile opens, once focus has rested on it for a moment.
+    private func prefetchSoon() {
+        prefetchDelay?.cancel()
+        guard let level = current, let i = level.focus, case .open(let source)? = level.focusedItem?.action,
+              prefetch?.level !== level || prefetch?.tile != i else { return }
+        prefetchDelay = Task {
+            try? await Task.sleep(for: .seconds(Motion.prefetchDelay))
+            guard !Task.isCancelled, current === level, level.focus == i else { return }
+            prefetch?.task.cancel()
+            prefetch = (level, i, CACurrentMediaTime(), Task { try await source() })
+        }
+    }
+
+    /// The prefetched menu for a tile, unless it's too old to trust.
+    private func prefetched(_ level: Level, _ i: Int) -> Task<Menu?, Error>? {
+        guard let prefetch, prefetch.level === level, prefetch.tile == i,
+              CACurrentMediaTime() - prefetch.started < Motion.prefetchLifetime else { return nil }
+        return prefetch.task
     }
 
     private func startPolling(_ poll: Menu.Poll?) {
