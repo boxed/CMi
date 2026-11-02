@@ -82,11 +82,13 @@ struct TileTransition {
                        start: start, duration: Motion.inDuration, curve: .easeOut)
     }
 
-    /// Swinging out from wherever it is now, until edge-on.
+    /// Swinging out from wherever it is now, until edge-on, fading as it goes. Edge-on isn't invisible: the page
+    /// is seen from the middle of the table, so a tile swung away into the screen would stay a sliver by the left
+    /// edge until the page is removed.
     func exiting(_ direction: Motion.Direction, now: CFTimeInterval, delay: Double) -> TileTransition {
         let current = value(at: now)
         return TileTransition(fromAngle: current.angle, toAngle: Motion.exitingAngle(direction),
-                              fromOpacity: current.opacity, toOpacity: current.opacity,
+                              fromOpacity: current.opacity, toOpacity: 0,
                               start: now + delay, duration: Motion.outDuration, curve: .easeIn)
     }
 }
