@@ -45,6 +45,8 @@ Change with `defaults write net.kodare.CMi <key> <value>`, then restart CMi:
 
 - `zoom` (`-float`, default 1.5) – how much bigger the menus are drawn than the old web frontend.
 - `networkCaching` / `fileCaching` (`-int`, milliseconds, default 8000 / 3000) – how much VLC buffers.
+- `readAheadMegabytes` (`-int`, default 256) – how far ahead VLC may download when the network is faster than
+  the video, so a good connection builds up minutes of buffer for Plex, SVT Play and network shares.
 
 ## Environment variables
 

@@ -27,6 +27,9 @@ final class Player: NSObject {
     /// shares. Adjustable with e.g. `defaults write net.kodare.CMi networkCaching -int 15000`.
     static var networkCaching: Int { UserDefaults.standard.object(forKey: "networkCaching") as? Int ?? 8000 }
     static var fileCaching: Int { UserDefaults.standard.object(forKey: "fileCaching") as? Int ?? 3000 }
+    /// How far ahead VLC may download, in megabytes, when the network is faster than the video. Caching above is
+    /// a fixed delay; this is what lets a good connection build up minutes of buffer. VLC's default is 16 MB.
+    static var readAheadMegabytes: Int { UserDefaults.standard.object(forKey: "readAheadMegabytes") as? Int ?? 256 }
 
     override init() {
         videoView = VLCVideoView(frame: .zero)
@@ -46,7 +49,8 @@ final class Player: NSObject {
         hasFixedTracks = false
         isPaused = false
         let media = VLCMedia(url: playable.url)
-        media.addOptions(["network-caching": Self.networkCaching, "file-caching": Self.fileCaching])
+        media.addOptions(["network-caching": Self.networkCaching, "file-caching": Self.fileCaching,
+                          "prefetch-buffer-size": Self.readAheadMegabytes * 1024])   // in KiB
         mediaPlayer.media = media
         mediaPlayer.play()
         mediaPlayer.audio?.volume = Int32(volume * 100)
