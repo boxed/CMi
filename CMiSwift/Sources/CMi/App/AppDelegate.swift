@@ -84,8 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         tileView.layer?.isOpaque = false   // the video shows through while playing
         content.addSubview(tileView)
 
-        // Menu text and icons are drawn at the zoomed size, so they stay sharp
-        navigator = Navigator(device: device, scale: window.backingScaleFactor * Layout.zoom, home: home)
+        navigator = Navigator(device: device, backingScale: window.backingScaleFactor, home: home)
         overlay = ControlsOverlay(player: player, device: device, scale: window.backingScaleFactor)
         screen = Screen(navigator: navigator, overlay: overlay, player: player)
         renderer = Renderer(view: tileView)
@@ -288,7 +287,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// `p` and `viewSize` are in view points, top left origin.
     func mouseDown(at p: CGPoint, viewSize: CGSize) {
-        let z = screen.zoom
+        let z = screen.zoom(for: viewSize)
         let p = CGPoint(x: p.x / z, y: p.y / z)
         let viewSize = Renderer.layoutSize(of: viewSize, zoom: z)
         if player.isPlaying {
@@ -336,7 +335,7 @@ final class Screen: FrameSource {
 
     var isIdle: Bool { player.isPlaying && overlay.isIdle }
     /// The menus are zoomed, the playback controls aren't.
-    var zoom: CGFloat { player.isPlaying ? 1 : Layout.zoom }
+    func zoom(for viewSize: CGSize) -> CGFloat { player.isPlaying ? 1 : navigator.zoom(for: viewSize) }
 }
 
 /// Borderless windows can't become key by default, which they need to get keyboard input.

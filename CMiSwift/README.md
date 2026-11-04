@@ -43,7 +43,8 @@ Media keys work too. Clicking the progress bar jumps to that point.
 
 Change with `defaults write net.kodare.CMi <key> <value>`, then restart CMi:
 
-- `zoom` (`-float`, default 1.5) – how much bigger the menus are drawn than the old web frontend.
+- `zoom` (`-float`) – how much bigger the menus are drawn than the old web frontend. Normally the home screen
+  is zoomed to fill the height of the screen, and every other screen uses the same zoom.
 - `networkCaching` / `fileCaching` (`-int`, milliseconds, default 8000 / 3000) – how much VLC buffers.
 - `readAheadMegabytes` (`-int`, default 256) – how far ahead VLC may download when the network is faster than
   the video, so a good connection builds up minutes of buffer when playing from Plex.

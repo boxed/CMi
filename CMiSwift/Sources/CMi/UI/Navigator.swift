@@ -5,7 +5,18 @@ import Metal
 @MainActor
 final class Navigator: FrameSource {
     private let device: MTLDevice
-    private let scale: CGFloat
+    private let backingScale: CGFloat
+    /// Points on screen per layout unit (CSS px). The home screen fills the height of the screen, with a margin
+    /// below as big as the one above, and every other screen uses the same zoom.
+    private var zoom = Layout.zoomSetting ?? 1.5
+    /// The view's size in points.
+    private var viewSize = NSScreen.main?.frame.size ?? CGSize(width: 1920, height: 1080)
+    /// The bottom right corner of the home screen's tiles, in layout units.
+    private var homeExtent: CGSize?
+    /// Menu text and icons are drawn at the zoomed size, so they stay sharp.
+    private var scale: CGFloat { backingScale * zoom }
+    /// How wide the screen is in layout units, for `Cell.wrap`.
+    private var layoutWidth: CGFloat { viewSize.width / zoom }
 
     /// Called for `.play` tiles. The navigator refreshes when told playback stopped.
     var onPlay: ((Playable) -> Void)?
@@ -24,15 +35,12 @@ final class Navigator: FrameSource {
     private var prefetchDelay: Task<Void, Never>?
 
     private var chrome: Chrome
-    /// How wide the screen is in layout points, for `Cell.wrap`. Updated every frame; the menu is laid out
-    /// again when it changes.
-    private var layoutWidth = (NSScreen.main?.frame.width ?? 1920) / Layout.zoom
 
-    init(device: MTLDevice, scale: CGFloat, home: @escaping MenuSource) {
+    init(device: MTLDevice, backingScale: CGFloat, home: @escaping MenuSource) {
         self.device = device
-        self.scale = scale
+        self.backingScale = backingScale
         currentSource = home
-        chrome = Chrome(device: device, scale: scale)
+        chrome = Chrome(device: device, scale: backingScale * zoom)
         load(home, focus: nil, direction: .forward)
     }
 
@@ -189,7 +197,13 @@ final class Navigator: FrameSource {
     }
 
     private func show(_ menu: Menu, focus: Level.FocusMemory?, direction: Motion.Direction?) {
-        let level = Level(menu: menu, width: layoutWidth, device: device, scale: scale)
+        var level = Level(menu: menu, width: layoutWidth, device: device, scale: scale)
+        if history.isEmpty {
+            homeExtent = level.extent
+            if updateZoom() {
+                level = Level(menu: menu, width: layoutWidth, device: device, scale: scale)
+            }
+        }
         if let focus {
             level.restoreFocus(focus)
         }
@@ -254,13 +268,31 @@ final class Navigator: FrameSource {
 
     /// Draw order: body background, the incoming level, then the outgoing levels on top
     /// (flip_out() raises the old container to z-index 100, new ones get 0), then chrome.
-    func frame(now: CFTimeInterval, viewSize: CGSize) -> [DrawBatch] {
-        if viewSize.width != layoutWidth {
-            layoutWidth = viewSize.width
+    func zoom(for viewSize: CGSize) -> CGFloat {
+        if viewSize != self.viewSize {
+            self.viewSize = viewSize
+            updateZoom()
+            // Lay out again, for the new zoom or for `Cell.wrap`
             if let current {
                 show(current.menu, focus: current.focusMemory, direction: nil)
             }
         }
+        return zoom
+    }
+
+    /// Fits the home screen to the view. Returns true if the zoom changed.
+    @discardableResult
+    private func updateZoom() -> Bool {
+        guard Layout.zoomSetting == nil, let homeExtent else { return false }
+        let o = Layout.tablesOrigin
+        let fitted = min(viewSize.height / (homeExtent.height + o.y), viewSize.width / (homeExtent.width + o.x))
+        guard fitted != zoom else { return false }
+        zoom = fitted
+        chrome.setScale(scale)
+        return true
+    }
+
+    func frame(now: CFTimeInterval, viewSize: CGSize) -> [DrawBatch] {
         leaving.removeAll { now > $0.animationEnd + 0.05 }
         var batches = [chrome.background(viewSize: viewSize)]
         if let current {
@@ -280,7 +312,7 @@ struct Chrome {
     static let backButtonFrame = CGRect(x: 5, y: 5, width: 30, height: 30)   // #back_link { top: 5px; left: 5px }
 
     private let device: MTLDevice
-    private let scale: CGFloat
+    private var scale: CGFloat
     private var texture: MTLTexture?
     private var clockText = ""
     private var clockUV = SIMD4<Float>(repeating: 0)
@@ -296,6 +328,11 @@ struct Chrome {
 
     init(device: MTLDevice, scale: CGFloat) {
         self.device = device
+        self.scale = scale
+        rebuild()
+    }
+
+    mutating func setScale(_ scale: CGFloat) {
         self.scale = scale
         rebuild()
     }

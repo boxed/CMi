@@ -3,9 +3,9 @@ import Metal
 
 /// Layout constants from style2-retina.css, in CSS px. One CSS px is `zoom` points on screen.
 enum Layout {
-    /// The menus are drawn this much bigger than the old web frontend, to suit a TV across the room.
-    /// Adjustable with e.g. `defaults write net.kodare.CMi zoom -float 1.25`.
-    static let zoom: CGFloat = (UserDefaults.standard.object(forKey: "zoom") as? Double).map { CGFloat($0) } ?? 1.5
+    /// How much bigger than the old web frontend the menus are drawn. Normally the home screen is zoomed to fill the
+    /// height of the screen (see `Navigator.zoom`); this fixes it instead, e.g. `defaults write net.kodare.CMi zoom -float 1.5`.
+    static let zoomSetting: CGFloat? = (UserDefaults.standard.object(forKey: "zoom") as? Double).map { CGFloat($0) }
 
     static let tablesOrigin = CGPoint(x: 100, y: 60)     // .tiles { top: 60px; left: 100px }
     static let borderSpacing: CGFloat = 5                // .tiles { border-spacing: 5px }
@@ -50,6 +50,8 @@ final class Level {
     /// Indices into `tiles` of the focusable tiles, by row and column.
     private var grid: [[Int?]] = []
     private var tableFrame = CGRect.zero
+    /// The bottom right corner of the tiles, from the top left of the screen.
+    var extent: CGSize { CGSize(width: tableFrame.maxX, height: tableFrame.maxY) }
     private var headerFrame = CGRect.zero
     private var headerUV = SIMD4<Float>(repeating: 0)
     /// The title turns with the page, as its first row.

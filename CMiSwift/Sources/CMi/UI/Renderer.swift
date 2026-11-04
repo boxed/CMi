@@ -99,13 +99,13 @@ protocol FrameSource: AnyObject {
     /// True when there's nothing to draw. The renderer then clears once and stops presenting frames,
     /// so a transparent view over the video costs nothing.
     var isIdle: Bool { get }
-    /// Points on screen per layout unit (CSS px).
-    var zoom: CGFloat { get }
+    /// Points on screen per layout unit (CSS px), for a view `viewSize` points big.
+    func zoom(for viewSize: CGSize) -> CGFloat
 }
 
 extension FrameSource {
     var isIdle: Bool { false }
-    var zoom: CGFloat { Layout.zoom }
+    func zoom(for viewSize: CGSize) -> CGFloat { 1 }
 }
 
 @MainActor
@@ -150,7 +150,7 @@ final class Renderer: NSObject, MTKViewDelegate {
         guard let pass = view.currentRenderPassDescriptor, let drawable = view.currentDrawable,
               let cmd = queue.makeCommandBuffer(),
               let enc = cmd.makeRenderCommandEncoder(descriptor: pass) else { return }
-        let size = Self.layoutSize(of: view.bounds.size, zoom: source.zoom)
+        let size = Self.layoutSize(of: view.bounds.size, zoom: source.zoom(for: view.bounds.size))
         encode(idle ? [] : source.frame(now: CACurrentMediaTime(), viewSize: size), viewSize: size, into: enc)
         enc.endEncoding()
         cmd.present(drawable)
@@ -206,7 +206,7 @@ extension Renderer {
         pass.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
         pass.colorAttachments[0].storeAction = .multisampleResolve
         guard let enc = cmd.makeRenderCommandEncoder(descriptor: pass) else { return }
-        let layoutSize = Self.layoutSize(of: size, zoom: source.zoom)
+        let layoutSize = Self.layoutSize(of: size, zoom: source.zoom(for: size))
         encode(source.frame(now: CACurrentMediaTime(), viewSize: layoutSize), viewSize: layoutSize, into: enc)
         enc.endEncoding()
         let blit = cmd.makeBlitCommandEncoder()!
