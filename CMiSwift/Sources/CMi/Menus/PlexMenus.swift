@@ -43,19 +43,20 @@ struct PlexMenus {
         }
     }
 
-    /// What you're in the middle of as one row on top, so it's one press to continue, then the libraries.
+    /// What you're in the middle of as a grid on top, as wide as the screen so it's one press to continue,
+    /// then the libraries.
     private func libraries() async throws -> Menu {
         var rows: [[Cell]] = []
         // Not worth failing the whole menu over
         let onDeck = (try? await plex.onDeck()) ?? []
         if !onDeck.isEmpty {
             rows.append([.label("Continue watching")])
-            rows.append(onDeck.map { item in
-                .tile(MenuItem(title: item.title, extra: item.episode.map(Self.episodeNumber), action: .play {
+            rows.append([.wrap(onDeck.map { item in
+                MenuItem(title: item.title, extra: item.episode.map(Self.episodeNumber), action: .play {
                     let title = item.episode.map { "\(item.title) \(Self.episodeNumber($0)) \($0.title)" } ?? item.title
                     return try await playable(item.id, title: title)
-                }))
-            })
+                })
+            })])
             rows.append([.empty])
         }
         let sections = try await plex.sections().map { section in

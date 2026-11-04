@@ -62,14 +62,15 @@ final class Level {
     private var scroll = CGPoint.zero
     private var lastFrame: CFTimeInterval?
 
-    init(menu: Menu, device: MTLDevice, scale: CGFloat) {
+    /// `width` is the screen's width in layout points, for `Cell.wrap`.
+    init(menu: Menu, width: CGFloat, device: MTLDevice, scale: CGFloat) {
         self.menu = menu
         var atlas = AtlasBuilder()
         switch menu.layout {
         case .bigTiles(let columns, let items):
             layOutBigTiles(columns: columns, items: items, atlas: &atlas)
         case .table(let rows):
-            layOutTable(rows, atlas: &atlas)
+            layOutTable(rows, width: width, atlas: &atlas)
         }
 
         var headerIndex: Int?
@@ -109,7 +110,8 @@ final class Level {
     }
 
     /// HTML table auto layout: each column is as wide as its widest cell, each row as tall as its tallest.
-    private func layOutTable(_ rows: [[Cell]], atlas: inout AtlasBuilder) {
+    /// A `Cell.wrap` row becomes rows of its own, in equal columns that fit in `width`.
+    private func layOutTable(_ rows: [[Cell]], width: CGFloat, atlas: inout AtlasBuilder) {
         let pad = Layout.tilePadding, s = Layout.borderSpacing, o = Layout.tablesOrigin
         let columnCount = rows.map(\.count).max() ?? 0
         var widths = Array(repeating: CGFloat(0), count: columnCount)
@@ -117,42 +119,67 @@ final class Level {
         for (r, row) in rows.enumerated() {
             for (c, cell) in row.enumerated() {
                 let size = Level.contentSize(of: cell)
-                widths[c] = max(widths[c], size.width + pad.left + pad.right)
                 heights[r] = max(heights[r], size.height + pad.top + pad.bottom)
+                if case .wrap = cell { continue }
+                widths[c] = max(widths[c], size.width + pad.left + pad.right)
             }
         }
 
-        grid = Array(repeating: Array(repeating: nil, count: columnCount), count: rows.count)
+        grid = []
+        var tableWidth = widths.reduce(s) { $0 + $1 + s }
         var y = o.y + s
         for (r, row) in rows.enumerated() {
+            if case .wrap(let items)? = row.first {
+                // Room up to the scroll margin on the right, so nothing needs scrolling sideways
+                let room = width - o.x - Layout.scrollMargin - s
+                let cellWidth = min(room, items.map { Level.contentSize(of: .tile($0)).width + pad.left + pad.right }.max() ?? 0)
+                let columns = max(1, Int((room + s) / (cellWidth + s)))
+                for start in stride(from: 0, to: items.count, by: columns) {
+                    var gridRow: [Int?] = []
+                    for (c, item) in items[start..<min(items.count, start + columns)].enumerated() {
+                        let frame = CGRect(x: o.x + s + CGFloat(c) * (cellWidth + s), y: y, width: cellWidth, height: heights[r])
+                        gridRow.append(tiles.count)
+                        tiles.append(Tile(item: item, row: grid.count, column: c, frame: frame))
+                        atlas.add(frame.size) { rect in Level.drawTableTile(item, in: rect) }
+                    }
+                    tableWidth = max(tableWidth, CGFloat(gridRow.count) * (cellWidth + s) + s)
+                    grid.append(gridRow)
+                    y += heights[r] + s
+                }
+                continue
+            }
+            var gridRow = Array(repeating: Int?.none, count: columnCount)
             var x = o.x + s
             for (c, cell) in row.enumerated() {
                 let frame = CGRect(x: x, y: y, width: widths[c], height: heights[r])
                 x += widths[c] + s
                 switch cell {
-                case .empty:
+                case .empty, .wrap:
                     continue
                 case .tile(let item):
-                    grid[r][c] = tiles.count
-                    tiles.append(Tile(item: item, row: r, column: c, frame: frame))
+                    gridRow[c] = tiles.count
+                    tiles.append(Tile(item: item, row: grid.count, column: c, frame: frame))
                     atlas.add(frame.size) { rect in Level.drawTableTile(item, in: rect) }
                 case .label(let text, let size):
-                    tiles.append(Tile(item: nil, row: r, column: c, frame: frame))
+                    tiles.append(Tile(item: nil, row: grid.count, column: c, frame: frame))
                     let str = Fonts.attributed(text, Fonts.regular(size ?? Layout.labelFontSize))
                     atlas.add(frame.size) { rect in
                         str.draw(at: CGPoint(x: rect.minX + pad.left, y: rect.midY - str.size().height / 2))
                     }
                 }
             }
+            grid.append(gridRow)
             y += heights[r] + s
         }
-        tableFrame = CGRect(x: o.x, y: o.y, width: widths.reduce(s) { $0 + $1 + s }, height: y - o.y)
+        tableFrame = CGRect(x: o.x, y: o.y, width: tableWidth, height: y - o.y)
     }
 
     private static func contentSize(of cell: Cell) -> CGSize {
         switch cell {
         case .empty:
             return .zero
+        case .wrap(let items):
+            return CGSize(width: 0, height: items.map { contentSize(of: .tile($0)).height }.max() ?? 0)
         case .tile(let item):
             let (main, extra) = tableLabels(item)
             var width = main.size().width
@@ -262,6 +289,13 @@ final class Level {
             }
             (row, column) = (row + dy, column + dx)
         }
+        // Up or down from further right than the next row reaches (like from a wide grid to the list under it):
+        // its last tile
+        guard dx == 0, let next = sequence(first: tiles[focus].row + dy, next: { $0 + dy })
+            .prefix(while: grid.indices.contains).first(where: { grid[$0].contains { $0 != nil } }),
+              let last = grid[next].lastIndex(where: { $0 != nil }), last < tiles[focus].column
+        else { return }
+        self.focus = grid[next][last]
     }
 
     func setPressed(_ pressed: Bool, at i: Int) {

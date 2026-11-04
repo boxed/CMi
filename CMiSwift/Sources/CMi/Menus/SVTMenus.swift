@@ -11,7 +11,7 @@ struct SVTMenus {
         MenuItem(title: "SVT Play", symbol: "play.tv", action: .open { try await root() })
     }
 
-    /// What you're in the middle of and the next episodes of programs you've watched as one row on top,
+    /// What you're in the middle of and the next episodes of programs you've watched as a grid on top,
     /// then the start page's lists and A–Ö.
     func root() async throws -> Menu {
         async let sections = svt.startPage()
@@ -19,7 +19,7 @@ struct SVTMenus {
         let continuing = await continueWatching()
         if !continuing.isEmpty {
             rows.append([.label("Continue watching")])
-            rows.append(continuing.map(Cell.tile))
+            rows.append([.wrap(continuing)])
             rows.append([.empty])
         }
         rows += try await sections.map { section in

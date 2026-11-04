@@ -42,6 +42,9 @@ enum Cell {
     /// Non-interactive text, e.g. "Season 2". `size` defaults to the tile font size.
     case label(String, size: CGFloat? = nil)
     case empty
+    /// Tiles in equal columns, as many as fit the width of the screen, wrapping into more rows. Alone in its
+    /// row, and its columns don't line up with the table's, so a long list doesn't run off the side of the TV.
+    case wrap([MenuItem])
 }
 
 struct MenuItem {

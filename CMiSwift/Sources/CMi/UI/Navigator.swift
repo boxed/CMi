@@ -24,6 +24,9 @@ final class Navigator: FrameSource {
     private var prefetchDelay: Task<Void, Never>?
 
     private var chrome: Chrome
+    /// How wide the screen is in layout points, for `Cell.wrap`. Updated every frame; the menu is laid out
+    /// again when it changes.
+    private var layoutWidth = (NSScreen.main?.frame.width ?? 1920) / Layout.zoom
 
     init(device: MTLDevice, scale: CGFloat, home: @escaping MenuSource) {
         self.device = device
@@ -186,7 +189,7 @@ final class Navigator: FrameSource {
     }
 
     private func show(_ menu: Menu, focus: Level.FocusMemory?, direction: Motion.Direction?) {
-        let level = Level(menu: menu, device: device, scale: scale)
+        let level = Level(menu: menu, width: layoutWidth, device: device, scale: scale)
         if let focus {
             level.restoreFocus(focus)
         }
@@ -252,6 +255,12 @@ final class Navigator: FrameSource {
     /// Draw order: body background, the incoming level, then the outgoing levels on top
     /// (flip_out() raises the old container to z-index 100, new ones get 0), then chrome.
     func frame(now: CFTimeInterval, viewSize: CGSize) -> [DrawBatch] {
+        if viewSize.width != layoutWidth {
+            layoutWidth = viewSize.width
+            if let current {
+                show(current.menu, focus: current.focusMemory, direction: nil)
+            }
+        }
         leaving.removeAll { now > $0.animationEnd + 0.05 }
         var batches = [chrome.background(viewSize: viewSize)]
         if let current {
