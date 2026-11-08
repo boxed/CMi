@@ -67,7 +67,8 @@ struct LocalMenus {
         Playable(title: "\(show.name) \(episode.displayTitle)", url: URL(fileURLWithPath: episode.filepath),
                  startMilliseconds: Int(episode.position),
                  reportPosition: { [database] in database.setEpisodePosition(episode.id, milliseconds: Double($0)) },
-                 reportEnded: { [database] in database.episodeEnded(episode.id) })
+                 reportEnded: { [database] in database.episodeEnded(episode.id) },
+                 subtitlesKey: "show:\(show.id)")
     }
 
     // MARK: Movies
@@ -87,7 +88,8 @@ struct LocalMenus {
         MenuItem(title: movie.name, extra: movie.aired, action: .play { [database] in
             Playable(title: movie.name, url: URL(fileURLWithPath: movie.filepath), startMilliseconds: Int(movie.position),
                      reportPosition: { database.setMoviePosition(movie.id, milliseconds: Double($0)) },
-                     reportEnded: { database.movieEnded(movie.id) })
+                     reportEnded: { database.movieEnded(movie.id) },
+                     subtitlesKey: "movie:\(movie.id)")
         })
     }
 

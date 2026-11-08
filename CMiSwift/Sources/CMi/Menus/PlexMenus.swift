@@ -133,9 +133,27 @@ struct PlexMenus {
 
     private func playable(_ ratingKey: String, title: String) async throws -> Playable {
         let playback = try await plex.playback(of: ratingKey)
+        // Subtitles in files of their own are downloaded, since VLC can't tell their format from Plex's URLs.
+        // Only for what's playing, so the folder is emptied first.
+        let folder = URL.cachesDirectory.appending(path: "net.kodare.CMi/Plex subtitles", directoryHint: .isDirectory)
+        try? FileManager.default.removeItem(at: folder)
+        var files: [PlexSubtitle: URL] = [:]
+        for subtitle in playback.subtitles where subtitle.isDownloadable {
+            files[subtitle] = try? await plex.download(subtitle, to: folder)
+        }
+        var defaultSubtitles = DefaultSubtitles.off
+        if let selected = playback.subtitles.first(where: \.selected) {
+            if let file = files[selected] {
+                defaultSubtitles = .file(file)
+            } else if selected.fileURL == nil, let language = selected.language {
+                defaultSubtitles = .language(language)
+            }
+        }
         return Playable(title: title, url: playback.streamURL, startMilliseconds: playback.offset,
                         reportPosition: { await plex.reportProgress(of: ratingKey, milliseconds: $0) },
-                        reportEnded: { await plex.scrobble(ratingKey) }, byteSize: playback.size)
+                        reportEnded: { await plex.scrobble(ratingKey) },
+                        subtitleFiles: playback.subtitles.compactMap { files[$0] }, defaultSubtitles: defaultSubtitles,
+                        subtitlesKey: "plex:" + (playback.showID ?? ratingKey), byteSize: playback.size)
     }
 }
 

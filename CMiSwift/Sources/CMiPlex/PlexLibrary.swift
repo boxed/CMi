@@ -99,8 +99,25 @@ extension Plex {
         guard let metadata = try await get("/library/metadata/\(ratingKey)").metadata.first,
               let partKey = metadata.partKey
         else { throw PlexError.noMedia }
-        let streamURL = url(base: server.url, path: partKey, query: [URLQueryItem(name: "X-Plex-Token", value: server.token)])
-        return PlexPlayback(streamURL: streamURL, offset: metadata.viewOffset, size: metadata.partSize)
+        let token = [URLQueryItem(name: "X-Plex-Token", value: server.token)]
+        let subtitles = metadata.streams.filter { $0.streamType == 3 }.map { stream in
+            PlexSubtitle(language: stream.language, selected: stream.selected, forced: stream.forced,
+                         fileURL: stream.key.map { url(base: server.url, path: $0, query: token) }, format: stream.codec)
+        }
+        return PlexPlayback(streamURL: url(base: server.url, path: partKey, query: token), offset: metadata.viewOffset,
+                            size: metadata.partSize, showID: metadata.grandparentRatingKey, subtitles: subtitles)
+    }
+
+    /// Downloads subtitles that are in a file of their own into `folder`, named so VLC knows the format
+    /// (Plex's URL doesn't say). Returns the file.
+    public func download(_ subtitle: PlexSubtitle, to folder: URL) async throws -> URL {
+        guard subtitle.isDownloadable, let url = subtitle.fileURL else { throw PlexError.noMedia }
+        let data = try await data(for: request(url))
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let name = url.path.split(separator: "/").last.map(String.init) ?? "subtitles"
+        let file = folder.appending(path: "\(name).\(subtitle.format ?? "srt")", directoryHint: .notDirectory)
+        try data.write(to: file)
+        return file
     }
 
     /// Reports the playback position. Failures are ignored, the next report will catch up.

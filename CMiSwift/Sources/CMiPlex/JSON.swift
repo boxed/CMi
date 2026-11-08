@@ -152,8 +152,10 @@ struct MetadataDTO: Decodable {
     var index: Int?
     var originallyAvailableAt: String?
     var grandparentTitle: String?
+    var grandparentRatingKey: String?
     var partKey: String?
     var partSize: Int?
+    var streams: [StreamDTO]
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: AnyKey.self)
@@ -169,9 +171,11 @@ struct MetadataDTO: Decodable {
         index = c.lenientInt(AnyKey("index"))
         originallyAvailableAt = c.lenientString(AnyKey("originallyAvailableAt"))
         grandparentTitle = c.lenientString(AnyKey("grandparentTitle"))
+        grandparentRatingKey = c.lenientString(AnyKey("grandparentRatingKey"))
         let part = c.lenientArray(MediaDTO.self, AnyKey("Media")).first?.parts.first { $0.key != nil }
         partKey = part?.key
         partSize = part?.size
+        streams = part?.streams ?? []
     }
 }
 
@@ -187,10 +191,32 @@ struct PartDTO: Decodable {
     var key: String?
     /// In bytes.
     var size: Int?
+    var streams: [StreamDTO]
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: AnyKey.self)
         key = c.lenientString(AnyKey("key"))
         size = c.lenientInt(AnyKey("size"))
+        streams = c.lenientArray(StreamDTO.self, AnyKey("Stream"))
+    }
+}
+
+/// A video, audio or subtitle stream of a part. Subtitles in their own file have a key to download them from.
+struct StreamDTO: Decodable {
+    var streamType: Int?
+    var key: String?
+    var codec: String?
+    var language: String?
+    var selected: Bool
+    var forced: Bool
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: AnyKey.self)
+        streamType = c.lenientInt(AnyKey("streamType"))
+        key = c.lenientString(AnyKey("key"))
+        codec = c.lenientString(AnyKey("codec"))
+        language = c.lenientString(AnyKey("language"))
+        selected = c.lenientBool(AnyKey("selected")) ?? false
+        forced = c.lenientBool(AnyKey("forced")) ?? false
     }
 }

@@ -132,6 +132,27 @@ public struct PlexPlayback: Sendable {
     public var offset: Int
     /// The file's size in bytes, if Plex knows it.
     public var size: Int?
+    /// The show's ratingKey, for episodes.
+    public var showID: String?
+    public var subtitles: [PlexSubtitle] = []
+}
+
+/// A subtitle track Plex knows of: in the video file, or in a file of its own next to it (or downloaded by Plex).
+public struct PlexSubtitle: Sendable, Hashable {
+    /// e.g. "English". Nil when the file doesn't say.
+    public var language: String?
+    /// The one chosen in Plex, for this video or by the account's subtitle settings.
+    public var selected: Bool
+    public var forced: Bool
+    /// Where to download subtitles that are in a file of their own (with the token). Nil for ones in the video.
+    public var fileURL: URL?
+    /// "srt", "ass", "vobsub", …
+    public var format: String?
+
+    /// In a file of its own, in a text format that works on its own (unlike VobSub's .idx/.sub pairs).
+    public var isDownloadable: Bool {
+        fileURL != nil && ["srt", "ass", "ssa", "smi", "vtt"].contains(format ?? "")
+    }
 }
 
 public enum PlexError: Error, Sendable, Equatable {

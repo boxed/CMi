@@ -11,6 +11,8 @@ final class Player: NSObject {
     private(set) var isPaused = false
     private var hasReportedEnd = false
     private var hasFixedTracks = false
+    /// Whether the subtitles to start with have been chosen (or the viewer has picked some).
+    private var hasPickedSubtitles = false
     private var progressTimer: Timer?
     /// For estimating how far ahead is downloaded: a time in the video, and VLC's count of bytes read then.
     private var bufferAnchor = (milliseconds: 0, readBytes: Int32(0))
@@ -50,6 +52,7 @@ final class Player: NSObject {
         self.playable = playable
         hasReportedEnd = false
         hasFixedTracks = false
+        hasPickedSubtitles = false
         isPaused = false
         byteSize = playable.byteSize ?? (playable.url.isFileURL ? Self.fileSize(playable.url) : nil)
         bufferAnchor = (playable.startMilliseconds, 0)
@@ -58,6 +61,10 @@ final class Player: NSObject {
                           "prefetch-buffer-size": Self.readAheadMegabytes * 1024])   // in KiB
         mediaPlayer.media = media
         mediaPlayer.play()
+        let remembered = playable.subtitlesKey.flatMap { Self.rememberedSubtitles[$0] }
+        for file in playable.subtitleFiles {
+            mediaPlayer.addPlaybackSlave(file, type: .subtitle, enforce: remembered == nil && playable.defaultSubtitles == .file(file))
+        }
         mediaPlayer.audio?.volume = Int32(volume * 100)
         if playable.startMilliseconds > 0 {
             mediaPlayer.time = VLCTime(int: Int32(playable.startMilliseconds))   // not seek(to:): the duration isn't known yet
@@ -137,6 +144,90 @@ final class Player: NSObject {
         mediaPlayer.saveVideoSnapshot(at: url.path, withWidth: 0, andHeight: 0)
     }
 
+    // MARK: Subtitles
+
+    /// The name VLC gives the subtitles showing, e.g. "Track 2 - [English]". Nil when they're off.
+    var subtitlesName: String? {
+        let current = mediaPlayer.currentVideoSubTitleIndex
+        guard current >= 0, let i = subtitleTracks.indexes.firstIndex(of: current) else { return nil }
+        return subtitleTracks.names[i]
+    }
+
+    var hasSubtitles: Bool { !subtitleTracks.indexes.isEmpty }
+
+    /// The subtitle tracks, without VLC's "Disable" entry.
+    private var subtitleTracks: (names: [String], indexes: [Int32]) {
+        let names = mediaPlayer.videoSubTitlesNames.map { $0 as? String ?? "" }
+        let indexes = mediaPlayer.videoSubTitlesIndexes.map { ($0 as? NSNumber)?.int32Value ?? -1 }
+        let tracks = zip(names, indexes).filter { $0.1 >= 0 }
+        return (tracks.map(\.0), tracks.map(\.1))
+    }
+
+    /// Shows the next subtitles, or none after the last ones. Remembered for the show or movie.
+    func nextSubtitles() {
+        guard isPlaying else { return }
+        let indexes = [-1] + subtitleTracks.indexes
+        let current = indexes.firstIndex(of: mediaPlayer.currentVideoSubTitleIndex) ?? 0
+        mediaPlayer.currentVideoSubTitleIndex = indexes[(current + 1) % indexes.count]
+        hasPickedSubtitles = true
+        if let key = playable?.subtitlesKey {
+            Self.rememberedSubtitles[key] = subtitlesName ?? ""
+        }
+        onChange?()
+    }
+
+    /// The track name picked last for each `Playable.subtitlesKey`, "" for none.
+    private static var rememberedSubtitles: [String: String] {
+        get { UserDefaults.standard.dictionary(forKey: "subtitles") as? [String: String] ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: "subtitles") }
+    }
+
+    /// Starts the subtitles picked last time for this show or movie, or else the playable's default. Subtitles
+    /// from files turn up a moment after the video starts, so this keeps looking for a few seconds.
+    private func pickSubtitles() {
+        guard let playable else { return }
+        let tracks = subtitleTracks
+        let isLate = currentTime - playable.startMilliseconds > 8000
+        func select(_ i: Int?) {
+            mediaPlayer.currentVideoSubTitleIndex = i.map { tracks.indexes[$0] } ?? -1
+            hasPickedSubtitles = true
+        }
+        if let remembered = playable.subtitlesKey.flatMap({ Self.rememberedSubtitles[$0] }) {
+            if remembered.isEmpty {
+                select(nil)
+            } else if let i = tracks.names.firstIndex(of: remembered) {
+                select(i)
+            } else if isLate {
+                select(tracks.names.isEmpty ? nil : 0)   // another file of the same show, with other track names
+            }
+            return
+        }
+        switch playable.defaultSubtitles {
+        case .off:
+            select(nil)
+        case .file:
+            hasPickedSubtitles = true   // VLC shows it once it has loaded it
+        case .named(let name):
+            if let i = tracks.names.firstIndex(where: { Self.trackName($0, isNamed: name) }) {
+                select(i)
+            } else if isLate {
+                select(nil)
+            }
+        case .language(let language):
+            if let i = tracks.names.firstIndex(where: { $0.localizedCaseInsensitiveContains(language) }) {
+                select(i)
+            } else if isLate {
+                select(nil)
+            }
+        }
+    }
+
+    /// Whether VLC's name for a track is "<group> <name> - [<language>]" or "<name>".
+    private static func trackName(_ trackName: String, isNamed name: String) -> Bool {
+        let trimmed = trackName.replacing(/\ - \[[^\]]*\]$/, with: "")
+        return trimmed == name || trimmed.hasSuffix(" " + name)
+    }
+
     // MARK: Volume
 
     /// 0...1, remembered between launches.
@@ -172,12 +263,9 @@ final class Player: NSObject {
         }
     }
 
-    /// Subtitles off (unless the playable keeps them), and prefer an English audio track.
+    /// Prefer an English audio track.
     private func fixTracks() {
         hasFixedTracks = true
-        if playable?.keepsSubtitles != true {
-            mediaPlayer.currentVideoSubTitleIndex = -1
-        }
         let names = mediaPlayer.audioTrackNames.compactMap { $0 as? String }
         let indexes = mediaPlayer.audioTrackIndexes.compactMap { ($0 as? NSNumber)?.int32Value }
         if let i = names.firstIndex(where: { $0.localizedCaseInsensitiveContains("english") }), i < indexes.count {
@@ -190,6 +278,7 @@ extension Player: VLCMediaPlayerDelegate {
     nonisolated func mediaPlayerTimeChanged(_ aNotification: Notification) {
         Task { @MainActor in
             if isPlaying && !hasFixedTracks { fixTracks() }
+            if isPlaying && !hasPickedSubtitles { pickSubtitles() }
         }
     }
 

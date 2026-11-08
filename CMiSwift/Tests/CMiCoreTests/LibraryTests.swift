@@ -143,6 +143,38 @@ struct LibraryTests {
         #expect(metadata.queries.contains("title:midnight in paris avi"))
     }
 
+    @Test func subtitlesMoveWithTheVideo() async throws {
+        _ = try #require(database.insertShow(name: "House"))
+        // Next to the video, named after it
+        try download("House.S08E03.avi")
+        try download("House.S08E03.srt")
+        try download("House.S08E03.en.srt")
+        try download("House.S08E03.HDTV.srt")
+        // A release folder with a Subs folder
+        try download("House.S08E04.720p/House.S08E04.720p.mkv")
+        try download("House.S08E04.720p/Subs/2_English.srt")
+        // A season in one folder, with a Subs folder per episode
+        try download("House.S07/House.S07E01.mkv")
+        try download("House.S07/House.S07E02.mkv")
+        try download("House.S07/House.S07E03.mkv")
+        try download("House.S07/Subs/House.S07E01/3_Swedish.srt")
+        try download("House.S07/Subs/House.S07E02.srt")
+        try download("House.S07/Subs/common.srt")   // whose is it?
+
+        #expect(await library.scan())
+
+        let house = paths.tvShows.appending(path: "House")
+        #expect(exists(house.appending(path: "Season 8/house S08E03.srt")))
+        #expect(exists(house.appending(path: "Season 8/house S08E03.en.srt")))
+        #expect(exists(house.appending(path: "Season 8/house S08E03.HDTV.srt")))
+        #expect(exists(house.appending(path: "Season 8/house S08E04.2_English.srt")))
+        #expect(exists(house.appending(path: "Season 7/house S07E01.3_Swedish.srt")))
+        #expect(exists(paths.downloads.appending(path: "House.S07/Subs/common.srt")))
+        let season7 = try FileManager.default.contentsOfDirectory(atPath: house.appending(path: "Season 7").path(percentEncoded: false))
+        #expect(season7.sorted() == ["house S07E01.3_Swedish.srt", "house S07E01.mkv", "house S07E02.mkv",
+                                     "house S07E02.srt", "house S07E03.mkv"])
+    }
+
     @Test func skipsFoldersThatAreNotDownloads() async throws {
         try download("incomplete/House.S08E03.avi")
         try download("Sample/House.S08E04.avi")
@@ -173,6 +205,8 @@ struct LibraryTests {
             try makeVideo(file, size: 10)
         }
         try Data().write(to: paths.tvShows.appending(path: "House/Season 1/.DS_Store"))
+        let erasedSubtitles = paths.tvShows.appending(path: "House/Season 1/house S01E01.en.srt")
+        try Data().write(to: erasedSubtitles)
         let erased = try #require(database.insertEpisode(show: erase, season: 1, episode: 1, filepath: erasedFile.path(percentEncoded: false)))
         let remaining = try #require(database.insertEpisode(show: erase, season: 2, episode: 1, name: "x", filepath: remainingFile.path(percentEncoded: false)))
         let kept = try #require(database.insertEpisode(show: keep, season: 1, episode: 1, name: "x", filepath: keptFile.path(percentEncoded: false)))
@@ -186,6 +220,7 @@ struct LibraryTests {
         #expect(database.episode(kept)?.filepath == keptFile.path(percentEncoded: false))
         // The file, then its (now empty but for .DS_Store) season folder
         #expect(trash.trashed == [
+            erasedSubtitles.path(percentEncoded: false),
             erasedFile.path(percentEncoded: false),
             paths.tvShows.appending(path: "House/Season 1", directoryHint: .isDirectory).path(percentEncoded: false),
         ])

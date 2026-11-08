@@ -191,7 +191,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: Input
 
     enum Key: String {
-        case left, right, up, down, enter, escape, backspace, space, m, r
+        case left, right, up, down, enter, escape, backspace, space, m, r, s
 
         init?(_ event: NSEvent) {
             switch event.keyCode {
@@ -204,6 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case 51: self = .backspace
             case 49: self = .space
             case 46: self = .m
+            case 1: self = .s
             case 15: self = .r
             default: return nil
             }
@@ -256,7 +257,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// In menus: arrows move, return opens, escape/backspace go back, typing jumps to a title, ⌘R refreshes.
     /// While playing (the old player's keys, plus left/right to skip like the remote had): space plays/pauses
     /// (or presses the focused control), return/escape/M show or hide the controls, left/right skip 30 seconds
-    /// (or move between controls), up/down change the volume, backspace stops.
+    /// (or move between controls), up/down change the volume, S switches subtitles, backspace stops.
     func press(_ key: Key) {
         guard player.isPlaying else {
             switch key {
@@ -266,7 +267,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case .up: navigator.moveFocus(dx: 0, dy: -1)
             case .enter: navigator.go()
             case .escape, .backspace: navigator.back()
-            case .space, .m, .r: break
+            case .space, .m, .r, .s: break
             }
             return
         }
@@ -281,6 +282,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case (.up, _): player.raiseVolume()
         case (.down, _): player.lowerVolume()
         case (.backspace, _): player.stop()
+        case (.s, _):
+            player.nextSubtitles()
+            overlay.show(sticky: false)   // to say which
         case (.r, _): break
         }
     }

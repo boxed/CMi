@@ -77,7 +77,8 @@ public struct SVTPlay: Sendable {
               let url = URL(string: string)
         else { throw SVTError.noStream }
         let title = [video.programTitle, video.episodeTitle].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " – ")
-        return SVTStream(url: url, title: title)
+        let subtitles = video.subtitleReferences?.first { $0.type == "subtitle" }?.label
+        return SVTStream(url: url, title: title, defaultSubtitles: subtitles)
     }
 
     // MARK: HTTP

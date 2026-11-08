@@ -137,8 +137,7 @@ public actor Library {
 
         try fileManager.createDirectory(at: folder, withIntermediateDirectories: true)
         if !fileManager.fileExists(atPath: destination.path(percentEncoded: false)) {
-            logger.info("Move \(path, privacy: .public) -> \(destination.path(percentEncoded: false), privacy: .public)")
-            try fileManager.moveItem(at: paths.downloads.appending(path: path), to: destination)
+            try move(path, to: destination)
         }
         database.setEpisodeFile(show: show.id, season: season, episode: episode, aired: aired,
                                 filepath: destination.path(percentEncoded: false))
@@ -148,7 +147,11 @@ public actor Library {
     private func deleteWatchedEpisodes() {
         for episode in database.watchedAutoEraseEpisodes() {
             do {
-                try trash(URL(filePath: episode.filepath))
+                let file = URL(filePath: episode.filepath)
+                for subtitle in subtitlesNextTo(file, fileManager: fileManager) {
+                    try? trash(subtitle.source)
+                }
+                try trash(file)
             } catch {
                 // Most likely already gone. Either way the episode is done.
                 logger.error("Failed to trash \(episode.filepath, privacy: .public): \(String(describing: error), privacy: .public)")
@@ -243,8 +246,7 @@ public actor Library {
             logger.error("Not moving \(path, privacy: .public): \(destination.path(percentEncoded: false), privacy: .public) already exists")
             return false
         }
-        logger.info("Move \(path, privacy: .public) -> \(destination.path(percentEncoded: false), privacy: .public)")
-        try fileManager.moveItem(at: paths.downloads.appending(path: path), to: destination)
+        try move(path, to: destination)
         database.insertMovie(name: title.title, aired: title.year.map(String.init) ?? "", filepath: destination.path(percentEncoded: false))
         return true
     }
@@ -285,6 +287,23 @@ public actor Library {
     }
 
     // MARK: - Files
+
+    /// Moves a download, and the subtitles that belong to it, renamed to match.
+    private func move(_ path: String, to destination: URL) throws {
+        let source = paths.downloads.appending(path: path)
+        let subtitles = subtitles(of: source, renamedTo: splitExtension(destination.lastPathComponent).name, fileManager: fileManager)
+        logger.info("Move \(path, privacy: .public) -> \(destination.path(percentEncoded: false), privacy: .public)")
+        try fileManager.moveItem(at: source, to: destination)
+        for subtitle in subtitles {
+            let target = destination.deletingLastPathComponent().appending(path: subtitle.name, directoryHint: .notDirectory)
+            guard !fileManager.fileExists(atPath: target.path(percentEncoded: false)) else { continue }
+            do {
+                try fileManager.moveItem(at: subtitle.source, to: target)
+            } catch {
+                logger.error("Failed to move \(subtitle.source.path(percentEncoded: false), privacy: .public): \(String(describing: error), privacy: .public)")
+            }
+        }
+    }
 
     private func trash(_ url: URL) throws {
         if let customTrash {

@@ -111,6 +111,26 @@ import Testing
         #expect(playback.size == 123)
     }
 
+    @Test func playbackSubtitles() async throws {
+        fake.route("\(server)/library/metadata/102", .json(Payloads.movieMetadata))
+        fake.route("\(server)/library/streams/32", .json("1\n00:00:01,000 --> 00:00:02,000\nHello\n"))
+        let plex = fake.makePlex()
+        let subtitles = try await plex.playback(of: "102").subtitles
+        #expect(subtitles == [
+            PlexSubtitle(language: "Svenska", selected: false, forced: true, fileURL: nil, format: "subrip"),
+            PlexSubtitle(language: "English", selected: true, forced: false,
+                         fileURL: URL(string: "\(server)/library/streams/32?X-Plex-Token=server-token"), format: "srt"),
+            PlexSubtitle(language: nil, selected: false, forced: false,
+                         fileURL: URL(string: "\(server)/library/streams/33?X-Plex-Token=server-token"), format: "vobsub"),
+        ])
+        #expect(subtitles.map(\.isDownloadable) == [false, true, false])
+
+        let folder = fake.supportFolder.appending(path: "subtitles")
+        let file = try await plex.download(subtitles[1], to: folder)
+        #expect(file == folder.appending(path: "32.srt"))
+        #expect(try String(contentsOf: file, encoding: .utf8).contains("Hello"))
+    }
+
     @Test func playbackWithoutMedia() async throws {
         fake.route("\(server)/library/metadata/5", .json(#"{"MediaContainer": {"size": 1, "Metadata": [{"ratingKey": "5", "type": "movie", "title": "X"}]}}"#))
         await #expect(throws: PlexError.noMedia) {

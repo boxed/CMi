@@ -111,7 +111,12 @@ enum Payloads {
     {"MediaContainer": {"size": 1, "Metadata": [
       {"ratingKey": "102", "type": "movie", "title": "Brazil", "year": 1985, "viewOffset": 600000, "duration": 8520000,
        "Media": [{"id": 7, "duration": 8520000, "container": "mkv",
-         "Part": [{"id": 9, "key": "/library/parts/9/1600000000/file.mkv", "file": "/data/movies/Brazil.mkv", "size": 123}]}]}
+         "Part": [{"id": 9, "key": "/library/parts/9/1600000000/file.mkv", "file": "/data/movies/Brazil.mkv", "size": 123,
+           "Stream": [
+             {"id": 30, "streamType": 1, "codec": "h264"},
+             {"id": 31, "streamType": 3, "codec": "subrip", "language": "Svenska", "forced": "1"},
+             {"id": 32, "streamType": 3, "codec": "srt", "language": "English", "selected": true, "key": "/library/streams/32"},
+             {"id": 33, "streamType": 3, "codec": "vobsub", "key": "/library/streams/33"}]}]}]}
     ]}}
     """
 }

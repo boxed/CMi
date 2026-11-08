@@ -130,8 +130,15 @@ struct VideoDTO: Decodable {
         var format: String?
         var url: String?
     }
+    struct SubtitleReference: Decodable {
+        /// "subtitle" for what SVT shows by default, "caption-sdh" for all speech.
+        var type: String?
+        /// The subtitles' name in the stream, e.g. "Svenska" or "Svenska (allt tal)".
+        var label: String?
+    }
     var programTitle: String?
     var episodeTitle: String?
     var rights: Rights?
     var videoReferences: [Reference]?
+    var subtitleReferences: [SubtitleReference]?
 }

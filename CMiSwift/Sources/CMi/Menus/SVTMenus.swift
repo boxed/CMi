@@ -113,7 +113,8 @@ struct SVTMenus {
                             await progress.setPosition(of: videoID, title: stream.title, programPath: programPath, milliseconds: $0)
                         },
                         reportEnded: { await progress.markWatched(videoID, title: stream.title, programPath: programPath) },
-                        keepsSubtitles: true)
+                        defaultSubtitles: stream.defaultSubtitles.map { .named($0) } ?? .off,
+                        subtitlesKey: "svt:" + (programPath ?? videoID))
     }
 }
 

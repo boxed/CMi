@@ -67,6 +67,9 @@ public struct SVTStream: Sendable {
     public var url: URL
     /// "Program – Episode"
     public var title: String
+    /// The name in the stream of the subtitles SVT shows by default: translations of foreign speech and lines
+    /// that are hard to hear. The others are all speech, for the hard of hearing.
+    public var defaultSubtitles: String?
 }
 
 public enum SVTError: Error, Equatable, LocalizedError {

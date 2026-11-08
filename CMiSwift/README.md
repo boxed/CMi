@@ -35,9 +35,22 @@ bundle, which is why the app is run from `build/CMi.app` rather than with `swift
 In menus: arrows move, Return opens, Escape or Backspace goes back, typing jumps to the first title starting with what you typed, ⌘R refreshes. `/` or ⌘F searches
 local TV shows and movies, Plex and SVT Play from anywhere; type to search, Backspace deletes.
 
-While playing: Space plays/pauses, Left/Right skip 30 seconds, Up/Down change the volume, Return, Escape
-or M show the on-screen controls (then Left/Right pick one and Space/Return presses it), Backspace stops.
+While playing: Space plays/pauses, Left/Right skip 30 seconds, Up/Down change the volume, S switches subtitles,
+Return, Escape or M show the on-screen controls (then Left/Right pick one and Space/Return presses it), Backspace stops.
 Media keys work too. Clicking the progress bar jumps to that point.
+
+## Subtitles
+
+S, or the last of the on-screen controls, goes through the subtitles and then off. What you pick is remembered
+for the show (or movie) and used for its next episodes. Until you've picked something:
+
+- Local files start without subtitles. VLC finds subtitle files next to the video whose name contains the
+  video's. When a download is filed away, its subtitles go with it: `Video.en.srt` next to it, or in a `Subs`
+  folder (`Subs/2_English.srt`, or `Subs/<video name>/…` for a season in one folder).
+- Plex starts with what's chosen in Plex (per video, or by the account's subtitle settings). Subtitles in files
+  of their own on the server are downloaded when playing starts.
+- SVT Play starts with what SVT shows by default: translations of foreign speech and lines that are hard to hear.
+  "Allt tal" has everything.
 
 ## Settings
 

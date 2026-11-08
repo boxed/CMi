@@ -166,11 +166,15 @@ let menuQuery = #"{"mainCategories": [], "mainMenuEvent": null, "legalNotices": 
          "videoReferences": [
             {"format": "dash", "url": "https://cdn.test/manifest.mpd"},
             {"format": "hls-full", "url": "https://cdn.test/hls.m3u8"},
-            {"format": "hls", "url": "https://cdn.test/master-fmp4.m3u8?format=hls"}]}
+            {"format": "hls", "url": "https://cdn.test/master-fmp4.m3u8?format=hls"}],
+         "subtitleReferences": [
+            {"url": "https://cdn.test/text/text-closed.vtt", "format": "webvtt", "type": "caption-sdh", "label": "Svenska (allt tal)"},
+            {"url": "https://cdn.test/text/text-open.vtt", "format": "webvtt", "type": "subtitle", "label": "Svenska"}]}
         """)
         let stream = try await svt.stream(for: "jMdmAp9")
         #expect(stream.url.absoluteString == "https://cdn.test/master-fmp4.m3u8?format=hls")
         #expect(stream.title == "Nazistdonatorn – 1. Att veta sanningen")
+        #expect(stream.defaultSubtitles == "Svenska")
     }
 
     @Test func copyProtectedVideos() async throws {

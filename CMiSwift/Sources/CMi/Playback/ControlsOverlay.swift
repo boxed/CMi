@@ -6,9 +6,9 @@ import Metal
 @MainActor
 final class ControlsOverlay: FrameSource {
     enum Button: Int, CaseIterable {
-        case beginning, rewind, stop, playPause, forward, end
+        case beginning, rewind, stop, playPause, forward, end, subtitles
 
-        func symbol(paused: Bool) -> String {
+        func symbol(paused: Bool, subtitles: Bool) -> String {
             switch self {
             case .beginning: "backward.end.fill"
             case .rewind: "gobackward.30"
@@ -16,6 +16,7 @@ final class ControlsOverlay: FrameSource {
             case .playPause: paused ? "play.fill" : "pause.fill"
             case .forward: "goforward.30"
             case .end: "forward.end.fill"
+            case .subtitles: subtitles ? "captions.bubble.fill" : "captions.bubble"
             }
         }
     }
@@ -53,14 +54,16 @@ final class ControlsOverlay: FrameSource {
         var atlas = AtlasBuilder()
         var names: [String] = []
         for button in Button.allCases {
-            for paused in [false, true] where !names.contains(button.symbol(paused: paused)) {
-                let name = button.symbol(paused: paused)
-                names.append(name)
-                atlas.add(Self.tileSize) { r in
-                    guard let image = Fonts.symbol(name, pointSize: 30) else { return }
-                    let size = image.size
-                    image.draw(in: CGRect(x: r.midX - size.width / 2, y: r.midY - size.height / 2, width: size.width, height: size.height),
-                               from: .zero, operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
+            for paused in [false, true] {
+                for subtitles in [false, true] where !names.contains(button.symbol(paused: paused, subtitles: subtitles)) {
+                    let name = button.symbol(paused: paused, subtitles: subtitles)
+                    names.append(name)
+                    atlas.add(Self.tileSize) { r in
+                        guard let image = Fonts.symbol(name, pointSize: 30) else { return }
+                        let size = image.size
+                        image.draw(in: CGRect(x: r.midX - size.width / 2, y: r.midY - size.height / 2, width: size.width, height: size.height),
+                                   from: .zero, operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
+                    }
                 }
             }
         }
@@ -116,6 +119,7 @@ final class ControlsOverlay: FrameSource {
         case .playPause: player.playPause()
         case .forward: player.jumpForward()
         case .end: player.toEnd()
+        case .subtitles: player.nextSubtitles()
         }
     }
 
@@ -159,7 +163,10 @@ final class ControlsOverlay: FrameSource {
 
     private func updateText() {
         let title = player.playable?.title ?? ""
-        let new = "\(title)    \(Self.format(player.currentTime)) / \(Self.format(player.duration))"
+        var new = "\(title)    \(Self.format(player.currentTime)) / \(Self.format(player.duration))"
+        if player.hasSubtitles {
+            new += "    Subtitles: \(player.subtitlesName ?? "off")"
+        }
         guard new != text else { return }
         text = new
         let str = Fonts.attributed(text, Fonts.regular(Layout.labelFontSize))
@@ -203,7 +210,7 @@ final class ControlsOverlay: FrameSource {
                          uv: SIMD4(0, 0, 1, 1), colors: nil, opacity: 1),
             ]))
             batches.append(DrawBatch(texture: iconTexture, instances: Button.allCases.map { button in
-                Instance(rect: frame(of: button, viewSize: viewSize), uv: iconUVs[button.symbol(paused: player.isPaused)],
+                Instance(rect: frame(of: button, viewSize: viewSize), uv: iconUVs[button.symbol(paused: player.isPaused, subtitles: player.subtitlesName != nil)],
                          colors: button == focus ? Palette.focus : Palette.tile, opacity: Self.opacity)
             }))
         }
