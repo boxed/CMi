@@ -52,10 +52,12 @@ struct PlexMenus {
         if !onDeck.isEmpty {
             rows.append([.label("Continue watching")])
             rows.append([.wrap(onDeck.map { item in
-                MenuItem(title: item.title, extra: item.episode.map(Self.episodeNumber), action: .play {
+                let tile = MenuItem(title: item.title, extra: item.episode.map(Self.episodeNumber), action: .play {
                     let title = item.episode.map { "\(item.title) \(Self.episodeNumber($0)) \($0.title)" } ?? item.title
                     return try await playable(item.id, title: title)
                 })
+                // On deck means not watched yet; movies don't get the menu
+                return item.episode == nil ? tile : tile.markableAsWatched(false) { await plex.scrobble(item.id) }
             })])
             rows.append([.empty])
         }
@@ -103,7 +105,7 @@ struct PlexMenus {
             let title = [number, episode.title].filter { !$0.isEmpty }.joined(separator: ". ")
             return MenuItem(title: prefix + title, unwatchedMarker: !episode.watched, action: .play {
                 try await playable(episode.id, title: "\(episode.showTitle) \(title)")
-            })
+            }).markableAsWatched(episode.watched) { await plex.scrobble(episode.id) }
         }
         var menu = seasonGrid(title: first.showTitle, episodes: episodes, season: \.season,
                               next: PlexEpisode.next(in: episodes).map { tile($0, "Next: ") }) { tile($0, "") }
@@ -127,6 +129,7 @@ struct PlexMenus {
             case .episode(let episode):
                 let title = "\(episode.showTitle) \(Self.episodeNumber(episode)) \(episode.title)"
                 return MenuItem(title: title, action: .play { try await playable(episode.id, title: title) })
+                    .markableAsWatched(episode.watched) { await plex.scrobble(episode.id) }
             }
         }
     }

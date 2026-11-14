@@ -76,7 +76,7 @@ struct SVTMenus {
             let watched = await progress.entry(for: id)?.watched ?? false
             return MenuItem(title: teaser.title, unwatchedMarker: !watched, action: .play {
                 try await playable(id, programPath: teaser.programPath)
-            })
+            }).markableAsWatched(watched) { await progress.markWatched(id, title: teaser.title, programPath: teaser.programPath) }
         case .program(let path):
             return MenuItem(title: teaser.title, action: .open { try await program(path) })
         }

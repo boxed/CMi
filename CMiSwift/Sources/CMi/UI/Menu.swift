@@ -54,6 +54,13 @@ struct MenuItem {
     var symbol: String? = nil     // big tiles: SF Symbol
     var unwatchedMarker = false   // the little bar on unwatched episodes
     var action: Action? = nil
+    /// The right click menu.
+    var contextActions: [ContextAction] = []
+
+    struct ContextAction {
+        var title: String
+        var run: @MainActor () async -> Outcome
+    }
 
     enum Action {
         /// Go one level deeper.
@@ -66,6 +73,17 @@ struct MenuItem {
 
     enum Outcome {
         case stay, refresh, back(levels: Int = 1)
+    }
+
+    /// Right click "Mark as watched", for episodes not watched yet.
+    func markableAsWatched(_ watched: Bool, _ markWatched: @escaping @MainActor () async -> Void) -> MenuItem {
+        guard !watched else { return self }
+        var item = self
+        item.contextActions.append(ContextAction(title: "Mark as watched") {
+            await markWatched()
+            return .refresh
+        })
+        return item
     }
 }
 

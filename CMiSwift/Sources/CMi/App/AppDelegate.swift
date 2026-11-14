@@ -309,6 +309,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// The tile's right click menu, if it has one. `p` and `viewSize` are in view points, top left origin.
+    func rightMouseDown(at p: CGPoint, viewSize: CGSize, in view: NSView) {
+        guard !player.isPlaying else { return }
+        let z = screen.zoom(for: viewSize)
+        let actions = navigator.contextActions(at: CGPoint(x: p.x / z, y: p.y / z))
+        guard !actions.isEmpty else { return }
+        let menu = NSMenu()
+        for action in actions {
+            menu.addItem(ClosureMenuItem(title: action.title) { [weak self] in self?.navigator.run(action) })
+        }
+        menu.popUp(positioning: nil, at: CGPoint(x: p.x, y: viewSize.height - p.y), in: view)
+    }
+
     func mouseMoved() {
         if player.isPlaying { overlay.show(sticky: false) }
     }
@@ -363,6 +376,11 @@ final class TileView: MTKView {
         app?.mouseDown(at: CGPoint(x: p.x, y: bounds.height - p.y), viewSize: bounds.size)
     }
 
+    override func rightMouseDown(with event: NSEvent) {
+        let p = convert(event.locationInWindow, from: nil)
+        app?.rightMouseDown(at: CGPoint(x: p.x, y: bounds.height - p.y), viewSize: bounds.size, in: self)
+    }
+
     override func mouseMoved(with event: NSEvent) {
         app?.mouseMoved()
     }
@@ -372,4 +390,19 @@ final class TileView: MTKView {
         trackingAreas.forEach(removeTrackingArea)
         addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
     }
+}
+
+/// A menu item that runs a closure when chosen.
+final class ClosureMenuItem: NSMenuItem {
+    private let handler: () -> Void
+
+    init(title: String, handler: @escaping () -> Void) {
+        self.handler = handler
+        super.init(title: title, action: #selector(choose), keyEquivalent: "")
+        target = self
+    }
+
+    required init(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    @objc private func choose() { handler() }
 }

@@ -79,12 +79,29 @@ final class Navigator: FrameSource {
             Task {
                 let outcome = await run()
                 level.setPressed(false, at: i)
-                switch outcome {
-                case .stay: break
-                case .refresh: refresh()
-                case .back(let levels): back(levels: levels)
-                }
+                handle(outcome)
             }
+        }
+    }
+
+    /// The right click menu of the tile at `p`, which gets focus.
+    func contextActions(at p: CGPoint) -> [MenuItem.ContextAction] {
+        guard let level = current, let i = level.tileIndex(at: p), let item = level.tiles[i].item,
+              !item.contextActions.isEmpty else { return [] }
+        level.focus = i
+        prefetchSoon()
+        return item.contextActions
+    }
+
+    func run(_ action: MenuItem.ContextAction) {
+        Task { handle(await action.run()) }
+    }
+
+    private func handle(_ outcome: MenuItem.Outcome) {
+        switch outcome {
+        case .stay: break
+        case .refresh: refresh()
+        case .back(let levels): back(levels: levels)
         }
     }
 

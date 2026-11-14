@@ -58,6 +58,7 @@ struct LocalMenus {
         let tile = { (episode: Episode, prefix: String) in
             MenuItem(title: prefix + episode.displayTitle, unwatchedMarker: !show.autoErase && !episode.watched,
                      action: .play { playable(episode, of: show) })
+                .markableAsWatched(episode.watched) { [database] in database.episodeEnded(episode.id) }
         }
         let next = database.nextEpisode(of: show.id).map { tile($0, "Next: ") }
         return seasonGrid(title: show.name, episodes: episodes, season: \.season, next: next) { tile($0, "") }
