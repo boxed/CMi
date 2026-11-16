@@ -1,6 +1,0 @@
-<td class="tile" url="{{ episode.url }}">
-    {% if next %}Next: {% endif %}{% if episode.episode %}{{ episode.episode }}{% else %}{{ episode.aired }}{% endif %}{% if episode.name %}. {{ episode.name }}{% endif %}
-    {% if not episode.watched %}
-        <div class="watched_marker"><div>&nbsp;</div></div>
-    {% endif %}
-</td>
