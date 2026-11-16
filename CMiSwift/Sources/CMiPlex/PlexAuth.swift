@@ -31,9 +31,25 @@ extension Plex {
     }
 
     /// Probes the server's connections and saves the first reachable one. Returns false if none answered.
-    public func signIn(to server: PlexServer) async throws -> Bool {
+    /// With the account token, the server can be found again if its address changes.
+    public func signIn(to server: PlexServer, accountToken: String? = nil) async throws -> Bool {
         guard let url = await reachableURL(of: server) else { return false }
-        try store.signIn(url: url, token: server.accessToken, serverName: server.name)
+        try store.signIn(url: url, token: server.accessToken, serverName: server.name, serverID: server.id, accountToken: accountToken)
+        return true
+    }
+
+    /// Asks plex.tv for the server's addresses again and saves the first one that answers. Returns false when
+    /// that wasn't possible, also when it was tried less than a minute ago, so being offline doesn't make
+    /// every request wait for this.
+    func reconnect() async -> Bool {
+        guard let lookup = store.serverLookup,
+              lastReconnect.map({ Date().timeIntervalSince($0) > 60 }) ?? true
+        else { return false }
+        lastReconnect = Date()
+        guard let server = try? await servers(accountToken: lookup.accountToken).first(where: { $0.id == lookup.serverID }),
+              let url = await reachableURL(of: server)
+        else { return false }
+        try? store.changeURL(to: url)
         return true
     }
 

@@ -5,6 +5,7 @@ public actor Plex {
     public let store: PlexStore
     let plexTV: URL
     let session: URLSession
+    var lastReconnect: Date?
 
     static let timeout: TimeInterval = 10
     static let probeTimeout: TimeInterval = 3
@@ -65,6 +66,16 @@ public actor Plex {
         guard let http = response as? HTTPURLResponse else { throw PlexError.invalidResponse }
         guard (200..<300).contains(http.statusCode) else { throw PlexError.httpStatus(http.statusCode) }
         return data
+    }
+
+    /// The error's message, plus which host failed and the TLS error code for failed secure connections,
+    /// e.g. "A TLS error caused the secure connection to fail. (plex.tv, -9813)".
+    public static func describe(_ error: Error) -> String {
+        let error = error as NSError
+        var details: [String] = []
+        if let host = (error.userInfo[NSURLErrorFailingURLErrorKey] as? URL)?.host { details.append(host) }
+        if let code = error.userInfo["_kCFStreamErrorCodeKey"] as? Int, code != 0 { details.append(String(code)) }
+        return details.isEmpty ? error.localizedDescription : "\(error.localizedDescription) (\(details.joined(separator: ", ")))"
     }
 
     func decode<T: Decodable>(_ type: T.Type, _ request: URLRequest) async throws -> T {

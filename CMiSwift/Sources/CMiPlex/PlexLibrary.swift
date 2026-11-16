@@ -58,11 +58,10 @@ extension Plex {
 
     /// Movies, shows and episodes matching `query` in every library, grouped by type like the server does.
     public func search(_ query: String, limit: Int = 20) async throws -> [PlexSearchResult] {
-        let request = try serverRequest("/hubs/search", query: [
+        return try await get("/hubs/search", query: [
             URLQueryItem(name: "query", value: query),
             URLQueryItem(name: "limit", value: String(limit)),
-        ])
-        return try await decode(MediaContainerResponse.self, request).hubs.flatMap { hub in
+        ]).hubs.flatMap { hub in
             hub.metadata.compactMap { m -> PlexSearchResult? in
                 guard let id = m.ratingKey else { return nil }
                 switch m.type ?? hub.type {
@@ -122,20 +121,21 @@ extension Plex {
 
     /// Reports the playback position. Failures are ignored, the next report will catch up.
     public func reportProgress(of ratingKey: String, milliseconds: Int) async {
-        _ = try? await data(for: serverRequest("/:/progress", query: [
+        _ = try? await serverData("/:/progress", query: [
             URLQueryItem(name: "key", value: ratingKey),
             URLQueryItem(name: "identifier", value: "com.plexapp.plugins.library"),
             URLQueryItem(name: "time", value: String(milliseconds)),
             URLQueryItem(name: "state", value: "playing"),
-        ]))
+        ])
     }
 
-    /// Marks as watched.
-    public func scrobble(_ ratingKey: String) async {
-        _ = try? await data(for: serverRequest("/:/scrobble", query: [
+    /// Marks as watched. Returns false when the server couldn't be told.
+    @discardableResult
+    public func scrobble(_ ratingKey: String) async -> Bool {
+        (try? await serverData("/:/scrobble", query: [
             URLQueryItem(name: "key", value: ratingKey),
             URLQueryItem(name: "identifier", value: "com.plexapp.plugins.library"),
-        ]))
+        ])) != nil
     }
 
     func serverRequest(_ path: String, query: [URLQueryItem] = []) throws -> URLRequest {
@@ -143,7 +143,22 @@ extension Plex {
         return try request(url(base: server.url, path: path, query: query), token: server.token)
     }
 
-    func get(_ path: String) async throws -> MediaContainerResponse {
-        try await decode(MediaContainerResponse.self, serverRequest(path))
+    /// When the server can't be reached at its address, it's looked up again in case it changed, and asked again.
+    func serverData(_ path: String, query: [URLQueryItem] = []) async throws -> Data {
+        do {
+            return try await data(for: serverRequest(path, query: query))
+        } catch let error as URLError {
+            guard await reconnect() else { throw error }
+            return try await data(for: serverRequest(path, query: query))
+        }
+    }
+
+    func get(_ path: String, query: [URLQueryItem] = []) async throws -> MediaContainerResponse {
+        let data = try await serverData(path, query: query)
+        do {
+            return try JSONDecoder().decode(MediaContainerResponse.self, from: data)
+        } catch {
+            throw PlexError.invalidResponse
+        }
     }
 }

@@ -26,7 +26,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             library = Library(paths: paths, database: database)
             let plex = Plex(store: PlexStore(supportFolder: paths.supportFolder))
             let local = LocalMenus(database: database, library: library)
-            let plexMenus = PlexMenus(plex: plex, signIn: PlexSignIn(plex: plex))
+            let plexDownloads = PlexDownloads(plex: plex, folder: paths.supportFolder.appending(path: "Plex downloads", directoryHint: .isDirectory))
+            let plexMenus = PlexMenus(plex: plex, signIn: PlexSignIn(plex: plex), downloads: plexDownloads)
+            // Continues downloads that were interrupted, and catches up with what's been watched elsewhere
+            Task {
+                while true {
+                    await plexDownloads.sync()
+                    try? await Task.sleep(for: .seconds(600))
+                }
+            }
             let svt = SVTMenus(svt: SVTPlay(), progress: SVTProgress(supportFolder: paths.supportFolder))
             search = SearchMenus(local: local, plex: plexMenus, svt: svt)
             let home = HomeMenu(local: local, plex: plexMenus, svt: svt, search: search)

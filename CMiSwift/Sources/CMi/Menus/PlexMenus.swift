@@ -6,6 +6,7 @@ import CMiPlex
 struct PlexMenus {
     let plex: Plex
     let signIn: PlexSignIn
+    let downloads: PlexDownloads
 
     /// How often pages that offer the next episode reload, so something watched on another device
     /// doesn't show up as next here. `CMI_PLEX_SYNC_SECONDS` overrides it (for testing).
@@ -44,25 +45,42 @@ struct PlexMenus {
     }
 
     /// What you're in the middle of as a grid on top, as wide as the screen so it's one press to continue,
-    /// then the libraries.
+    /// then the libraries. When the server can't be reached, the downloaded episodes instead.
     private func libraries() async throws -> Menu {
         var rows: [[Cell]] = []
+        let continueWatching: [MenuItem]
         // Not worth failing the whole menu over
-        let onDeck = (try? await plex.onDeck()) ?? []
-        if !onDeck.isEmpty {
-            rows.append([.label("Continue watching")])
-            rows.append([.wrap(onDeck.map { item in
+        if let onDeck = try? await plex.onDeck() {
+            continueWatching = onDeck.map { item in
                 let tile = MenuItem(title: item.title, extra: item.episode.map(Self.episodeNumber), action: .play {
                     let title = item.episode.map { "\(item.title) \(Self.episodeNumber($0)) \($0.title)" } ?? item.title
                     return try await playable(item.id, title: title)
                 })
                 // On deck means not watched yet; movies don't get the menu
-                return item.episode == nil ? tile : tile.markableAsWatched(false) { await plex.scrobble(item.id) }
-            })])
+                return item.episode == nil ? tile : tile.markableAsWatched(false) { await downloads.markWatched(item.id) }
+            }
+        } else {
+            continueWatching = await downloads.downloads().map { download in
+                let episode = download.episode
+                return MenuItem(title: episode.showTitle, extra: Self.episodeNumber(episode), action: .play {
+                    try await playable(episode.id, title: "\(episode.showTitle) \(Self.episodeNumber(episode)) \(episode.title)")
+                }).markableAsWatched(false) { await downloads.markWatched(episode.id) }
+            }
+        }
+        if !continueWatching.isEmpty {
+            rows.append([.label("Continue watching")])
+            rows.append([.wrap(continueWatching)])
             rows.append([.empty])
         }
-        let sections = try await plex.sections().map { section in
-            MenuItem(title: section.title, action: .open { try await sectionMenu(section) })
+        let sections: [MenuItem]
+        do {
+            sections = try await plex.sections().map { section in
+                MenuItem(title: section.title, action: .open { try await sectionMenu(section) })
+            }
+        } catch {
+            // Still with what's downloaded, and a way to sign in again
+            rows.append([.label("Couldn't reach \(await plex.serverName ?? "Plex"): \(Plex.describe(error))")])
+            sections = []
         }
         let signOut = MenuItem(title: "Sign out", extra: await plex.serverName, action: .run {
             await plex.signOut()
@@ -105,7 +123,7 @@ struct PlexMenus {
             let title = [number, episode.title].filter { !$0.isEmpty }.joined(separator: ". ")
             return MenuItem(title: prefix + title, unwatchedMarker: !episode.watched, action: .play {
                 try await playable(episode.id, title: "\(episode.showTitle) \(title)")
-            }).markableAsWatched(episode.watched) { await plex.scrobble(episode.id) }
+            }).markableAsWatched(episode.watched) { await downloads.markWatched(episode.id) }
         }
         var menu = seasonGrid(title: first.showTitle, episodes: episodes, season: \.season,
                               next: PlexEpisode.next(in: episodes).map { tile($0, "Next: ") }) { tile($0, "") }
@@ -129,13 +147,27 @@ struct PlexMenus {
             case .episode(let episode):
                 let title = "\(episode.showTitle) \(Self.episodeNumber(episode)) \(episode.title)"
                 return MenuItem(title: title, action: .play { try await playable(episode.id, title: title) })
-                    .markableAsWatched(episode.watched) { await plex.scrobble(episode.id) }
+                    .markableAsWatched(episode.watched) { await downloads.markWatched(episode.id) }
             }
         }
     }
 
+    /// Plays the downloaded file if there is one, which also works without a connection to the server.
     private func playable(_ ratingKey: String, title: String) async throws -> Playable {
-        let playback = try await plex.playback(of: ratingKey)
+        let playback: PlexPlayback
+        do {
+            playback = try await plex.playback(of: ratingKey)
+        } catch {
+            guard let download = await downloads.download(of: ratingKey) else { throw error }
+            Task { await downloads.played(ratingKey, showID: download.showID) }
+            return playable(download, ratingKey: ratingKey, title: title, offset: download.episode.offset)
+        }
+        if let showID = playback.showID {
+            Task { await downloads.played(ratingKey, showID: showID) }
+        }
+        if let download = await downloads.download(of: ratingKey) {
+            return playable(download, ratingKey: ratingKey, title: title, offset: playback.offset)
+        }
         // Subtitles in files of their own are downloaded, since VLC can't tell their format from Plex's URLs.
         // Only for what's playing, so the folder is emptied first.
         let folder = URL.cachesDirectory.appending(path: "net.kodare.CMi/Plex subtitles", directoryHint: .isDirectory)
@@ -154,9 +186,23 @@ struct PlexMenus {
         }
         return Playable(title: title, url: playback.streamURL, startMilliseconds: playback.offset,
                         reportPosition: { await plex.reportProgress(of: ratingKey, milliseconds: $0) },
-                        reportEnded: { await plex.scrobble(ratingKey) },
+                        reportEnded: { await downloads.markWatched(ratingKey) },
                         subtitleFiles: playback.subtitles.compactMap { files[$0] }, defaultSubtitles: defaultSubtitles,
                         subtitlesKey: "plex:" + (playback.showID ?? ratingKey), byteSize: playback.size)
+    }
+
+    private func playable(_ download: PlexDownload, ratingKey: String, title: String, offset: Int) -> Playable {
+        var defaultSubtitles = DefaultSubtitles.off
+        if let file = download.selectedSubtitles {
+            defaultSubtitles = .file(file)
+        } else if let language = download.selectedLanguage {
+            defaultSubtitles = .language(language)
+        }
+        return Playable(title: title, url: download.video, startMilliseconds: offset,
+                        reportPosition: { await plex.reportProgress(of: ratingKey, milliseconds: $0) },
+                        reportEnded: { await downloads.markWatched(ratingKey) },
+                        subtitleFiles: download.subtitles, defaultSubtitles: defaultSubtitles,
+                        subtitlesKey: "plex:" + download.showID)
     }
 }
 

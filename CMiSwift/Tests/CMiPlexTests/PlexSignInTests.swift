@@ -52,6 +52,8 @@ import Testing
 
         guard case .signedIn(serverName: "Office") = await signIn.choose("id-Office") else { Issue.record("not signed in"); return }
         #expect(fake.store.server?.token == "token-Office")
+        #expect(fake.store.serverLookup?.serverID == "id-Office")
+        #expect(fake.store.serverLookup?.accountToken != nil)
     }
 
     @Test func choosingAnUnreachableServerStaysOnTheChoice() async throws {

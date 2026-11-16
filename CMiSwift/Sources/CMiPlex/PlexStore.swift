@@ -2,7 +2,8 @@ import Foundation
 
 /// Reads and writes plex.json in the support folder, shared with the old Python app:
 /// `{"url": "http://192.168.1.10:32400", "token": "...", "server_name": "...", "client_id": "..."}`.
-/// Unknown keys are kept when writing.
+/// Unknown keys are kept when writing. `server_id` and `account_token` are only written by this app, to find the
+/// server again when its address changes.
 public struct PlexStore: Sendable {
     public let fileURL: URL
 
@@ -39,18 +40,35 @@ public struct PlexStore: Sendable {
         return id
     }
 
-    func signIn(url: String, token: String, serverName: String) throws {
+    func signIn(url: String, token: String, serverName: String, serverID: String? = nil, accountToken: String? = nil) throws {
         var c = load()
         c["url"] = url
         c["token"] = token
         c["server_name"] = serverName
+        c["server_id"] = serverID
+        c["account_token"] = accountToken
+        try save(c)
+    }
+
+    /// The server's clientIdentifier and the plex.tv account token, saved when signing in. Nil for sign ins
+    /// made before they were saved, and by the old app.
+    var serverLookup: (serverID: String, accountToken: String)? {
+        let c = load()
+        guard let id = c["server_id"] as? String, let token = c["account_token"] as? String else { return nil }
+        return (id, token)
+    }
+
+    func changeURL(to url: String) throws {
+        var c = load()
+        c["url"] = url
         try save(c)
     }
 
     public func signOut() throws {
         var c = load()
-        guard c["url"] != nil || c["token"] != nil || c["server_name"] != nil else { return }
-        for key in ["url", "token", "server_name"] { c[key] = nil }
+        let keys = ["url", "token", "server_name", "server_id", "account_token"]
+        guard keys.contains(where: { c[$0] != nil }) else { return }
+        for key in keys { c[key] = nil }
         try save(c)
     }
 

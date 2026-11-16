@@ -56,7 +56,7 @@ public actor PlexSignIn {
         do {
             servers = try await plex.servers(accountToken: token)
         } catch {
-            return .failed("Couldn't get the Plex servers: \(error.localizedDescription)")
+            return .failed("Couldn't get the Plex servers: \(Plex.describe(error))")
         }
         accountToken = token
         if servers.count == 1, let state = await signIn(to: servers[0]), case .signedIn = state {
@@ -87,11 +87,11 @@ public actor PlexSignIn {
 
     private func signIn(to server: PlexServer) async -> PlexSignInState? {
         do {
-            guard try await plex.signIn(to: server) else {
+            guard try await plex.signIn(to: server, accountToken: accountToken) else {
                 return .failed("Couldn't connect to \(server.name)")
             }
         } catch {
-            return .failed("Couldn't sign in to \(server.name): \(error.localizedDescription)")
+            return .failed("Couldn't sign in to \(server.name): \(Plex.describe(error))")
         }
         accountToken = nil
         servers = []
@@ -107,7 +107,7 @@ public actor PlexSignIn {
             return .showingCode(pin.code)
         } catch {
             pin = nil
-            return .failed("Couldn't reach plex.tv: \(error.localizedDescription)")
+            return .failed("Couldn't reach plex.tv: \(Plex.describe(error))")
         }
     }
 

@@ -131,3 +131,54 @@ import Testing
         print("Live plex.tv pin \(pin.id) code \(pin.code)")
     }
 }
+
+@Test func errorDescriptionsSayWhichHostAndTLSError() {
+    let error = URLError(.secureConnectionFailed, userInfo: [
+        NSURLErrorFailingURLErrorKey: URL(string: "https://plex.tv/api/v2/pins")!,
+        "_kCFStreamErrorCodeKey": -9813,
+        NSLocalizedDescriptionKey: "A TLS error caused the secure connection to fail.",
+    ])
+    #expect(Plex.describe(error) == "A TLS error caused the secure connection to fail. (plex.tv, -9813)")
+    #expect(Plex.describe(PlexError.noMedia) == (PlexError.noMedia as NSError).localizedDescription)
+}
+
+@Suite struct ReconnectTests {
+    let fake = FakePlex()
+
+    init() throws {
+        try fake.store.signIn(url: fake.url("old"), token: "server-token", serverName: "Living room",
+                              serverID: "srv-1", accountToken: "account-token")
+        fake.route("\(fake.url("old"))/library/sections", .unreachable)
+        fake.route("\(fake.plexTV)/api/v2/resources", .json("""
+        [\(Payloads.server(name: "Living room", id: "srv-1", accessToken: "server-token", connections: [(fake.url("new"), true, false)]))]
+        """))
+        fake.route("\(fake.url("new"))/identity", .json("{}"))
+        fake.route("\(fake.url("new"))/library/sections", .json(Payloads.sections))
+    }
+
+    @Test func findsTheServerAgainWhenItsAddressStopsWorking() async throws {
+        let plex = fake.makePlex()
+        #expect(try await plex.sections().count == 2)
+        #expect(fake.store.server?.url == fake.url("new"))
+        #expect(fake.store.serverLookup?.serverID == "srv-1")
+    }
+
+    @Test func notWithoutTheAccountToken() async throws {
+        try fake.store.signIn(url: fake.url("old"), token: "server-token", serverName: "Living room")
+        await #expect(throws: URLError.self) { try await fake.makePlex().sections() }
+        #expect(fake.requests(to: "/api/v2/resources").isEmpty)
+    }
+
+    @Test func atMostOnceAMinute() async throws {
+        fake.route("\(fake.url("new"))/identity", .unreachable)
+        let plex = fake.makePlex()
+        await #expect(throws: URLError.self) { try await plex.sections() }
+        await #expect(throws: URLError.self) { try await plex.sections() }
+        #expect(fake.requests(to: "/api/v2/resources").count == 1)
+    }
+
+    @Test func signOutForgetsTheLookup() throws {
+        try fake.store.signOut()
+        #expect(fake.store.serverLookup == nil)
+    }
+}

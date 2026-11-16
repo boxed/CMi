@@ -75,7 +75,7 @@ public struct PlexItem: Sendable, Hashable, Identifiable {
     public enum Kind: Sendable { case movie, show }
 }
 
-public struct PlexEpisode: Sendable, Hashable, Identifiable {
+public struct PlexEpisode: Sendable, Hashable, Identifiable, Codable {
     /// The ratingKey.
     public var id: String
     public var title: String
